@@ -1,0 +1,6 @@
+<apex:page controller="AmericanSpacesReport" cache="true" contentType="text/csv#proportionOfSpacesByRegion.csv" language="en-US" >
+"Region","Detail Information"
+<apex:repeat value="{!countriesWithSpacesPieData}" var="record" >
+"{!record.region}","{!record.percentageOfCountriesWithSpaces}% ({!record.numOfCountriesWithSpaces})"
+</apex:repeat>
+</apex:page>

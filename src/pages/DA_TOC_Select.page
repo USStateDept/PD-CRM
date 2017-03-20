@@ -1,0 +1,53 @@
+<apex:page showHeader="false" standardcontroller="Digital_Asset__c">
+  <script src="../../soap/ajax/23.0/connection.js" type="text/javascript"></script>
+  <apex:includeScript value="{!URLFOR($Resource.publishing_system_resources, 'publishing_system_resources/jquery.js')}"/>
+ 
+  <script type="text/javascript">
+      var j = jQuery.noConflict();
+      j(document).ready(function () {
+          sforce.connection.sessionId = "{!$Api.Session_ID}";
+          //spring 2013 enhancements: added param to DA_Edit pg button click, added standardcontroller property to this page, and modified query to filter on related languages
+          //var result = sforce.connection.query("SELECT d.Id, d.Name, d.LastModifiedDate, d.MC_Headline_1__c, d.MC_URL_1__c, d.MC_Headline_2__c, d.MC_URL_2__c, d.MC_Headline_3__c, d.MC_URL_3__c, d.MC_Headline_4__c, d.MC_URL_4__c, d.MC_Headline_5__c, d.MC_URL_5__c FROM Digital_Asset__c d WHERE d.Asset_Type__c = 'Table of Contents' ORDER By d.LastModifiedDate DESC");
+          var result = sforce.connection.query("SELECT d.Id, d.Name, d.LastModifiedDate, d.MC_Headline_1__c, d.MC_URL_1__c, d.MC_Headline_2__c, d.MC_URL_2__c, d.MC_Headline_3__c, d.MC_URL_3__c, d.MC_Headline_4__c, d.MC_URL_4__c, d.MC_Headline_5__c, d.MC_URL_5__c, d.Language__c FROM Digital_Asset__c d WHERE d.Language__c = \'{!$CurrentPage.parameters.lang}\' and d.Asset_Type__c = 'Table of Contents' ORDER By d.LastModifiedDate DESC");
+          var records = result.getArray("records");
+          for(i=0;i<records.length;i++){
+              var toAppend = '<tr>' + 
+                                  '<td><input type="radio" id="' + i + '" name="addToToc" value="'+ records[i].Id +'" /><span>' + records[i].Name + '</span></td>' +
+                             '</tr>';
+              j('#results').append(toAppend);
+          }
+
+         
+          j(".commitChanges").click(function(){
+              var checkedRadio = j("input[@name=addToToc]:checked");
+              var toc_value = checkedRadio.val();
+              j(opener.document).find("input.TOC_Title").val(toc_value);
+              j(opener.document).find("span.TOC_Title_Text").text(checkedRadio.next().text());
+
+              j(opener.document).find("input.mcHeadline1").val(records[checkedRadio.attr("id")].MC_Headline_1__c);
+              j(opener.document).find("input.mcUrl1").val(records[checkedRadio.attr("id")].MC_URL_1__c);
+                
+              j(opener.document).find("input.mcHeadline2").val(records[checkedRadio.attr("id")].MC_Headline_2__c);
+              j(opener.document).find("input.mcUrl2").val(records[checkedRadio.attr("id")].MC_URL_2__c);
+                
+              j(opener.document).find("input.mcHeadline3").val(records[checkedRadio.attr("id")].MC_Headline_3__c);
+              j(opener.document).find("input.mcUrl3").val(records[checkedRadio.attr("id")].MC_URL_3__c);
+                
+              j(opener.document).find("input.mcHeadline4").val(records[checkedRadio.attr("id")].MC_Headline_4__c);
+              j(opener.document).find("input.mcUrl4").val(records[checkedRadio.attr("id")].MC_URL_4__c);
+                
+              j(opener.document).find("input.mcHeadline5").val(records[checkedRadio.attr("id")].MC_Headline_5__c);
+              j(opener.document).find("input.mcUrl5").val(records[checkedRadio.attr("id")].MC_URL_5__c);
+
+                self.close();
+          });
+          
+      });
+      
+  </script>
+
+<button class="commitChanges">Commit Changes</button>
+<br/><br/>
+  <table id="results">
+  </table>
+</apex:page>

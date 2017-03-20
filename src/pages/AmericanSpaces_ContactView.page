@@ -1,0 +1,110 @@
+<apex:page id="page" title="American Spaces Contact" showHeader="true" sidebar="false" standardController="American_Spaces_Contact__c" extensions="AmericanSpacesContacts">
+    <apex:includeScript value="{!URLFOR($Resource.jQueryLibrary, 'jquery-1.8.3.js')}"/>
+    <script type="text/javascript">
+    	j$ = $.noConflict();
+    
+    	 j$(document).ready(function ()
+         {
+             var typeOfSpaceIndex;
+             var typeOfSpaceValue;
+
+             j$('.detailList > tbody > tr').each(function() {
+                var typeOfSpaceLabel = j$(this).find('td:eq(0)').text();
+				//find Type of Space's value
+             	if(typeOfSpaceLabel == 'Type of Space') {
+                    typeOfSpaceValue = j$(this).find('td:eq(1)').text();
+                }
+				
+                if(typeOfSpaceValue != undefined) {
+                     if((typeOfSpaceValue != 'Information Resource Center') && 
+                        (typeOfSpaceValue != 'American Center')) {
+                         var oboPropertyIdLabel = j$(this).find('td:eq(0)').text();
+                         if(oboPropertyIdLabel == 'OBO Property ID') {
+                             j$(this).find('td:eq(0)').html('<input type="hidden" id="oboPropertyId/>');
+                             return false;
+                         }
+                      }
+                      else {
+                          return false;
+                      }
+                  }
+             });
+
+         });
+    </script>
+    <apex:detail />
+<apex:form >
+	<apex:pageBlock id="pageBlock" title="American Spaces Statistics" mode="edit">
+		<apex:pageBlockButtons location="top">
+			<apex:commandButton action="{!addStatistics}" value="New American Spaces Statistics" />
+		</apex:pageBlockButtons>
+		<apex:pageBlockSection id="space" showHeader="false" columns="1">
+			<apex:pageBlockTable id="statistics" value="{!statistics}" var="obj" rowClasses="odd,even" styleClass="tableClass" >
+	        	<apex:column >
+	                <apex:facet name="header">Action</apex:facet>
+	                <apex:outputLink value="/apex/AmericanSpace_Statistics_Edit?id={!obj.id}&spaceID={!American_Spaces_Contact__c.id}">Edit</apex:outputLink>&nbsp;
+	                <apex:outputLink value="/apex/AmericanSpaces_DELETEStatistic?id={!obj.id}" onclick="return confirm('Are you sure you want to delete?');">Del</apex:outputLink>&nbsp;
+	            </apex:column>
+	            <apex:column headerClass="name" >
+	                <apex:facet name="header">Statistics Number</apex:facet>
+	                <apex:outputLink value="/{!obj.id}"><apex:outputText value="{!obj.name}" /></apex:outputLink> 
+	            </apex:column>
+	            <apex:column headerClass="name" >
+	                <apex:facet name="header">Month</apex:facet>
+	                <apex:outputText value="{!obj.Month__c}" /> 
+	            </apex:column>
+	            <apex:column headerClass="name" >
+	                <apex:facet name="header">Year</apex:facet>
+	                <apex:outputText value="{!obj.Year__c}" /> 
+	            </apex:column>
+	            <apex:column headerClass="name" >
+	                <apex:facet name="header">Number of Visitors</apex:facet>
+	                <apex:outputText value="{!obj.Number_of_Visitors__c}" /> 
+	            </apex:column>
+	            <apex:column headerClass="name" >
+	                <apex:facet name="header">Number of Programs</apex:facet>
+	                <apex:outputText value="{!obj.Number_of_Programs__c}" /> 
+	            </apex:column>
+	            <apex:column headerClass="name" >
+	                <apex:facet name="header">Number of Program Attendees</apex:facet>
+	                <apex:outputText value="{!obj.Number_of_Program_Attendees__c}" /> 
+	            </apex:column>
+	        </apex:pageBlockTable>
+		</apex:pageBlockSection>
+	</apex:pageBlock>
+	<apex:pageBlock id="pageBlock2" title="American Space Branches" mode="edit">
+		<apex:pageBlockButtons location="top">
+			<apex:commandButton action="{!addBranch}" value="New American Spaces Branch" />
+		</apex:pageBlockButtons>
+		<apex:pageBlockSection id="space2" showHeader="false" columns="1">
+			<apex:pageBlockTable id="statistics" value="{!branches}" var="obj" rowClasses="odd,even" styleClass="tableClass" >
+	        	<apex:column >
+	                <apex:facet name="header">Action</apex:facet>
+	                <apex:outputLink value="/apex/AmericanSpace_Branch_Edit?id={!obj.id}&spaceID={!American_Spaces_Contact__c.id}">Edit</apex:outputLink>&nbsp;
+	                <apex:outputLink value="/apex/AmericanSpaces_DELETEBranch?id={!obj.id}" onclick="return confirm('Are you sure you want to delete?');">Del</apex:outputLink>&nbsp;
+	            </apex:column>
+	            <apex:column headerClass="name" >
+	                <apex:facet name="header">Name of Branch</apex:facet>
+	                <apex:outputLink value="/{!obj.id}"><apex:outputText value="{!obj.name}" /></apex:outputLink>
+	            </apex:column>
+	            <apex:column headerClass="name" >
+	                <apex:facet name="header">Type of Space</apex:facet>
+	                <apex:outputText value="{!obj.Type_of_Space__c}" /> 
+	            </apex:column>
+	            <apex:column headerClass="name" >
+	                <apex:facet name="header">City</apex:facet>
+	                <apex:outputText value="{!obj.City__c}" /> 
+	            </apex:column>
+	            <apex:column headerClass="name" >
+	                <apex:facet name="header">Status</apex:facet>
+	                <apex:outputText value="{!obj.Status__c}" /> 
+	            </apex:column>
+	            <apex:column headerClass="name" >
+	                <apex:facet name="header">Open to public</apex:facet>
+	                <apex:outputText value="{!obj.Open_to_public__c}" /> 
+	            </apex:column>
+	        </apex:pageBlockTable>
+		</apex:pageBlockSection>
+	</apex:pageBlock>
+</apex:form>
+</apex:page>

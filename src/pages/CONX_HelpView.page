@@ -1,0 +1,39 @@
+<apex:page id="page" title="View Help Request" showHeader="true" sidebar="false" standardController="CONX_Help_Request__c" extensions="CONX_HelpController"  tabStyle="CONX_Help_Requests__tab">
+    
+    <apex:form id="myForm">
+        <apex:messages style="padding:5px;margin-top:55px" />
+        
+        <apex:pageBlock id="pageBlock" title="{!$ObjectType.CONX_Help_Request__c.label} View" mode="view">
+            <div style="text-align: center; margin-top:20px;margin-bottom:20px;">
+            	<apex:commandButton action="{!deleteHelpRequest}" value="Delete" rendered="{!myPermissionset == 'CONX Project Coordinator'}" />&nbsp;
+                <apex:commandButton action="{!edit}" value="Edit" />&nbsp;
+                <apex:commandButton action="{!assignToMe}" value="Assign to Me" rendered="{!$User.Id != CONX_Help_Request__c.ownerId}" />&nbsp;
+                <apex:commandButton action="{!resolveTicket}" value="Resolve Ticket" rendered="{!CONX_Help_Request__c.Status__c != 'Closed'}" />&nbsp;
+                <apex:commandButton action="{!reopenTicket}" value="Reopen Ticket"  rendered="{!CONX_Help_Request__c.Status__c == 'Closed'}" />
+            </div>
+            <div style="margin-bottom:5px;">
+            	<a href="/apex/CONX_HelpListView">Help Requests List View</a> >> <a href="#">Help View</a>
+            </div>
+            <apex:pageBlockSection id="requestorInfo" showHeader="true" title="Requestor Information" columns="2">
+                <apex:outputField Label="Requestor Last Name" value="{!CONX_Help_Request__c.Requestor_Last_Name__c}" />
+                <apex:outputField Label="Requestor Email" value="{!CONX_Help_Request__c.Requestor_Email__c}" />
+                <apex:outputField Label="Requestor First Name" value="{!CONX_Help_Request__c.Requestor_First_Name__c}" />
+                <apex:outputField value="{!CONX_Help_Request__c.Date_of_Help_Request__c}" />
+                <apex:outputField label="Owner Name" value="{!CONX_Help_Request__c.ownerId}" />
+            </apex:pageBlockSection>
+            
+            <apex:pageBlockSection showHeader="true" title="Ticket Information" columns="2">
+                <apex:outputField value="{!CONX_Help_Request__c.Priority__c}"/>
+                <apex:outputField value="{!CONX_Help_Request__c.Status__c}"/>
+                <apex:outputField value="{!CONX_Help_Request__c.Program_Date__c}"/>
+                <apex:outputField value="{!CONX_Help_Request__c.Program_Time__c}"/>
+            </apex:pageBlockSection>
+                                   
+            <apex:pageBlockSection showHeader="true" title="Ticket Details" columns="1">
+                <apex:outputField Label="Subject" value="{!CONX_Help_Request__c.Subject__c}" style="width:250px" />
+                <apex:outputField Label="Body" value="{!CONX_Help_Request__c.Body__c}" />
+            </apex:pageBlockSection>
+   
+        </apex:pageBlock>
+    </apex:form>
+</apex:page>

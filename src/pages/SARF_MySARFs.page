@@ -1,0 +1,92 @@
+<apex:page standardController="CMS_SARF__c" extensions="SARF_MySARF_Controller" docType="html-5.0" tabStyle="My_SARFs__tab" sidebar="false">
+
+<style>
+h1{
+    font-size:19px;
+}
+h2{
+    font-size:14px;
+}
+</style>
+
+<apex:form >
+ 
+ <h1>Hello, {!$User.FirstName}!</h1><br/><br/>
+ 
+ <apex:outputPanel rendered="{!hasCurrentSARF}">
+ <h2>Current Salesforce SARF</h2>
+    
+ </apex:outputPanel>
+ 
+ <apex:outputPanel rendered="{!hasCurrentSARF == false}">
+      <h2>You do not have a current SARF</h2>
+ </apex:outputPanel>
+ 
+ <apex:pageBlock id="pageBlock1" mode="maindetail" rendered="{!hasCurrentSARF}">
+ <apex:pageblockButtons location="top">
+ </apex:pageblockButtons>
+        <apex:pageBlockSection id="currentSummary" showHeader="true" title="Personal Information" columns="1" >
+               <apex:outputField value="{!mySarf.SARF_Name__c}"/>
+               <apex:outputField value="{!mySarf.SARF_User_ID__c}"/>
+               <apex:outputField value="{!mySarf.First_Name__c}"/>
+               <apex:outputField value="{!mySarf.Last_Name__c}"/>
+               <apex:outputField value="{!mySarf.Email_Address__c}"/>
+               <apex:outputField value="{!mySarf.Phone_Number__c}"/>
+               <apex:outputField value="{!mySarf.Employee_Type__c}"/>
+               <apex:outputField value="{!mySarf.Expiration_Date__c}"/>
+               <apex:outputField value="{!mySarf.Title__c}"/>
+               <apex:outputField value="{!mySarf.Office__c}"/>
+        </apex:pageBlockSection>
+        
+        <apex:pageBlockSection id="accessSummary" showHeader="true" title="Salesforce Access Information" columns="1" >
+               <apex:outputField value="{!mySarf.Role__c}"/>
+               <apex:outputField value="{!mySarf.ProfileTemp__c}"/>
+               <apex:outputField value="{!mySarf.Permission_Sets_Default__c}"/>
+               <apex:pageBlockSectionItem >
+                   <apex:outputLabel value="Additional Access"/>
+                   <apex:outputField value="{!mySarf.Permission_Sets__c}"/>
+               </apex:pageBlockSectionItem>
+               <apex:outputField value="{!mySarf.Access_Comments__c}"/>
+               <apex:outputField value="{!mySarf.General_Comments__c}"/>
+        </apex:pageBlockSection>
+        
+        <apex:pageBlockSection id="auditSummary" showHeader="true" title="History & Audit Information" columns="1" >
+               <apex:outputField value="{!mySarf.SARF_History__c}"/>
+               <apex:outputField value="{!mySarf.Date_Approved__c}"/>
+               <apex:outputField value="{!mySarf.Current_Time_Tracker__c}"/>
+        </apex:pageBlockSection> 
+            
+ </apex:pageBlock>
+    
+ <!--Display list of pending and archived SARFs-->
+    
+ <apex:pageBlock title="My Salesforce SARF Records" id="viewRecords" rendered="{!hasCurrentSARF}">
+    <apex:pageBlockTable value="{!allSARFs}" var="item">
+           <apex:column headerValue="Record Name">
+               <apex:outputLink value="{!$Page.SARF_Detail_Page}?id={!item.id}">{!item.Name}</apex:outputLink>
+           </apex:column>
+           <apex:column value="{!item.SARF_Name__c}"/>
+           <apex:column value="{!item.First_Name__c}"/>
+           <apex:column value="{!item.Last_Name__c}"/>           
+           <apex:column headerValue="End Date/Time" value="{!item.SARF_End_Date__c}"/>
+          
+           <apex:column value="{!item.Current_Time_Tracker__c}"/>
+            <apex:column headerValue="Pending Approval" value="{!item.isPendingApproval__c}"/>
+           <apex:column value="{!item.Is_Current__c}" />
+    </apex:pageBlockTable>
+
+
+    
+     
+ </apex:pageBlock>
+
+  
+  
+ </apex:form>
+ 
+ 
+ 
+ 
+ 
+ 
+</apex:page>

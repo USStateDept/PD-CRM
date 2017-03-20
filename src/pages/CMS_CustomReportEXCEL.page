@@ -1,0 +1,18 @@
+<apex:page controller="CMS_CustomReport" cache="true" contentType="text/csv#{!$CurrentPage.parameters.reportType}.csv" language="en-US" >
+<apex:outputPanel layout="none" rendered="{!$CurrentPage.parameters.reportType == 'OM'}">Project Number,Task Name,Start Date,Due Date,Comments</apex:outputPanel>
+<apex:repeat value="{!reportsOM}" var="pas" rendered="{!$CurrentPage.parameters.reportType == 'OM'}">
+{!pas.projectNumber},{!pas.name},{!pas.startDate},{!pas.dueDate},{!pas.comments}
+</apex:repeat>
+<apex:outputPanel layout="none" rendered="{!$CurrentPage.parameters.reportType == 'project'}">Project Number,Task Name,Start Date,Due Date,% Complete,Comments</apex:outputPanel>
+<apex:repeat value="{!reports}" var="pas" rendered="{!$CurrentPage.parameters.reportType == 'project'}">
+{!pas.projectNumber},{!pas.name},{!pas.startDate},{!pas.dueDate},{!pas.percentage}%,{!pas.comments}
+</apex:repeat>
+<apex:outputPanel layout="none" rendered="{!$CurrentPage.parameters.reportType == 'leave'}">Name,Start Date,End Date</apex:outputPanel>
+<apex:repeat value="{!reportsOncomingLeave}" var="pas" rendered="{!$CurrentPage.parameters.reportType == 'leave'}">
+{!pas.name},{!pas.startDate},{!pas.dueDate}
+</apex:repeat>
+<apex:outputPanel layout="none" rendered="{!$CurrentPage.parameters.reportType == 'next'}">Project Number,Task,Due Date</apex:outputPanel>
+<apex:repeat value="{!futureTaskList}" var="pas" rendered="{!$CurrentPage.parameters.reportType == 'next'}">
+{!pas.projectNumber},{!pas.name},{!pas.dueDate}
+</apex:repeat>
+</apex:page>

@@ -1,0 +1,3 @@
+<apex:page showHeader="false" contentType="text/xml" controller="DA_ArticleToXML">
+<apex:outputText value="{!XML}" escape="false"/>
+</apex:page>

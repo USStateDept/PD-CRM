@@ -1,0 +1,116 @@
+<apex:page showHeader="false">
+  <script src="../../soap/ajax/23.0/connection.js" type="text/javascript"></script>
+  <apex:includeScript value="{!URLFOR($Resource.publishing_system_resources, 'publishing_system_resources/jquery.js')}"/>
+  <script type="text/javascript">
+      var j = jQuery.noConflict();
+      j(document).ready(function () {
+          sforce.connection.sessionId = "{!$Api.Session_ID}";
+          var language =  j(opener.document).find('.lang-dropdown').val();
+          var result = sforce.connection.query("SELECT d.Name, d.Asset_Date_Time__c, d.Published_URL__c FROM Digital_Asset__c d WHERE d.Status__c = 'Published' AND d.Language__c = '" + language + "'");
+          var records = result.getArray("records");
+          for(i=0;i<records.length;i++){
+              var toAppend = '<tr>' + 
+                                  '<td><input type="checkbox" /></td>' + 
+                                  '<td class="index"><input type="text" style="width: 20px;" value="'+ (i+1) +'" /></td>' + 
+                                  '<td class="date">' + records[i].Asset_Date_Time__c.substring(0, records[i].Asset_Date_Time__c.indexOf('T')) + '</td>' + 
+                                  '<td class="name">' + records[i].Name + '</td>' + 
+                                  '<td class="url">' + records[i].Published_URL__c + '</td>' + 
+                             '</tr>';
+              j('#results tbody').append(toAppend);
+          }
+          
+          var themeResults = sforce.connection.query("SELECT d.Asset_Theme__c FROM Digital_Asset__c d WHERE d.Status__c = 'Published' AND d.Language__c = '" + language + "' GROUP BY d.Asset_Theme__c");
+          var themeRecords = themeResults.getArray("records");
+          
+          for(i=0;i<themeRecords.length;i++) {
+              if(themeRecords[i].Asset_Theme__c != null) {
+                  var toAppend = '<option value="' + themeRecords[i].Asset_Theme__c + '">' + themeRecords[i].Asset_Theme__c + '</option>';
+                  j('#filterMC').append(toAppend);
+              }
+          }
+          
+          j('#addMC').click(function() { 
+              var totalMC = 0;
+              var resultsArray = [];
+              j('input[type="checkbox"]:checked').each(function() {
+                  totalMC++;
+                  if(totalMC < 6) {
+                      var index = j(this).parents('tr:first').find('.index input[type="text"]').val();
+                      var headline = j(this).parents('tr:first').find('.name').text();
+                      var url = j(this).parents('tr:first').find('.url').text();
+                      resultsArray.push({'headline':headline, 'url':url, 'index':index});
+                  }
+                  else {
+                      alert('You have selected more than five (5) more coverage items. Please reduce the number of selected items.');
+                  }
+              });
+              
+              // Sort the array by the index
+              resultsArray.sort(function(a,b) {return (a.index > b.index) ? 1 : ((b.index > a.index) ? -1 : 0);} );
+              
+              //console.log(resultsArray);
+              //return false;
+              if(totalMC < 6) {
+                  for(i=0;i<resultsArray.length;i++) {
+                      var q = i+1;
+                      var urlField = '.mcUrl' + q;
+                      var headlineField = '.mcHeadline' + q;
+                      if (resultsArray[i].url.indexOf('http') < 0) {
+                          j(opener.document).find(urlField).val('http://' + resultsArray[i].url);
+                      }
+                      else {
+                          j(opener.document).find(urlField).val(resultsArray[i].url);
+                      }
+                      j(opener.document).find(headlineField).val(resultsArray[i].headline);
+                  }
+                  self.close();
+              }
+              //j(opener.document).find('.mcUrl1').val('cookie');
+              
+          });
+          
+          j('#filterMC').change(function() {
+              var filterVal = j(this).val();
+              
+              if (filterVal == 'default') { 
+                  var filterResults = sforce.connection.query("SELECT d.Name, d.Asset_Date_Time__c, d.Published_URL__c FROM Digital_Asset__c d WHERE d.Language__c = '" + language + "'");
+                  var filterRecords = result.getArray("records");
+              }
+              else {
+                  var filterResults = sforce.connection.query("SELECT d.Name, d.Asset_Date_Time__c, d.Published_URL__c FROM Digital_Asset__c d WHERE d.Language__c = '" + language + "' AND d.Asset_Theme__c = '" + filterVal + "'");
+                  var filterRecords = filterResults.getArray("records");
+              }
+              
+              j('#results').empty();
+              for(i=0;i<filterRecords.length;i++) {
+                  var toAppend = '<tr>' + 
+                                  '<td><input type="checkbox" /></td>' + 
+                                  '<td class="date">' + records[i].Asset_Date_Time__c.substring(0, records[i].Asset_Date_Time__c.indexOf('T')) + '</td>' + 
+                                  '<td class="name">' + records[i].Name + '</td>' + 
+                                  '<td class="url">' + records[i].Published_URL__c + '</td>' + 
+                             '</tr>';
+                  j('#results').append(toAppend);
+              }
+          });
+          
+      });
+      
+  </script>
+  <select id="filterMC">
+      <option value="default">Filter results by theme...</option>
+  </select>
+  <input type="button" value="Add selected items into MC form" id="addMC" />
+  <table id="results" border="1" cellspacing="2" cellpadding="2">
+      <thead>
+          <tr>
+              <td>Select</td>
+              <td>Order</td>
+              <td>Date</td>
+              <td>Headline</td>
+              <td>URL</td>
+          </tr>
+      </thead>
+      <tbody>
+      </tbody>
+  </table>
+</apex:page>

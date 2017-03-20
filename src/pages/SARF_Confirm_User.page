@@ -1,0 +1,18 @@
+<apex:page standardController="CMS_SARF__c" extensions="SARF_Controller">
+    <apex:form id="viewForm">
+    <apex:pageMessages id="errMessages"/>
+        <br/><br/><br/>
+        <apex:pageBlock id="newUser" mode="edit">
+            <p style="font-size:14px;text-align:center;">
+            You have successfully created a new User with the permissions specified on the SARF. An email with a temporary password has been sent to the User.
+            </p> 
+            <br/><br/>
+            <div style="font-weight:bold;font-size:14px;text-align:center;color:red;">
+                <apex:outputText rendered="{!CMS_SARF__c.User_Created__c == false}">
+                Please click FINISH to complete the process.<br/><br/>
+            </apex:outputText>
+            <apex:commandButton value="FINISH" action="{!confirmUser}" rendered="{!CMS_SARF__c.User_Created__c == false}" />
+            </div>
+        </apex:pageBlock>
+    </apex:form>
+</apex:page>

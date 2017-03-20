@@ -1,0 +1,87 @@
+<apex:page standardController="Event__c" sidebar="false" showHeader="false" extensions="PDCRM_PrintEventGuestList">
+	<head> 
+ 		<apex:stylesheet value="{!URLFOR($Resource.SLDS, 'assets/styles/salesforce-lightning-design-system-vf.css')}"/>  
+	</head>
+
+	<div class="slds"> 
+
+	<apex:form >
+   	<div class="slds-page-header" role="banner">
+        <apex:pageBlock title="Event Details:">
+			<apex:pageBlockSection columns="2" collapsible="false">
+				<apex:PageBlockSectionItem >
+					<apex:outputLabel value="Name"/>
+					<apex:outputText value="{!EventName}"/>
+				</apex:PageBlockSectionItem>
+				<apex:PageBlockSectionItem >
+					<apex:outputLabel value="Host"/>
+					<apex:outputText value="{!host}"/>
+				</apex:PageBlockSectionItem>
+				<apex:PageBlockSectionItem >
+					<apex:outputLabel value="Start Date"/>
+					<apex:outputText value="{!startDate}"/>
+				</apex:PageBlockSectionItem>
+				<apex:PageBlockSectionItem >
+					<apex:outputLabel value="End Date"/>
+					<apex:outputText value="{!endDate}"/>
+				</apex:PageBlockSectionItem>
+				<apex:PageBlockSectionItem >
+					<apex:outputLabel value="Maximum Number of Attendees"/>
+					<apex:outputText value="{!capacity}"/>
+				</apex:PageBlockSectionItem>
+				<apex:PageBlockSectionItem >
+					<apex:outputLabel value="Guests Allowed"/>
+					<apex:outputText value="{!guests}"/>
+				</apex:PageBlockSectionItem>
+				<apex:PageBlockSectionItem >
+					<apex:outputLabel value="Total number of people Accepted"/>
+					<apex:outputText value="{!NoOfAccepted}"/>
+				</apex:PageBlockSectionItem>
+				<apex:PageBlockSectionItem >
+					<apex:outputLabel value="Total number of people Declined"/>
+					<apex:outputText value="{!declined}"/>
+				</apex:PageBlockSectionItem>
+				<apex:PageBlockSectionItem >
+					<apex:outputLabel value="Location"/>
+					<apex:outputText value="{!location}"/>
+				</apex:PageBlockSectionItem>
+
+			</apex:pageBlockSection>
+		</apex:pageBlock>
+	</div>
+        <apex:pageBlock >
+			<apex:pageBlockSection columns="1" Title="Guest List:" collapsible="false">
+				<apex:PageBlockSectionItem >
+					<apex:pageBlockTable value="{!EveRegs}" id="openAcc" var="oa">
+						<apex:column width="15px">
+							<apex:facet name="header">Attended</apex:facet>
+							<apex:inputCheckbox value="{!oa.cSelect}" id="select">
+							</apex:inputCheckbox>
+                		</apex:column>
+						<apex:column width="50px">
+							<apex:facet name="header">Name</apex:facet>
+							<apex:outputLabel value="{!oa.er.Contact_Name__c}"></apex:outputLabel>
+                        </apex:column>
+						<apex:column width="20px">
+							<apex:facet name="header">Email</apex:facet>
+							<apex:outputLabel value="{!oa.er.Contact_Email__c}"></apex:outputLabel>
+                        </apex:column>                                        		
+						<apex:column width="15px">
+							<apex:facet name="header">Phone</apex:facet>
+							<apex:outputLabel value="{!oa.er.Attendee_Mobile_Phone__c}"></apex:outputLabel>
+                        </apex:column>
+						<apex:column width="15px">
+							<apex:facet name="header">Status</apex:facet>
+							<apex:outputLabel value="{!oa.er.Status__c}"></apex:outputLabel>
+                        </apex:column>
+                    </apex:pageBlockTable>				
+				</apex:PageBlockSectionItem>
+			</apex:pageBlockSection>
+ 		</apex:pageBlock>      
+     </apex:form>   
+	<!-- /PAGE HEADER -->
+	</div>                
+
+
+	          
+</apex:page>

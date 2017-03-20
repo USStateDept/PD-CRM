@@ -1,0 +1,51 @@
+<apex:page showHeader="false" sidebar="false" standardStylesheets="false">
+    <style type="text/css">
+       body {
+            //background: #2D3954;
+            background: #EDEDED;
+            -webkit-background-size: cover;
+            -moz-background-size: cover;
+            -o-background-size: cover;
+            background-size: cover;
+        }       
+        h2 {
+             color: #424242;
+            font-family: verdana; 
+            font-size: 1.3em;
+            
+        }
+        
+        h1 {
+            //color: #F0F5F7; 
+            color: #424242;
+            font-family: verdana; 
+            //text-shadow: 2px 2px #2E393D; 
+            opacity: .95;
+        }
+        <!--NOT USED-->
+        #container {
+            background-color: #D5DCEB;
+            border-radius:5px;
+            max-width:500px;
+            padding-top:10px;
+            padding-bottom:10px;
+            margin-top: 150px;
+            opacity:0.85;
+            box-shadow: 3px 3px 2px #2E393D;
+        }
+    </style>
+    <body>
+        <center>
+            <!--<div id="container">-->
+             <br/><br/><br/>
+             <div >
+                <h1>
+                    
+                </h1>
+                <h2>
+                    
+                </h2>
+            </div>
+        </center>
+    </body>
+</apex:page>

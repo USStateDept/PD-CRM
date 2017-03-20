@@ -1,0 +1,51 @@
+<apex:page id="userSearch" standardController="CMS_SARF__c" extensions="SARF_User_Search_Controller">
+    <!--Primary Form---User search bar-------------------------->
+<apex:form id="primaryForm">
+    <apex:actionFunction action="{!filterUsers}" name="apexDoSearch"  reRender="myUserData"/><br/>
+    <apex:outputPanel rendered="{!CMS_SARF__c.Version_Number__c == NULL && userSelected == FALSE}">
+    <div>
+        <h1 style="color:#38197a;padding-right:10px;font-size:14px;"><strong>Search Existing Users</strong></h1>
+    <div style="padding-top:5px; padding-bottom:5px;background:#d8cffc;border-radius:20px;margin-top:8px;">
+    <!--style="margin-top:5px;padding-top:4px;height:27px;width:600px;background:#d8cffc;border-radius:20px;"> -->
+        <apex:outputLabel value="First name" style="padding-left:10px;color:#38197a;font-weight:bold;" /> <sp/><sp/><apex:inputText value="{!searchUFN}" style="border-radius:2px;border-style:solid; border-width:thin;border-color:#e5eaea;" size="25" id="firstName"/>
+        <apex:outputLabel value="Last name"  style="padding-left:5px;color:#38197a;font-weight:bold;" /> <sp/><sp/><apex:inputText value="{!searchULN}" style="border-radius:2px;border-style:solid; border-width:thin;border-color:#e5eaea;" size="35" id="lastName"/>
+        <sp/>
+        <apex:commandButton value="Search" action="{!filterUsers}" style="border-radius:4px;margin-left:5px;color:#38197a;font-weight:bold;margin-left:auto;"  />
+        <apex:commandButton value="Clear" action="{!clearUserFilter}" style="background-color:#4930ad;border-radius:4px;margin-left:5px;color:#38197a;font-weight:bold;margin-right:auto;"  />
+    </div><br/><sp/>
+    <apex:outputText value="{!noUsersFound}" style="font-weight:bold;"/>
+    </div>
+    
+    <div>
+    <apex:commandButton value="Mass Disable" action="{!disableTestUsers}" rendered="false"/>
+    </div>
+     </apex:outputPanel>
+    <br/>
+    <!--User Search Results Table------------------------------------------------------------------------------------->  
+    <apex:pageBlock id="myUserData" rendered="{!userFilter}">
+        <apex:pageBlockTable id="table" value="{!existingUsers}" var="item" width="50%" rendered="{!userSelected == FALSE}">
+            <apex:column value="{!item.id}"/>
+            <apex:column value="{!item.firstname}"/>
+            <apex:column value="{!item.lastname}"/>
+            <apex:column value="{!item.email}"/>
+            <apex:column value="{!item.phone}"/>
+            <apex:column value="{!item.userroleid}"/>
+            <apex:column value="{!item.profileid}"/>
+        </apex:pageBlockTable>
+    <!--AUTOFILL BUTTON EXISTING USER--------------------------------------------------------------------------------->
+
+   <apex:outputPanel rendered="{!CMS_SARF__c.Version_Number__c == NULL && userSelected == FALSE}">
+   
+   <div>
+   <br/>
+   <apex:outputLabel value="Enter UserID" style="padding-right:5px;font-weight:bold"/>
+   <apex:inputText value="{!userid}" id="inID"/>
+   <apex:commandButton value="Autofill SARF" action="{!populate}"  style="border-radius:4px;margin-left:5px;color:#38197a;font-weight:bold;"/> 
+             <!-- <apex:param name="useralias" assignto="{!useralias}" value="inalias" /> -->
+   </div>
+   </apex:outputPanel>
+</apex:pageBlock>
+</apex:form><!-------END PrimaryForm------->
+
+    
+</apex:page>

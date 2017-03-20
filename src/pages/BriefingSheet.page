@@ -1,0 +1,344 @@
+<apex:page doctype="html-5.0" standardController="Contact" extensions="ShowPicture,BriefingSheetController"
+            showheader="false" standardstylesheets="false" sidebar="false" applyHtmlTag="true"
+            cache="false">
+       <html xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">  
+           
+        <head>
+          <title>Briefing Sheet</title>
+          <apex:stylesheet value="{!URLFOR($Resource.SLDS, 'assets/styles/salesforce-lightning-design-system-vf.css')}" />
+            <style type="text/css" media="print">
+             	body {visibility:hidden;}
+                .print {visibility:visible;}
+                .wrap {
+                	word-wrap: break word;
+                }
+                
+          	</style>
+        </head>  
+           
+        <body>
+            <apex:form >
+                <!-- REQUIRED SLDS WRAPPER -->
+                <div class="slds"> 
+                    <section class="slds-clearfix">
+                        <div class="slds-float--right">
+                            <apex:commandLink onclick="window.print();return false;" value="Print" />
+                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            <apex:commandLink action="{!closeWindow}" value="Close" />
+                        </div>
+                    </section>
+                    <!-- PAGE HEADER -->
+                    <div class="slds-page-header print" role="banner">
+                        <!-- LAYOUT GRID -->
+                        <div class="slds-grid">
+                            <!-- HEADING AREA -->
+                            <div class="slds-col slds-size--1-of-3 slds-has-flexi-truncate">
+                                <!-- MEDIA OBJECT = FIGURE + BODY -->
+                                <div class="slds-media">
+                                    <div class="slds-media__figure">
+                                        <span class="slds-avatar slds-avatar--medium">
+                                            <apex:image value="/servlet/servlet.FileDownload?file={!file.Id}" alt="No image" rendered="{!hasPicture}"  />
+                                            <apex:image value="{!URLFOR($Resource.PictureUploader, '/images/unknownperson.jpg')}" rendered="{!Not(hasPicture)}" />
+                                        </span>
+                                    </div>
+                                    <div class="slds-media__body slds-text-body--small">
+                                        <p>
+                                            <apex:outputField styleClass="slds-page-header__title slds-truncate" value="{!Contact.Name}" />                                        
+                                        </p>
+                                        <p>
+                                            <apex:outputField styleClass="slds-text-body--medium slds-page-header__info" value="{!Contact.Title}" />                                        
+                                        </p>
+                                        <p>
+                                            <apex:outputField styleClass="slds-text-body--medium slds-page-header__info" value="{!Contact.Company_Name__c}" />
+                                        </p>
+                                    </div>
+                                </div>
+                                <!-- / MEDIA OBJECT -->
+                                <div class="slds-col slds-size--1-of-3"/>
+                            </div>
+                            <div class="slds-col slds-size--1-of-3 slds-has-flexi-truncate slds-text-body--small">
+                                <p class="slds-text-align--right">
+                                    <apex:outputText styleClass="slds-text-body--medium slds-page-header__info" value="{!Contact.Email}"/>                                
+                                </p>
+                                <p class="slds-text-align--right">
+                                    <apex:outputField styleClass="slds-text-body--medium slds-page-header__info" value="{!Contact.Phone}"/>                                
+                                </p>
+                            </div>
+                             <!-- /HEADING AREA --> 
+                        </div>
+                        <!-- /LAYOUT GRID -->
+                    </div>
+                    <!-- /PAGE HEADER -->
+                    <!-- PAGE HEADER DETAIL ROW -->
+                    <!-- Bio -->
+                    <div class="slds-grid slds-wrap slds-page-header__detail-row print">
+                        <div class="slds-col--padded slds-has-flexi-truncate">
+                            <dl>
+                                <dt>
+                                    <apex:outputLabel styleClass="slds-text-heading--label" value="Biography" />
+                                </dt>
+                                <dd>
+                                    <apex:outputText styleClass="slds-text-body--small" value="{!Contact.Description}" />
+                                </dd>
+                            </dl>
+                        </div>
+                    </div>
+                    <div class="slds-grid slds-wrap slds-page-header__detail-row print">
+                        <!-- Gender -->
+                        <div class="slds-col--padded slds-size--1-of-4">
+                            <dl>
+                                <dt>
+                                    <apex:outputLabel styleClass="slds-text-heading--label" value="Gender" />
+                                </dt>
+                                <dd>
+                                    <apex:outputField styleClass="slds-text-body--small" value="{!Contact.Gender__c}"/>
+                                </dd>
+                            </dl>
+                        </div>
+                        <!-- Birthdate -->
+                        <div class="slds-col--padded slds-size--1-of-4">
+                            <dl>
+                                <dt>
+                                    <apex:outputLabel styleClass="slds-text-heading--label" value="Birthdate" />
+                                </dt>
+                                <dd>
+                                    <apex:outputField styleClass="slds-text-body--small" value="{!Contact.Birthdate}"/>
+                                </dd>
+                            </dl>
+                        </div>
+                    </div>
+                     <div class="slds-grid slds-wrap slds-page-header__detail-row print">
+                         <!-- Address -->
+                         <div class="slds-col--padded slds-size--1-of-4">
+                             <dl>
+                                 <dt>
+                                     <apex:outputLabel styleClass="slds-text-heading--label" value="Address" />
+                                </dt>
+                                <dd>
+                                    <apex:outputText styleClass="slds-text-body--small" value="{!Contact.MailingStreet}" />
+                                    <br/>
+                                    <apex:outputText styleClass="slds-text-body--small" 
+                                                     value="{!Contact.MailingCity}, {!Contact.MailingState} {!Contact.MailingPostalCode} {!Contact.MailingCountry}" 
+                                                     rendered="{!isAddressExist}" />
+                                    <br/>
+                                    <!--apex:map width="220px" height="142" mapType="roadmap" zoomLevel="17"
+                                              center="{!Contact.MailingStreet},{!Contact.MailingCity},{!Contact.MailingState}"
+                                              rendered="{!isAddressExist}">
+                                        <apex:mapMarker title="{!Contact.MailingStreet}, {!Contact.MailingCity} {!Contact.MailingState} {!Contact.MailingPostalCode}, {!Contact.MailingCountry}" 
+                                                        position="{!Contact.MailingStreet},{!Contact.MailingCity},{!Contact.MailingState},{!Contact.MailingCountry}"/>
+                                    </apex:map-->
+                                </dd> 
+                             </dl>  
+                         </div>
+                         <!-- Notes -->
+                         <div class="slds-col--padded slds-size--1-of-4">
+                             <dl>
+                                <dt>
+                                    <apex:outputLabel styleClass="slds-text-heading--label" value="Notes" />
+                                </dt>
+                                 <dd>
+                                     <table class="slds-table">
+                                         <apex:repeat value="{!notes}" var="note" rendered="{!isNoteExist}">
+                                             <tr>
+                                                 <td>
+                                                     <apex:commandLink styleClass="slds-text-body--small slds-cell-wrap" action="{!getNoteById}" value="{!note.ContentFileName}">
+                                                     	<apex:param name="noteId" value="{!note.noteId}" assignTo="{!selectedNoteId}"/>
+                                                     </apex:commandLink>
+                                                 </td>
+                                                 <td>
+                                                 	<apex:outputText styleClass="slds-text-body--small slds-cell-wrap" 
+                                                                     escape="false" value="{!note.ContentData}"/>                                                 
+                                                 </td>
+                                                 <td>
+                                                     <apex:outputText styleClass="slds-text-body--small" value="{0,date,MM/dd/yyyy}">
+                                                         <apex:param value="{!note.CreatedDate}"/>
+                                                     </apex:outputText>
+                                                 </td>
+                                             </tr>
+                                         </apex:repeat>
+                                    </table>
+                                </dd>
+                             </dl>
+                         </div>
+                         <!-- Note Modal -->
+                         <apex:pageBlock rendered="{!showNoteContent}" >
+                             <div class="slds-modal slds-fade-in-open" aria-hidden="false" role="dialog" id="noteModal">
+                                 <div class="slds-modal__container">
+                                     <div class="slds-modal__header">
+                                         <h2 class="slds-text-heading--medium">
+                                             <apex:outputText value="{!selectedNote.ContentFileName}" id="noteContent"></apex:outputText>
+                                         </h2>
+                                     </div>
+                                     <div class="slds-modal__content slds-p-around--medium wrap">
+                                         <div>
+                                         	<apex:outputText styleClass="slds-text-body--medium" escape="false" value="{!selectedNote.contentData}"/>
+                                         </div>
+                                     </div>
+                                     <div class="slds-modal__footer">
+                                         <apex:commandButton styleClass="slds-button slds-button--neutral"
+                                                             action="{!closeNoteModal}" value="OK">
+                                         </apex:commandButton>
+                                     </div>
+                                 </div>
+                             </div>
+                            <div class="slds-backdrop slds-backdrop--open" id="modalBackdrop"></div>
+                         </apex:pageBlock>
+                    </div>
+                    <!-- Campaign History -->
+                    <div class="slds-grid slds-wrap slds-page-header__detail-row print">
+                        <div class="slds-col--padded">
+                            <dl>
+                                <dt>
+                                    <apex:outputLabel styleClass="slds-text-heading--label" value="Campaign History" />
+                                </dt>
+                            </dl>
+                            <dl>
+                                <dd>
+                                    <table class="slds-table slds-table--bordered">
+                                        <thead>
+                                        <tr class="slds-text-heading--label">
+                                            <th scope="col">
+                                                <div class="slds-truncate">Campaign Name</div>
+                                            </th>
+                                            <th scope="col">
+                                                <div class="slds-truncate">Start Date</div>
+                                            </th>
+                                            <th scope="col">
+                                                <div class="slds-truncate">Campaign Type</div>
+                                            </th>
+                                            <th scope="col">
+                                                <div class="slds-truncate">Status</div>
+                                            </th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        <apex:repeat value="{!membersList}" var="member">
+                                            <tr class="slds-hint-parent">
+                                                <td class="slds-truncate" scope="row" data-label="Campaign Name">
+                                                    <apex:outputText styleClass="slds-text-body--small" value="{!member.Campaign.Name}" />
+                                                </td>
+                                                <td class="slds-truncate" data-label="Start Date" >
+                                                    <apex:outputText styleClass="slds-text-body--small" value="{0,date,MM/dd/yyyy}">
+                                                        <apex:param value="{!member.Campaign.StartDate}"/>
+                                                    </apex:outputText>
+                                                </td>
+                                                 <td class="slds-truncate" data-label="Campaign Type">
+                                                    <apex:outputText styleClass="slds-text-body--small" value="{!member.Campaign.Type}" />
+                                                </td>
+                                                <td class="slds-truncate" data-label="Status">
+                                                    <apex:outputText styleClass="slds-text-body--small" value="{!member.Status}" />
+                                                </td>
+                                            </tr>
+                                        </apex:repeat>
+                                        </tbody>
+                                    </table>
+                                </dd>
+                            </dl>
+                        </div>
+                    </div>
+                    <!-- Activity History -->
+                    <div class="slds-grid slds-wrap slds-page-header__detail-row print">
+                        <div class="slds-col--padded">
+                            <dl>
+                                <dt>
+                                    <apex:outputText styleClass="slds-text-heading--label" value="Activity History"></apex:outputText>
+                                </dt>
+                            </dl>
+                            <dl>
+                                <dd>
+                                    <table class="slds-table slds-table--bordered wrap">
+                                        <thead>
+                                        <tr class="slds-text-heading--label">
+                                            <!--th scope="col">
+                                                <div class="slds-truncate"/>
+                                            </th-->
+                                            <th scope="col">
+                                                <div class="slds-truncate">Subject</div>
+                                            </th>
+                                            <th scope="col">
+                                                <div class="slds-truncate">Description</div>
+                                            </th>
+                                            <th scope="col">
+                                                <div class="slds-truncate">Owner</div>
+                                            </th>
+                                            <th scope="col">
+                                                <div class="slds-truncate">Due Date</div>
+                                            </th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                            <apex:repeat value="{!activitiesList}" var="activity">
+                                                <tr class="slds-hint-parent">
+                                                    <td data-label="Subject">
+                                                         <apex:commandLink styleClass="slds-text-body--small" value="{!activity.Subject}" 
+                                                                           action="{!getActivityById}">
+                                                         	<apex:param name="activityId" value="{!activity.activityId}" assignTo="{!selectedActivityId}"/>
+                                                        </apex:commandLink>
+                                                    </td>
+                                                    <td data-label="Description">
+                                                        <apex:outputText styleClass="slds-text-body--small slds-cell-wrap" value="{!activity.Description}" />
+                                                    </td>
+                                                    <td data-label="Owner">
+                                                        <apex:outputText styleClass="slds-text-body--small" value="{!activity.Owner}"/>
+                                                    </td>
+                                                    <td class="slds-truncate" data-label="Due Date">
+                                                        <apex:outputText styleClass="slds-text-body--small" value="{0, date, MM/dd/yyyy}">
+                                                            <apex:param value="{!activity.ActivityDate}"/>
+                                                        </apex:outputText>
+                                                    </td>
+                                                </tr>
+                                            </apex:repeat>
+                                        </tbody>
+                                    </table>
+                                </dd>
+                            </dl>
+                        </div>
+                        <!-- Activity Modal -->
+                        <apex:pageBlock rendered="{!showActivityComment}">
+                             <div class="slds-modal slds-fade-in-open" aria-hidden="false" role="dialog" id="activityCommentModal">
+                                 <div class="slds-modal__container">
+                                     <div class="slds-modal__header">
+                                         <h2 class="slds-text-heading--medium">
+                                             <apex:outputText value="{!selectedActivity.Subject}"></apex:outputText>
+                                         </h2>
+                                     </div>
+                                     <div class="slds-modal__content slds-p-around--medium wrap">
+                                         <div>
+                                             <p>
+                                                 <apex:outputText escape="false" value="{!selectedActivity.Description}"/>
+                                             </p>
+                                         </div>
+                                     </div>
+                                     <div class="slds-modal__footer">
+                                         <apex:commandButton styleClass="slds-button slds-button--neutral"
+                                                             action="{!closeActivityModal}" value="OK" >
+                                         </apex:commandButton>
+                                     </div>
+                                 </div>
+                             </div>
+                            <div class="slds-backdrop slds-backdrop--open" id="modalBackdrop"></div>
+                         </apex:pageBlock>
+                    </div>
+                    <!-- /PAGE HEADER DETAIL ROW -->
+                    <!-- FOOTER -->
+                    <footer role="contentinfo" class="slds-p-around--large print">
+                        <div class="slds-grid slds-grid--align-spread">
+                            <p class="slds-col">
+                                <apex:outputText value="{!Contact.Owner.Name}"/>
+                            </p>
+                            <p class="slds-col">
+                                <apex:outputText value="{!Contact.Account.Name}" />
+                            </p>
+                            <p class="slds-col">
+                                <apex:outputText value="{0,date,MM/dd/yyyy HH:mm:ss}">
+                                    <apex:param value="{!now()}"/>
+                                </apex:outputText>
+                            </p>
+                        </div>
+                    </footer>
+                </div>
+            </apex:form>
+        </body>
+        <!-- JAVASCRIPT -->
+    </html>
+</apex:page>

@@ -1,0 +1,216 @@
+<apex:page id="myPage" controller="CMS_ProjectController"  sidebar="false" tabStyle="CMS_Projects__tab">
+	<apex:sectionHeader title="List of CMS Projects" />
+    <apex:form id="myForm">
+        <apex:tabPanel switchType="server" selectedTab="Ative" id="theTabPanel">
+            <apex:tab label="Active" name="Active" id="tabOne">
+                <apex:pageBlock id="activeBlock" title="Active Projects" mode="view">
+                    <apex:outputLink value="/apex/CMS_ProjectEdit" style="float:right;clear:both;margin:2px;" rendered="{!isEditable}">Add a New Project</apex:outputLink>
+                    <br/>
+                    <apex:pageBlockTable id="activeProjects" value="{!listOfActiveProjects}" var="project" rowClasses="odd,even" styleClass="tableClass" >
+                        <apex:column headerClass="" >
+                            <apex:facet name="header">Action</apex:facet>
+                            <apex:outputLink value="/{!project.id}">View</apex:outputLink>&nbsp;
+                       	    <apex:outputLink value="/apex/CMS_ProjectEdit?id={!project.id}" rendered="{!isEditable || !IF(project.Project_Lead__c == $User.Id,false,true)}">Edit</apex:outputLink>&nbsp;
+                        </apex:column>
+                        <apex:column headerClass="" >
+                            <apex:facet name="header">Project Name</apex:facet>
+                            <apex:outputField value="{!project.name}" /> 
+                        </apex:column>
+                        <apex:column headerClass="" >
+                            <apex:facet name="header">Project Number</apex:facet>
+                            <apex:outputText value="{!project.Project_Number__c}" /> 
+                        </apex:column>
+                        <apex:column headerClass="" >
+                            <apex:facet name="header">Project Manager</apex:facet>
+                            <apex:outputField value="{!project.Project_Manager__c}" /> 
+                        </apex:column>
+                        <apex:column headerClass="" >
+                            <apex:facet name="header">Contract Manager</apex:facet>
+                            <apex:outputField value="{!project.Project_Lead__r.name}" /> 
+                        </apex:column>
+                        <apex:column headerClass="" >
+                            <apex:facet name="header">Start Date</apex:facet>
+                            <apex:outputText value="{0,date,MM'/'dd'/'yyyy}">
+                                <apex:param value="{!project.Start_Date__c}" /> 
+                            </apex:outputText>
+                        </apex:column>
+                        <apex:column headerClass="" >
+                            <apex:facet name="header">Due Date</apex:facet>
+                            <apex:outputText value="{0,date,MM'/'dd'/'yyyy}">
+                                <apex:param value="{!project.Due_Date__c}" /> 
+                            </apex:outputText>
+                        </apex:column>
+                        <apex:column headerClass="" >
+                            <apex:facet name="header">Type</apex:facet>
+                            <apex:outputField value="{!project.Project_Type__c}" /> 
+                        </apex:column>
+                    </apex:pageBlockTable>
+                    <apex:outputPanel layout="block" style="text-align:center;font-size:13px;" rendered="{!listOfActiveProjects.size == 0}">
+	                    <apex:outputText value="There are no records to display." />
+                    </apex:outputPanel>
+                </apex:pageBlock>
+            </apex:tab>
+            <apex:tab label="O&M" name="om" id="tabtfour">
+                <apex:pageBlock id="omBlock" title="O&M Projects" mode="view">
+                	<apex:outputLink value="/apex/CMS_ProjectEdit" style="float:right;clear:both;margin:2px;" rendered="{!isEditable}">Add a New Project</apex:outputLink>
+                    <br/>
+                    <apex:pageBlockTable id="holdProjects" value="{!listOfOMProjects}" var="project" rowClasses="odd,even" styleClass="tableClass" >
+                        <apex:column headerClass="" >
+                            <apex:facet name="header">Action</apex:facet>
+                            <apex:outputLink value="/{!project.id}">View</apex:outputLink>&nbsp;
+                       	    <apex:outputLink value="/apex/CMS_ProjectEdit?id={!project.id}" rendered="{!isEditable || !IF(project.Project_Lead__c == $User.Id,false,true)}">Edit</apex:outputLink>&nbsp;
+                        </apex:column>
+                        <apex:column headerClass="" >
+                            <apex:facet name="header">Project Name</apex:facet>
+                            <apex:outputField value="{!project.name}" /> 
+                        </apex:column>
+                        <apex:column headerClass="" >
+                            <apex:facet name="header">Project Number</apex:facet>
+                            <apex:outputText value="{!project.Project_Number__c}" /> 
+                        </apex:column>
+                        <apex:column headerClass="" >
+                            <apex:facet name="header">Project Manager</apex:facet>
+                            <apex:outputField value="{!project.Project_Manager__c}" /> 
+                        </apex:column>
+                        <apex:column headerClass="" >
+                            <apex:facet name="header">Contract Manager</apex:facet>
+                            <apex:outputField value="{!project.Project_Lead__r.name}" /> 
+                        </apex:column>
+                        <apex:column headerClass="" >
+                            <apex:facet name="header">Start Date</apex:facet>
+                            <apex:outputText value="{0,date,MM'/'dd'/'yyyy}">
+                                <apex:param value="{!project.Start_Date__c}" /> 
+                            </apex:outputText>
+                        </apex:column>
+                        <apex:column headerClass="" >
+                            <apex:facet name="header">Due Date</apex:facet>
+                            <apex:outputText value="{0,date,MM'/'dd'/'yyyy}">
+                                <apex:param value="{!project.Due_Date__c}" /> 
+                            </apex:outputText>
+                        </apex:column>
+                    </apex:pageBlockTable>
+                    <apex:outputPanel layout="block" style="text-align:center;font-size:13px;" rendered="{!listOfActiveProjects.size == 0}">
+	                    <apex:outputText value="There are no records to display." />
+                    </apex:outputPanel>
+                </apex:pageBlock>
+            </apex:tab>
+            <apex:tab label="On Hold" name="hold" id="tabthree">
+                <apex:pageBlock id="holdBlock" title="On Hold Projects" mode="view">
+                    <apex:pageBlockTable id="holdProjects" value="{!listOfHoldProjects}" var="project" rowClasses="odd,even" styleClass="tableClass" >
+                        <apex:column headerClass="" >
+                            <apex:facet name="header">Action</apex:facet>
+                            <apex:outputLink value="/{!project.id}">View</apex:outputLink>&nbsp;
+                       	    <apex:outputLink value="/apex/CMS_ProjectEdit?id={!project.id}" rendered="{!isEditable || !IF(project.Project_Lead__c == $User.Id,false,true)}">Edit</apex:outputLink>&nbsp;
+                        </apex:column>
+                        <apex:column headerClass="" >
+                            <apex:facet name="header">Project Name</apex:facet>
+                            <apex:outputField value="{!project.name}" /> 
+                        </apex:column>
+                        <apex:column headerClass="" >
+                            <apex:facet name="header">Project Number</apex:facet>
+                            <apex:outputText value="{!project.Project_Number__c}" /> 
+                        </apex:column>
+                        <apex:column headerClass="" >
+                            <apex:facet name="header">Project Manager</apex:facet>
+                            <apex:outputField value="{!project.Project_Manager__c}" /> 
+                        </apex:column>
+                        <apex:column headerClass="" >
+                            <apex:facet name="header">Contract Manager</apex:facet>
+                            <apex:outputField value="{!project.Project_Lead__r.name}" /> 
+                        </apex:column>
+                        <apex:column headerClass="" >
+                            <apex:facet name="header">Start Date</apex:facet>
+                            <apex:outputText value="{0,date,MM'/'dd'/'yyyy}">
+                                <apex:param value="{!project.Start_Date__c}" /> 
+                            </apex:outputText>
+                        </apex:column>
+                        <apex:column headerClass="" >
+                            <apex:facet name="header">Due Date</apex:facet>
+                            <apex:outputText value="{0,date,MM'/'dd'/'yyyy}">
+                                <apex:param value="{!project.Due_Date__c}" /> 
+                            </apex:outputText>
+                        </apex:column>
+                    </apex:pageBlockTable>
+                    <apex:outputPanel layout="block" style="text-align:center;font-size:13px;" rendered="{!listOfActiveProjects.size == 0}">
+	                    <apex:outputText value="There are no records to display." />
+                    </apex:outputPanel>
+                </apex:pageBlock>
+            </apex:tab>
+            <apex:tab label="Completed" name="Completed" id="tabTwo" >
+                <apex:pageBlock id="completedBlock" title="Completed Projects" mode="view">
+                	<apex:pageBlockTable id="activeProjects" value="{!listOfInactiveProjects}" var="project" rowClasses="odd,even" styleClass="tableClass" >
+                        <apex:column headerClass="" >
+                            <apex:facet name="header">Action</apex:facet>
+                            <apex:outputLink value="/{!project.id}">View</apex:outputLink>&nbsp;
+                       	    <apex:outputLink value="/apex/CMS_ProjectEdit?id={!project.id}" rendered="{!isEditable || !IF(project.Project_Lead__c == $User.Id,false,true)}">re-open</apex:outputLink>&nbsp;
+                        </apex:column>
+                        <apex:column headerClass="" >
+                            <apex:facet name="header">Project Name</apex:facet>
+                            <apex:outputField value="{!project.name}" /> 
+                        </apex:column>
+                        <apex:column headerClass="" >
+                            <apex:facet name="header">Project Number</apex:facet>
+                            <apex:outputText value="{!project.Project_Number__c}" /> 
+                        </apex:column>
+                        <apex:column headerClass="" >
+                            <apex:facet name="header">Project Manager</apex:facet>
+                            <apex:outputField value="{!project.Project_Manager__c}" /> 
+                        </apex:column>
+                        <apex:column headerClass="" >
+                            <apex:facet name="header">Contract Manager</apex:facet>
+                            <apex:outputField value="{!project.Project_Lead__r.name}" /> 
+                        </apex:column>
+                        <apex:column headerClass="" >
+                            <apex:facet name="header">Start Date</apex:facet>
+                            <apex:outputText value="{0,date,MM'/'dd'/'yyyy}">
+                                <apex:param value="{!project.Start_Date__c}" /> 
+                            </apex:outputText>
+                        </apex:column>
+                        <apex:column headerClass="" >
+                            <apex:facet name="header">Due Date</apex:facet>
+                            <apex:outputText value="{0,date,MM'/'dd'/'yyyy}">
+                                <apex:param value="{!project.Due_Date__c}" /> 
+                            </apex:outputText>
+                        </apex:column>
+                    </apex:pageBlockTable>
+                    <apex:outputPanel layout="block" style="text-align:center;font-size:13px;" rendered="{!listOfInactiveProjects.size == 0}">
+	                    <apex:outputText value="There are no records to display." />
+                    </apex:outputPanel>
+                </apex:pageBlock>
+            </apex:tab>
+            <apex:tab label="My Tasks" name="mytask" id="tabfour" >
+                <apex:pageBlock id="mytaskBl" title="My Tasks" mode="view">
+                	<apex:pageBlockTable id="tasks" value="{!myTasks}" var="task" rowClasses="odd,even" styleClass="tableClass" >
+                        <apex:column >
+		                <apex:facet name="header">Name</apex:facet>
+		                <apex:outputField value="{!task.Name}" />
+		            </apex:column>
+		            <apex:column >
+		                <apex:facet name="header">Functional Role</apex:facet>
+		                <apex:outputField value="{!task.Functional_Roles__c}" />
+		            </apex:column>
+	    			<apex:column >
+		                <apex:facet name="header">Start Date</apex:facet>
+		                <apex:outputField value="{!task.Start_Date__c}" />
+		            </apex:column>
+		            <apex:column >
+		                <apex:facet name="header">Due Date</apex:facet>
+		                <apex:outputField value="{!task.Due_Date__c}" />
+		            </apex:column>
+		            <apex:column >
+		                <apex:facet name="header">Anticipated Hours</apex:facet>
+		                <apex:outputField value="{!task.Anticipated_Hours__c}" />
+		            </apex:column>
+		            <apex:column >
+		                <apex:facet name="header">Assigned Users</apex:facet>
+		                <apex:outputField value="{!task.Assigned_Users__c}" />
+		            </apex:column>
+                    </apex:pageBlockTable>
+                    <apex:outputPanel layout="block" style="text-align:center;font-size:13px;" rendered="{!myTasks.size == 0}">
+	                    <apex:outputText value="There are no records to display." />
+                    </apex:outputPanel>
+                </apex:pageBlock>
+            </apex:tab>
+        </apex:tabPanel>
+    </apex:form>
+</apex:page>

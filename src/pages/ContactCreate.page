@@ -1,0 +1,22 @@
+<apex:page doctype="html-5.0"  standardController="Contact" extensions="ContactExt">
+    <apex:pageBlock title="Edit Contact Details">
+         <apex:form id="ContactEdit"> 
+             <apex:pageBlockSection columns="2" id="MainBlock" title="Contact">
+                 <apex:inputField label="First Name" value="{!Contact.firstName}"  id="firstName"  />
+                 <apex:inputField label="Last Name" value="{!Contact.lastName}" id="lastName"  />
+                 <apex:inputField label="Email" value="{!Contact.Email}" id="email"  />
+                 <apex:inputField label="Country" value="{!Contact.Country__c}" id="coutnry"  />
+                 <apex:inputField label="City" value="{!Contact.City__c}" id="City"/>
+             </apex:pageBlockSection>
+             <apex:pageBlockSection columns="1" id="Buttons" >
+                 <apex:outputPanel layout="block">
+                     <div align="center">
+                         <apex:commandButton value="Save" style="align:center;" action="{!save}"/>
+                         <apex:commandButton value="Cancel" style="align:center;" action="{!cancel}"/>
+                     </div>                                                            
+                 </apex:outputPanel>
+
+             </apex:pageBlockSection>
+             </apex:form>
+    </apex:pageBlock>
+</apex:page>

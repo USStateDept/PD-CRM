@@ -1,0 +1,43 @@
+<apex:page id="myPage" standardController="Contract_CSIR__c" extensions="Contract_CSIR_Controller" tabStyle="Contract_CSIRs__tab">
+    
+ 
+
+    <apex:form id="myForm">
+        <apex:pageMessages id="errMessages" />
+        <apex:pageBlock id="pageBlock" title="Customer Support Incident Report View" mode="view">
+            <apex:pageblockButtons >
+                <apex:commandButton action="{!edit}"   value="Edit"   />
+                <apex:commandButton action="{!delete}" value="Delete" />
+            </apex:pageblockButtons>
+            
+            <apex:pageBlockSection id="genDetails" showHeader="true" title="General Details" columns="1">
+                <!-- added field 'Name' which displays the Salesforce ID while viewing record (RR 6/5/14) -->
+                <apex:outputField value="{!Contract_CSIR__c.Name}" />
+                <!-- END OF CHANGE -->
+                <apex:outputField value="{!Contract_CSIR__c.Ticket_Number__c}" />
+                <apex:outputField value="{!Contract_CSIR__c.Event_Description__c}" />
+                <apex:outputField value="{!Contract_CSIR__c.Date_Time_Occurred__c}" />
+                <apex:outputField value="{!Contract_CSIR__c.Action_Taken_by_Support__c}" />
+                <apex:outputField value="{!Contract_CSIR__c.Technical_Rep_Assigned__c}" />
+                <apex:outputField value="{!Contract_CSIR__c.Cause_of_Issue__c}" />
+                <apex:outputField value="{!Contract_CSIR__c.Action_Taken__c}" />
+                <apex:outputField value="{!Contract_CSIR__c.Date_Time_Resolved__c}" />
+                <apex:outputField value="{!Contract_CSIR__c.Notification_Sent__c}" />
+                <!-- added field 'CreatedByID' which displays the name of the record creator while viewing record (RR 6/5/14) -->
+                <apex:outputField value="{!Contract_CSIR__c.CreatedByID}" />
+                <!-- added fields 'LastModified-' which displays the name and date/time of the last edit to the record (RR 6/5/14) -->
+                <apex:outputField value="{!Contract_CSIR__c.LastModifiedByID}" />
+                <apex:outputField value="{!Contract_CSIR__c.LastModifiedDate}" />
+                <!-- END OF CHANGE -->
+                
+            </apex:pageBlockSection>
+            
+            <apex:pageBlockSection id="pmDetails" showHeader="true" title="PM Details" columns="1" >
+                <apex:outputField value="{!Contract_CSIR__c.System_Affected__c}" />
+                <apex:outputField value="{!Contract_CSIR__c.If_other_Describe__c}" />
+                <apex:outputField value="{!Contract_CSIR__c.Responsible_Vendor__c}" />
+                <apex:outputField value="{!Contract_CSIR__c.Justification__c}" />
+            </apex:pageBlockSection>
+        </apex:pageBlock>
+    </apex:form>
+</apex:page>

@@ -1,0 +1,29 @@
+<apex:page title="Edit Site Information" showHeader="true" sidebar="false" standardController="Site_Information__c" extensions="CRM_SiteInformation">
+<apex:sectionHeader title="{!$ObjectType.Site_Information__c.label} Edit" subtitle="{!Site_Information__c.Name}"/>
+    <apex:form >
+        <apex:pageBlock title="{!$ObjectType.Site_Information__c.label} Edit" mode="edit">
+            <apex:pageBlockButtons >
+                <apex:commandButton action="{!save}" value="Save"/>
+                <apex:commandButton action="{!cancel}" value="Cancel"/>
+                <apex:commandButton action="{!cancel}" value="Back to the view"/>
+            </apex:pageBlockButtons>
+            <apex:pageBlockSection showHeader="true" title="Information" columns="2">
+                <apex:inputField value="{!Site_Information__c.City__c}"/>
+                <apex:inputField value="{!Site_Information__c.Status__c}"/>
+                <apex:inputField required="true" value="{!Site_Information__c.Name}"/>                       
+                <apex:pageBlockSectionItem />
+                <apex:inputField value="{!Site_Information__c.Language__c}"/>
+                <apex:inputField value="{!Site_Information__c.Scheduled_Site_Live_Date__c}"/>
+                <apex:inputField value="{!Site_Information__c.Site_Type__c}"/>
+                <apex:inputField value="{!Site_Information__c.Site_Live_Date__c}"/>
+                <apex:inputField value="{!Site_Information__c.CMS_Version__c}"/>
+                <apex:inputField value="{!Site_Information__c.Zip_File_Delivered_Date__c}"/>
+                <apex:inputField value="{!Site_Information__c.CMS_Type__c}"/>
+                <apex:inputField value="{!Site_Information__c.Site_Deleted__c}"/>
+                <apex:inputField value="{!Site_Information__c.Server_Name__c}"/>
+                <apex:inputCheckbox value="{!Site_Information__c.Decommissioned__c}"/>
+                <apex:pageBlockSectionItem />
+            </apex:pageBlockSection>
+        </apex:pageBlock>
+    </apex:form>
+</apex:page>

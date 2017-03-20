@@ -1,0 +1,170 @@
+<apex:page id="viewPage" standardController="CMS_SARF__c" extensions="SARF_Controller" tabStyle="SARF_Management__tab" sidebar="false" >
+<style>
+body .bPageBlock, body #bodyCell .bResource .secondaryPalette, body .secondaryPalette.bPageBlock, body .individualPalette .secondaryPalette.bPageBlock, body .bodyDiv .genericTable, body .genericPageBlockTable, body .bodyDiv .bSubBlock, body .bComponentBlock .bPageBlock, body .bMyDashboard .bPageBlock, body.rlHoverFrame .bPageBlock, body.subjectSelectionPopup div.choicesBox, body.lookupTab .secondaryPalette.bPageBlock, body.popupTab .secondaryPalette.bPageBlock, body.UserTagStatsPage .secondaryPalette.bPageBlock {
+    background-color: #ffffff;
+    border-bottom: 1px solid #38197a;
+    border-left: 1px solid #38197a;
+    border-radius: 4px 4px 4px 4px;
+    border-right: 1px solid #38197a;
+    border-top: 8px solid #38197a;
+}
+</style>
+<style type="text/css">
+       .customPopup{
+            background-color: white;
+            border-style: solid;
+            border-width: 2px;
+            left: 50%;
+            padding:10px;
+            position: absolute;
+            z-index: 9999;
+            /* These are the 3 css properties you will need to tweak so the pop 
+            up displays in the center of the screen. First set the width. Then set 
+            margin-left to negative half of what the width is. You can also add 
+            the height property for a fixed size pop up.*/
+            width: 500px;
+            margin-left: -250px;
+            top:100px;
+        }
+    </style>
+    
+    <apex:form id="viewForm">
+     <apex:pageMessages id="errMessages"/>
+     
+     <div>
+     <apex:outputText value="This User is INACTIVE. Update SARF and complete the approval process to activate." rendered="{!CMS_SARF__c.Is_Deactivated__c}" style="font-weight: bold;"/>
+     <apex:outputText value="SARF is pending manager's approval." style="font-weight: bold;" rendered="{!CMS_SARF__c.isPendingApproval__c && ((myPermissionset != 'SARF Manager' && myPermissionset != 'SARF Override') || myId == CMS_SARF__c.User_ID__c )}"/>
+     <apex:outputText value="Please wait...changes are being applied to the User." style="font-weight: bold;" rendered="{!CMS_SARF__c.Is_Current__c && CMS_SARF__c.User_Updated__c == FALSE && ((myPermissionset != 'SARF Manager' && myPermissionset != 'SARF Override') || myId == CMS_SARF__c.User_ID__c)}"/>
+     <apex:outputText value="IMPORTANT: You must click the button below to update the User record!" style="font-weight: bold;color:red;" rendered="{!CMS_SARF__c.Is_Current__c && CMS_SARF__c.User_Type__c == 'Existing User' && CMS_SARF__c.User_Updated__c == FALSE && (myPermissionset == 'SARF Manager' || myPermissionset == 'SARF Override')}"/>
+        </div> <br/>  
+        <apex:pageBlock id="pageBlock1" mode="maindetail">
+            
+            <!--Buttons-->
+            <apex:pageblockButtons location="top">
+                
+                <apex:commandButton value="Edit"                   action="{!editSARF}"           rendered="{!CMS_SARF__c.isApproved__c == false && CMS_SARF__c.isPendingApproval__c == false && showRejInputBlock == false}"/>
+                <apex:commandButton value="Submit for Approval"     action="{!requestApproval}"    rendered="{!CMS_SARF__c.isApproved__c == false && CMS_SARF__c.isPendingApproval__c == false && showRejInputBlock == false 
+                                                                                                            && ((myPermissionset != 'SARF Manager' && myPermissionset != 'SARF Override') || (myId == CMS_SARF__c.user_id__c))}"/>
+                <!--<apex:commandButton value="Submit for Approval"    action="{!requestApproval}"    rendered="{!CMS_SARF__c.isApproved__c == false && CMS_SARF__c.isPendingApproval__c == false && showRejInputBlock == false 
+                                                                                                            && myPermissionset != 'SARF Manager' && myPermissionset != 'SARF Override'}"/>-->
+               
+                <apex:commandButton value="Update SARF"            action="{!cloneSARF}"          rendered="{!CMS_SARF__c.Is_Current__c && CMS_SARF__c.User_Type__c != 'New User' && 
+                                                                                                            CMS_SARF__c.User_Updated__c == TRUE && newVersionExists == false}"/>
+                <apex:commandButton value="Validate"               action="{!validate}"           rendered="{!CMS_SARF__c.Is_Current__c && CMS_SARF__c.User_Type__c != 'New User' && CMS_SARF__c.User_Updated__c == TRUE 
+                                                                                                            && CMS_SARF__c.Is_Deactivated__c == FALSE && (myPermissionset == 'SARF Manager' || myPermissionset == 'SARF Override') && myId != CMS_SARF__c.user_id__c}"/>
+                <apex:commandButton value="Approve"                action="{!submitAndApprove}"   rendered="{!CMS_SARF__c.isApproved__c == false && CMS_SARF__c.isPendingApproval__c == false && showRejInputBlock == false &&
+                                                                                                            (myPermissionset == 'SARF Manager' || myPermissionset == 'SARF Override') && CMS_SARF__c.Role__c != '' && myId != CMS_SARF__c.user_id__c}" />
+                <apex:commandButton value="Approve"                action="{!approve}"            rendered="{!CMS_SARF__c.isPendingApproval__c && (myPermissionset == 'SARF Manager' || myPermissionset == 'SARF Override') && myId != CMS_SARF__c.User_ID__c}" />
+                <apex:commandButton value="Edit"                   action="{!editSARF}"           rendered="{!CMS_SARF__c.isPendingApproval__c && (myPermissionset == 'SARF Manager' || myPermissionset == 'SARF Override') && myId != CMS_SARF__c.User_ID__c}"/> <!--This edit is visible to manager after User has submitted for approval-->
+                <apex:commandButton value="Reject"                 action="{!reject}"             rendered="{!CMS_SARF__c.isPendingApproval__c && (myPermissionset == 'SARF Manager' || myPermissionset == 'SARF Override') && myId != CMS_SARF__c.User_ID__c}"/>
+                <apex:commandButton value="Deactivate User"        action="{!deactivateUser}"     rendered="{!CMS_SARF__c.Is_Current__c && CMS_SARF__c.User_Type__c != 'New User' && CMS_SARF__c.User_Updated__c == TRUE && 
+                                                                                                            CMS_SARF__c.Is_Deactivated__c == FALSE && (myPermissionset == 'SARF Manager' || myPermissionset == 'SARF Override') && myId != CMS_SARF__c.user_id__c}"/>
+                
+                <apex:commandButton value="Create Portal User"     action="{!createPortalUser}"   rendered="{!CMS_SARF__c.Is_Current__c && CMS_SARF__c.User_Type__c == 'New User' && CMS_SARF__c.Contact_Created__c == false &&
+                                                                                                            CMS_SARF__c.ProfileTemp__c == 'Overage Authenticated Website User'}" />
+                <apex:commandButton value="Create User"            action="{!createUser}"         rendered="{!CMS_SARF__c.Is_Current__c && CMS_SARF__c.User_Type__c == 'New User' && 
+                                                                                                            CMS_SARF__c.ProfileTemp__c != 'Overage Authenticated Website User' && userCreatedPushed == false}" />
+                <apex:commandButton value="Apply changes to User"  action="{!applyUpdatedAccess}" rendered="{!CMS_SARF__c.Is_Current__c && CMS_SARF__c.User_Type__c == 'Existing User' && CMS_SARF__c.User_Updated__c == FALSE 
+                                                                                                            && (myPermissionset == 'SARF Manager' || myPermissionset == 'SARF Override')}" />
+               
+            </apex:pageblockButtons>
+             
+            <apex:pageBlockSection id="rejEdit" showHeader="true" title="SARF Rejection Comments" columns="1" rendered="{!showRejInputBlock}"> 
+             
+            <apex:pageBlockSectionItem > 
+            <apex:outputLabel ></apex:outputLabel>
+            <apex:outputPanel >
+                <apex:commandButton value="Save Comments" action="{!addRejectionComments}" />
+                <apex:commandButton value="Cancel" action="{!cancelRejection}" />
+                </apex:outputPanel>
+                </apex:pageBlockSectionItem>
+                <apex:inputField value="{!CMS_SARF__c.SARF_Rejection_Comments__c}"/>
+            </apex:pageBlockSection>
+           
+           <apex:pageBlockSection id="rejView" showHeader="true" title="SARF Rejection Comments" columns="1" rendered="{!CMS_SARF__c.SARF_Rejection_Comments__c != NULL}">
+                <apex:outputField value="{!CMS_SARF__c.SARF_Rejection_Comments__c}"/>
+            </apex:pageBlockSection>
+            
+            <apex:pageBlockSection id="genDetails" showHeader="true" title="Record Information" columns="1" >
+                <apex:outputField value="{!CMS_SARF__c.SARF_Name__c}"/>
+                <apex:outputField value="{!CMS_SARF__c.OwnerId}"/>
+                <apex:outputField value="{!CMS_SARF__c.LastModifiedById}"/>
+                 <apex:outputField value="{!CMS_SARF__c.LastModifiedDate}"/>
+                <!--<apex:outputField value="{!CMS_SARF__c.SARF_User_ID__c}" rendered="false"/>-->
+            </apex:pageBlockSection>
+            
+            <!--User Information Section-->
+            <apex:pageBlockSection id="userDetails" showHeader="true" title="User Information" columns="1" >
+                <apex:outputField value="{!CMS_SARF__c.User_Type__c}" rendered="{!CMS_SARF__c.Version_Number__c == 1}"/>
+                <!--<apex:outputField value="{!CMS_SARF__c.Salesforce_User__c}" rendered="{!CMS_SARF__c.Version_Number__c == 1}"/>-->
+                <apex:outputField value="{!CMS_SARF__c.First_Name__c}" />
+                 <apex:outputField value="{!CMS_SARF__c.Last_Name__c}" />
+                <apex:outputField value="{!CMS_SARF__c.Email_Address__c}" />
+                <apex:outputField value="{!CMS_SARF__c.Time_Zone__c}" rendered="false"/>
+                <apex:outputField value="{!CMS_SARF__c.Phone_Number__c}"/>
+                <apex:outputField value="{!CMS_SARF__c.Employee_Type__c}"/>
+                <apex:outputField value="{!CMS_SARF__c.Expiration_Date__c}"/>
+                <apex:outputField value="{!CMS_SARF__c.Title__c}"/>
+                <apex:outputField value="{!CMS_SARF__c.Office__c}"/>
+                <apex:outputField value="{!CMS_SARF__c.Manager__c}" rendered="false"/>
+                
+            </apex:pageBlockSection>
+            
+            <!--System Access Information Section-->
+            <apex:pageBlockSection id="psDetails" showHeader="true" title="Current Access Information" columns="1" >
+                <apex:outputField value="{!CMS_SARF__c.Role__c}"/>
+                <apex:outputField value="{!CMS_SARF__c.ProfileTemp__c}"/>
+                <apex:outputField label="Standard Permission Sets" value="{!CMS_SARF__c.Permission_Sets_Default__c}"/>
+                <apex:outputField label="Additional Permission Sets" value="{!CMS_SARF__c.Permission_Sets__c}" rendered="{!CMS_SARF__c.Permission_Sets__c != NULL}"/>
+                
+                <apex:outputField value="{!CMS_SARF__c.Access_Comments__c}" rendered="{!CMS_SARF__c.Access_Comments__c != ''}"/>
+                <apex:outputField value="{!CMS_SARF__c.Additional_Access__c}" rendered="FALSE" />
+               
+                <apex:outputField value="{!CMS_SARF__c.General_Comments__c}" style="width:400px" rendered="{!CMS_SARF__c.General_Comments__c != NULL}"/>
+                <apex:outputField value="{!CMS_SARF__c.User_Created__c}" rendered="false"/>
+            </apex:pageBlockSection>
+            
+            <!--Audit/History Information Section-->
+            <apex:pageBlockSection id="historyDetails" showHeader="true" title="History & Audit Information" columns="1" >
+           
+                <!--<apex:outputField style="over-flow:auto; height:25px;" value="{!CMS_SARF__c.SARF_History__c}"/>-->
+                <apex:pageBlockSectionItem id="columnWithScroll" >
+                <apex:outputLabel value="SARF History"/>
+                <apex:outputPanel style="overflow: auto; height: 100px;">
+                        <apex:repeat value="{!CMS_SARF__c.SARF_History__c}" var="number">
+                        <apex:outputField value="{!CMS_SARF__c.SARF_History__c}" />
+                        <br/>
+                    </apex:repeat>
+                </apex:outputPanel>
+                </apex:PageBlockSectionItem>
+                <apex:outputField value="{!CMS_SARF__c.Date_Submitted__c}"/>
+                <apex:outputField value="{!CMS_SARF__c.Date_Approved__c}"/>
+                <apex:outputField value="{!CMS_SARF__c.Current_Time_Tracker__c}" rendered="{!CMS_SARF__c.Is_Current__c}"/>
+                <apex:outputField value="{!CMS_SARF__c.SARF_End_Date__c}" rendered="{!CMS_SARF__c.Is_Current__c == false}"/>
+            </apex:pageBlockSection>
+            
+            <!--Test Information Section-->
+            <apex:pageBlockSection id="extraDetails" showHeader="true" title="Test Information" columns="1" rendered="false">
+                <apex:outputField value="{!CMS_SARF__c.User_ID__c}"/>
+                <apex:outputField value="{!CMS_SARF__c.OwnerId}"/>
+                <apex:outputField value="{!CMS_SARF__c.id}"/>
+                <apex:outputField value="{!CMS_SARF__c.User_Type__c}"/>
+                <apex:outputField value="{!CMS_SARF__c.Employee_Type__c}"/>
+                <apex:outputField value="{!CMS_SARF__c.Expiration_Date__c}"/>
+                <apex:outputField value="{!CMS_SARF__c.Is_Current__c}"/>
+                <apex:outputField value="{!CMS_SARF__c.Contact_Created__c}"/>
+                <apex:outputField value="{!CMS_SARF__c.User_Created__c}"/>
+                <apex:outputField value="{!CMS_SARF__c.User_Updated__c}"/>
+                <apex:outputField value="{!CMS_SARF__c.isPendingApproval__c}"/>
+                <apex:outputField value="{!CMS_SARF__c.isApproved__c}"/>
+                <apex:outputField value="{!CMS_SARF__c.is_rejected__c}"/>
+                <apex:outputField value="{!CMS_SARF__c.SARF_User_ID__c}"/>
+                <apex:outputField value="{!CMS_SARF__c.Is_Deactivated__c}"/>
+                <apex:outputField value="{!CMS_SARF__c.externallyCreated__c}"/>
+                <apex:outputField value="{!CMS_SARF__c.Non_state_gov_email__c}"/>
+                <apex:outputField value="{!CMS_SARF__c.Manager__c}"/>
+            </apex:pageBlockSection>
+            
+        </apex:pageBlock>
+    </apex:form>
+</apex:page>

@@ -1,0 +1,246 @@
+<apex:page standardcontroller="Digital_Asset__c" extensions="DA_Tab" tabstyle="Digital_Asset__c">
+<apex:pageMessages id="errors" />
+
+<apex:stylesheet value="/sCSS/21.0/sprites/1297816277000/Theme3/default/gc/versioning.css" />
+<apex:tabPanel switchType="server" selectedTab="DA_List" id="theTabPanel" >
+	<apex:tab label="Asset List View" name="DA_List" id="tabOne">
+		<apex:enhancedList height="2300" type="Digital_Asset__c" rowsPerPage="100" />
+	</apex:tab>
+	<apex:tab label="Asset Search" name="DA_Search" id="tabTwo">
+	<apex:form >
+	<table width="100%" border="0">
+  		<tr>  
+    	<td width="200" valign="top">	
+		<apex:pageblock title="Filter"  id="criteria">
+		<c:publishing_system_resources />
+		<!-- <apex:includeScript value="{!URLFOR($Resource.publishing_system_resources, 'publishing_system_resources/jquery.js')}"/> -->
+			<script type="text/javascript">
+			    j$ = jQuery.noConflict();
+			    j$(document).ready(function()
+			    {
+			        j$( ".contentLoading1" ).hide();					            
+				});
+				function loading( val, classStr )
+			     {
+			         if (val)
+			         {
+			             j$( "." + classStr ).show();
+			         }
+			         else
+			         {
+			             j$( "." + classStr ).hide();
+			         }
+			     }
+			</script>
+			<script type="text/javascript">
+				function doSearch() 
+				{
+				searchServer(
+					document.getElementById("headline").value,
+					document.getElementById("language").options[document.getElementById("language").selectedIndex].value,
+					document.getElementById("author").value,
+					document.getElementById("status").options[document.getElementById("status").selectedIndex].value,
+					document.getElementById("assettype").options[document.getElementById("assettype").selectedIndex].value,
+					document.getElementById("assettheme").options[document.getElementById("assettheme").selectedIndex].value,	
+					document.getElementById("searchkeywords").value,				
+					document.getElementById("{!$Component.assetdatetimeoperator}").value,	
+					document.getElementById("{!$Component.assetdatetime}").value
+					);
+				}
+			</script>
+			<apex:actionFunction name="searchServer" action="{!runSearch}" rerender="results,debug,errors" status="search">
+	        	<apex:param name="headline" value="" />
+	        	<apex:param name="language" value="" />
+	        	<apex:param name="author" value=""/>
+	        	<apex:param name="status" value=""/>
+	        	<apex:param name="assettype" value=""/>
+	        	<apex:param name="assettheme" value=""/>
+	        	<apex:param name="searchkeywords" value=""/>
+	        	<apex:param name="assetdatetimeoperator" value=""/> 
+	        	<apex:param name="assetdatetime" value=""/>
+	      	</apex:actionFunction>
+	      	<apex:actionStatus id="search" onstart="loading(true, 'contentLoading1');" onstop="loading(false, 'contentLoading1');" />
+	      	
+				      	
+			<table cellpadding="2" cellspacing="2">
+			<tr>
+			<td style="font-weight:bold;">Headline<br/>
+			<input type="text" id="headline" onkeyup="doSearch();"/>
+			</td>
+			</tr>
+			
+			<tr>
+        	<td style="font-weight:bold;">Language<br/>
+          	<select id="language" onchange="doSearch();">
+            <option value=""></option>
+            <apex:repeat value="{!languages}" var="language">
+            	<option value="{!language}">{!language}</option>
+            </apex:repeat>
+          	</select>
+        	</td>
+      		</tr>
+
+			
+			<tr>
+			<td style="font-weight:bold;">Author<br/>
+			<input type="text" id="author" onkeyup="doSearch();"/> 
+			</td>
+			</tr>
+			
+			<tr>
+        	<td style="font-weight:bold;">Status<br/>
+          	<select id="status" onchange="doSearch();">
+            <option value=""></option>
+            <apex:repeat value="{!status}" var="status">
+            	<option value="{!status}">{!status}</option>
+            </apex:repeat>
+          	</select>
+        	</td>
+      		</tr>
+      		
+      		
+      		<tr>
+        	<td style="font-weight:bold;">Asset Type<br/>
+          	<select id="assettype" onchange="doSearch();">
+            <option value=""></option>
+            <apex:repeat value="{!assettype}" var="assettype">
+            	<option value="{!assettype}">{!assettype}</option>
+            </apex:repeat>
+          	</select>
+        	</td>
+      		</tr>
+			
+			
+			
+			<tr>
+        	<td style="font-weight:bold;">Asset Theme<br/>
+          	<select id="assettheme" onchange="doSearch();">
+            <option value=""></option>
+            <apex:repeat value="{!assettheme}" var="assettheme">
+            	<option value="{!assettheme}">{!assettheme}</option>
+            </apex:repeat>
+          	</select>
+        	</td>
+      		</tr>
+			
+			<tr>
+			<td style="font-weight:bold;">Search Keywords<br/>
+			<input type="text" id="searchkeywords" onkeyup="doSearch();"/>
+			</td>
+			</tr>
+
+
+			<tr>
+			<td style="font-weight:bold;">Publication Date/Time<br/>
+				<apex:selectRadio onchange="doSearch();" layout="pageDirection" value="{!assetdatetimeoperator}" id="assetdatetimeoperator" >
+				<apex:selectOptions value="{!assetdatetimeoperators}"/>
+				</apex:selectRadio> 
+				<apex:inputfield id="assetdatetime" value="{!Digital_Asset__c.Asset_Date_Time__c}" onchange="doSearch();"/ >
+			</td>
+			</tr>
+
+			<!--  <tr>
+			<td style="font-weight:bold;">Publication Date/Time<br/>
+			
+			</td>
+			</tr>-->
+
+			
+      		</table>
+	   </apex:pageblock>   	
+	      	
+		</td>
+    <td valign="top">
+ 	<apex:outputPanel >
+        <div style="text-align: center;" class="contentLoading1">
+            <img src="/img/loading.gif" alt="Loading..." />
+        </div>
+	</apex:outputPanel>
+    <apex:pageBlock Title="Results"  id="results">
+        <apex:pageBlockTable value="{!assets}" var="asset">
+            <apex:column >
+                <apex:facet name="header">
+                    <apex:commandLink value="Headline" action="{!toggleSort}" rerender="results,debug">
+                        <apex:param name="sortField" value="Name" assignTo="{!sortField}"/>
+                    </apex:commandLink>
+                </apex:facet>
+                <apex:outputLink value="{!URLFOR($Action.Digital_Asset__c.View, asset.id)}">{!asset.name}</apex:outputLink>
+            </apex:column>
+            <apex:column >
+                <apex:facet name="header">
+                    <apex:commandLink value="Language" action="{!toggleSort}" rerender="results,debug">
+                        <apex:param name="sortField" value="language__c" assignTo="{!sortField}"/>
+                    </apex:commandLink>
+                </apex:facet>
+                <apex:outputField value="{!asset.Language__c}"/>
+            </apex:column>
+ 			<apex:column >
+                <apex:facet name="header">
+                    <apex:commandLink value="Author" action="{!toggleSort}" rerender="results,debug">
+                        <apex:param name="sortField" value="author__c" assignTo="{!sortField}"/>
+                    </apex:commandLink>
+                </apex:facet>
+                <apex:outputField value="{!asset.Author__c}"/>
+            </apex:column>
+            <apex:column >
+                <apex:facet name="header">
+                    <apex:commandLink value="Status" action="{!toggleSort}" rerender="results,debug">
+                        <apex:param name="sortField" value="status__c" assignTo="{!sortField}"/>
+                    </apex:commandLink>
+                </apex:facet>
+                <apex:outputField value="{!asset.Status__c}"/>
+            </apex:column>
+            <apex:column >
+                <apex:facet name="header">
+                    <apex:commandLink value="Asset Type" action="{!toggleSort}" rerender="results,debug">
+                        <apex:param name="sortField" value="asset_type__c" assignTo="{!sortField}"/>
+                    </apex:commandLink>
+                </apex:facet>
+                <apex:outputField value="{!asset.Asset_Type__c}"/>
+            </apex:column>
+            <apex:column >
+                <apex:facet name="header">
+                    <apex:commandLink value="Asset Theme" action="{!toggleSort}" rerender="results,debug">
+                        <apex:param name="sortField" value="asset_theme__c" assignTo="{!sortField}"/>
+                    </apex:commandLink>
+                </apex:facet>
+                <apex:outputField value="{!asset.Asset_Theme__c}"/>
+            </apex:column>
+            <apex:column >
+                <apex:facet name="header">
+                    <apex:commandLink value="Search Keywords" action="{!toggleSort}" rerender="results,debug">
+                        <apex:param name="sortField" value="search_keywords__c" assignTo="{!sortField}"/>
+                    </apex:commandLink>
+                </apex:facet>
+                <apex:outputField value="{!asset.Search_Keywords__c}"/>
+            </apex:column>
+            <apex:column >
+                <apex:facet name="header">
+                    <apex:commandLink value="Publication Date/Time" action="{!toggleSort}" rerender="results,debug">
+                        <apex:param name="sortField" value="asset_date_time__c" assignTo="{!sortField}"/>
+                    </apex:commandLink>
+                </apex:facet>
+                <apex:outputField value="{!asset.Asset_Date_Time__c}"/>
+            </apex:column>
+        </apex:pageBlockTable>
+        <apex:outputPanel layout="block"
+                     		rendered="{!OR((ISNULL(assets)),assets.size==0)}"
+                     		style="border: 1px solid #D4DADC; padding: 5px 2px 4px 5px;">
+                     		<span>No records to display</span>
+    	</apex:outputPanel>
+    	
+    </apex:pageBlock>
+ 
+    </td>
+  	</tr>
+  	</table>
+  	<!-- for debugging only -->
+  	<!-- 
+  	  <apex:pageBlock title="Debug - SOQL" id="debug">
+    	<apex:outputText value="{!debugSoql}" />           
+  	</apex:pageBlock>
+	 -->	
+	</apex:form>
+	</apex:tab>
+</apex:tabPanel>
+</apex:page>

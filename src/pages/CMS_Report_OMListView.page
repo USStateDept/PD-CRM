@@ -1,0 +1,82 @@
+<apex:page id="myPage" title="Project Status Report" controller="CMS_ReportController" sidebar="false" tabStyle="CMS_Projects_Report__tab">
+    <apex:form id="myForm">
+		<div style="margin-left:10px;margin-top:10px">Week of:<br/>
+			<input type="text" class="weekpicker calendar" name="dateRange" size="65" /><br/>
+			<apex:inputText value="{!filterVal}" style="visibility:hidden;" styleClass="val" />
+			<apex:commandLink action="{!filter}" style="visibility:hidden;" styleClass="filterAction" />
+		</div>
+
+		<apex:chart name="hoursByProject2" height="400" width="600" data="{!hoursByOM}" id="hoursByProject2" >
+			<apex:axis type="Numeric" position="bottom" fields="percentage" title="Percentage of Resources" maximum="100" minimum="0" />
+			<apex:axis type="Category" position="left" fields="objStr" title="Project Name" />
+			<apex:barSeries orientation="horizontal" axis="left" xField="percentage" yField="objStr"/>
+		</apex:chart>
+	                
+		<apex:pageBlock >
+	                <apex:pageBlockTable id="hoursByProjectTable2" value="{!hoursByOM}" var="pas" rowClasses="odd,even" styleClass="projectTable tableClass">
+	                    <apex:column >
+	                        <apex:facet name="header">
+	                        	<apex:commandLink action="{!sortResourceList}" value="Project Name{!IF(sortExpressionOM=='name',IF(sortDirectionOM='asc','▼','▲'),'')}" id="assetSort74"> 
+									<apex:param value="name" name="column" assignTo="{!sortExpressionOM}" ></apex:param>
+								</apex:commandLink>
+	                        </apex:facet>
+	                        <apex:outputLink value="/apex/CMS_SubReport?projectName={!URLENCODE(pas.objStr)}"><apex:outputText value="{!pas.objStr}" /></apex:outputLink>
+	                    </apex:column>
+	                
+	                    <apex:column >
+	                        <apex:facet name="header">
+								<apex:commandLink action="{!sortResourceList}" value="Percentage{!IF(sortExpressionOM=='Percentage',IF(sortDirectionOM='asc','▼','▲'),'')}" id="assetSort70"> 
+								<apex:param value="Percentage" name="column" assignTo="{!sortExpressionOM}" ></apex:param>
+								</apex:commandLink>
+	                   		</apex:facet>
+	                        <apex:outputText value="{!pas.percentage}%" />
+	                    </apex:column>
+
+	                    <apex:column >
+	                    	<apex:facet name="header">
+	                    		<apex:commandLink action="{!sortResourceList}" value="Total Contract Hours to Date{!IF(sortExpressionOM=='ActualHours',IF(sortDirectionOM='asc','▼','▲'),'')}" id="assetSort71"> 
+									<apex:param value="ActualHours" name="column" assignTo="{!sortExpressionOM}" ></apex:param>
+								</apex:commandLink>
+	                    	</apex:facet>
+	                    	<apex:outputText value="{!pas.hours}" />
+	                   	</apex:column>
+	                   	
+	                   	<apex:column >
+	                   		<apex:facet name="header">
+	                   			<apex:commandLink action="{!sortResourceList}" value="Average Hours Per Week{!IF(sortExpressionOM=='average',IF(sortDirectionOM='asc','▼','▲'),'')}" > 
+									<apex:param value="average" name="column" assignTo="{!sortExpressionOM}" ></apex:param>
+								</apex:commandLink>
+	                   		</apex:facet>
+	                   		<apex:outputText value="{!ROUND(pas.avg, 2)}" />
+	                   	</apex:column>
+	                   	
+	                   	<apex:column >
+	                   		<apex:facet name="header">
+	                   			<apex:commandLink action="{!sortResourceList}" value="Resources{!IF(sortExpressionOM=='Resources',IF(sortDirectionOM='asc','▼','▲'),'')}" id="assetSort72"> 
+									<apex:param value="Resources" name="column" assignTo="{!sortExpressionOM}" ></apex:param>
+								</apex:commandLink>
+	                   		</apex:facet>
+	                   		<apex:outputText value="{!pas.involvedPersonnel}" />
+	                   	</apex:column>
+	                   	
+	                   	<apex:column width="200px">
+	                   		<apex:facet name="header">
+	                   			<apex:commandLink action="{!sortResourceList}" value="Project Manager{!IF(sortExpressionOM=='ProjectManager',IF(sortDirectionOM='asc','▼','▲'),'')}" id="assetSort75"> 
+									<apex:param value="ProjectManager" name="column" assignTo="{!sortExpressionOM}" ></apex:param>
+								</apex:commandLink>
+							</apex:facet>
+	                   		<apex:outputText value="{!pas.ProjectManger}" />
+	                   	</apex:column>
+	                   	
+	                   	<apex:column width="200px">
+	                   		<apex:facet name="header">
+	                   			<apex:commandLink action="{!sortResourceList}" value="Contract Project Manager{!IF(sortExpressionOM=='ContractProjectManager',IF(sortDirectionOM='asc','▼','▲'),'')}" id="assetSort76"> 
+									<apex:param value="ContractProjectManager" name="column" assignTo="{!sortExpressionOM}" ></apex:param>
+								</apex:commandLink>
+	                   		</apex:facet>
+	                   		<apex:outputText value="{!pas.contractorPM}" />
+	                   	</apex:column>
+	                </apex:pageBlockTable>
+		</apex:pageBlock>
+    </apex:form>
+</apex:page>

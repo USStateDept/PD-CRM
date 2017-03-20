@@ -1,0 +1,123 @@
+<apex:page id="myPage" standardController="CMS_Projects__c" extensions="CMS_ProjectController" sidebar="false" tabStyle="CMS_Projects__tab">
+	<apex:includeScript value="{!URLFOR($Resource.jQueryLibrary, 'jquery-1.8.3.js')}"/>
+    <script src="/soap/ajax/9.0/connection.js" type="text/javascript"></script>
+    <script language="JavaScript1.2" src="/js/functions.js"></script>
+    
+    <script type="text/javascript">
+        j$ = $.noConflict();
+        
+        j$(document).ready(function ()
+        {   
+            j$( '.ptBody' ).append( '<div style="float:right;margin-top:30px;margin-right:10px;"><a href="/apex/CMS_ManageProjects">back to the list</a></div>' );
+        });
+        
+        function loadComments()
+        {
+        	j$( '.popup_box' ).fadeIn( "slow" );
+        	j$( '.btn' ).hide();
+        	j$( '.hiddenBtn' ).show();
+        	return false;
+        }
+        
+        function unloadComments()
+        {
+        	j$( '.popup_box' ).fadeOut( "slow" );
+        	j$( '.btn' ).show();
+        	j$( '.hiddenBtn' ).hide();
+        	return false;
+        }
+        
+        function validateComments()
+        {
+        	var myComment = j$( '.comment' ).val();
+        	
+        	if (myComment.length == 0)
+        	{
+        		alert( "Comment is required." );
+        		return false;
+        	}
+        	
+        	return true;
+        }
+    </script>
+    <style type="text/css">
+		.popup_box {
+		    display:none;
+		    position:fixed;
+		    height:300px;  
+		    width:600px;  
+		    background:#FFFFFF;  
+		    left: 300px;
+		    top: 150px;
+		    z-index:100;
+		    margin-left: 15px;  
+		   
+		    border:2px solid;      
+		    padding:15px;  
+		    font-size:15px;  
+		    -moz-box-shadow: 0 0 5px #ff0000;
+		    -webkit-box-shadow: 0 0 5px #ff0000;
+		    box-shadow: 0 0 5px #ff0000;
+		}
+	</style>
+	<apex:sectionHeader title="CMS project - {!CMS_Projects__c.Name}" />
+    <apex:form id="myForm">
+        <apex:pageMessages id="errMessages" />
+        <apex:pageBlock id="pageBlock" title="" mode="view">
+            <apex:pageblockButtons >
+                <apex:commandButton action="{!edit}" value="Edit" rendered="{!isEditable || !IF(CMS_Projects__c.Project_Lead__c == $User.Id,false,true)}" />
+                <apex:commandButton action="{!remove}" value="Delete" onclick="return confirm('Are you sure?')" rendered="{!isEditable || !IF(CMS_Projects__c.Project_Lead__c == $User.Id,false,true)}" />
+            	<apex:commandButton value="On Hold" reRender="comments" rendered="{!AND(isEditable && IF(CMS_Projects__c.Project_Lead__c == $User.Id,false,true), !IsOnHold)}" onclick="return loadComments();" />
+            	<apex:commandButton action="{!reactivivateAction}" value="Re-activate" rendered="{!AND(isEditable && IF(CMS_Projects__c.Project_Lead__c == $User.Id,false,true), IsOnHold)}"  />
+            </apex:pageblockButtons>
+
+            <apex:pageBlockSection id="project" showHeader="true" title="Project Details" columns="1">
+                <apex:outputField value="{!CMS_Projects__c.Name}" />
+                <apex:outputField value="{!CMS_Projects__c.Start_Date__c}" />
+                <apex:outputField value="{!CMS_Projects__c.Due_Date__c}" />
+                <apex:outputField Label="Project Lead Name" value="{!CMS_Projects__c.Project_Lead__r.name}" />
+                <apex:outputField value="{!CMS_Projects__c.Status__c}" />
+                <apex:outputField value="{!CMS_Projects__c.Anticipated_Hours__c}" />
+                <apex:outputField value="{!CMS_Projects__c.Comments__c}" rendered="{!CMS_Projects__c.Comments__c != null}" />
+            </apex:pageBlockSection>
+           
+            <apex:pageBlockSection showHeader="true" title="Milestones Details" columns="1">
+                <apex:pageBlockTable value="{!mileStones}" var="ms" rowClasses="odd,even" styleClass="tableClass" >
+                    <apex:column width="10%">
+                        <apex:facet name="header">Action</apex:facet>
+                        <apex:outputLink value="/{!ms.milestone.id}">view task(s)</apex:outputLink><br/>
+                        <apex:outputLink value="/apex/CMS_MilestoneEdit?id={!ms.milestone.id}" rendered="{!isEditable || !IF(ms.milestone.Lead__c == $User.Id,false,true)}">edit/add task(s)</apex:outputLink>
+                    </apex:column>
+                    <apex:column >
+                        <apex:facet name="header">Name</apex:facet>
+                        <apex:outputField value="{!ms.milestone.Name}"  />
+                    </apex:column>
+                    <apex:column >
+                        <apex:facet name="header">Start Date</apex:facet>
+                        <apex:outputField value="{!ms.milestone.Start_Date__c}" />
+                    </apex:column>
+                    <apex:column >
+                        <apex:facet name="header">Due Date</apex:facet>
+                        <apex:outputField value="{!ms.milestone.Due_Date__c}" />
+                    </apex:column>
+                    <apex:column >
+                        <apex:facet name="header">Lead</apex:facet>
+                        <apex:outputField value="{!ms.milestone.Lead__r.name}" />
+                    </apex:column>
+                    <apex:column >
+                        <apex:facet name="header">Anticipated Hours</apex:facet>
+                        <apex:outputField value="{!ms.milestone.Anticipated_Hours__c}" />
+                    </apex:column>
+                </apex:pageBlockTable>
+            </apex:pageBlockSection>
+            <apex:outputPanel id="comments" styleClass="popup_box">
+            	<apex:pageBlockSection showHeader="true" title="On Hold Project Comment" columns="1">
+	            	<apex:outputLabel value="Please provide the comments" />
+	            	<apex:inputField styleClass="comment" label="" value="{!CMS_Projects__c.Comments__c}" />
+            	</apex:pageBlockSection>
+            	<apex:commandButton action="{!onHoldAction}" value="Save" styleClass="hiddenBtn" onclick="return validateComments();" />
+            	<apex:commandButton reRender="comments" value="Cancel" styleClass="hiddenBtn" onclick="return unloadComments();"/>
+            </apex:outputPanel>
+        </apex:pageBlock>
+    </apex:form>
+</apex:page>

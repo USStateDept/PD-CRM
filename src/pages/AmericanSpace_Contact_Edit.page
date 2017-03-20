@@ -1,0 +1,199 @@
+<apex:page id="page" title="Edit American Spaces Contact" showHeader="true" sidebar="false" standardController="American_Spaces_Contact__c" extensions="AmericanSpacesContacts">
+ <apex:sectionHeader title="{!$ObjectType.American_Spaces_Contact__c.label}" subtitle="{!American_Spaces_Contact__c.Name}"/>
+ <apex:form id="myForm">
+   <apex:messages style="padding:5px;margin-top:55px" />
+    <apex:includeScript value="{!URLFOR($Resource.jQueryLibrary, 'jquery-1.8.3.js')}"/>
+    <apex:includeScript value="{!URLFOR($Resource.jQueryLibrary, 'jquery-ui-1.9.2.custom.js')}"/>
+    <apex:includeScript value="{!URLFOR($Resource.jQueryLibrary, 'jquery.ui.autocomplete.js')}"/>
+    <apex:stylesheet value="{!URLFOR($Resource.jQueryLibrary, 'jquery-ui.css')}"/>
+    <script src="/soap/ajax/9.0/connection.js" type="text/javascript"></script>
+    <script language="JavaScript1.2" src="/js/functions.js"></script>
+    <script type="text/javascript">     
+        j$ = $.noConflict();
+
+        j$(document).ready(function ()
+        {
+            if (!{!isModifiable})
+            {
+                j$( '[id="page:myForm"]'  + " :input").attr( "disabled", true );
+                j$( '.pbButtonb' ).text( "" );
+                j$( '.pbButton' ).text( "" );
+                alert( "Users can only modify Spaces that are part of their portfolio. This Space isn't part of your assigned portfolio." );
+               
+                history.back();
+            }
+            
+            var details = [];
+            sforce.connection.sessionId = "{!$Api.Session_ID}";
+            result = sforce.connection.query( "SELECT id, Region__c, name, Country__c FROM American_Spaces_Post_Contacts__c" );
+            records = result.getArray( "records" );
+            
+            for (var i=0; i< records.length; i++)
+            {
+                var info = {};
+                
+                var label = records[i].Name + " (" + records[i].Region__c + " - " +  records[i].Country__c + ")";
+                
+                info.label = label;
+                info.value = records[i].Id;
+                details[i] = info;
+            }
+
+            j$( '[id="page:myForm:pageBlock:space:postCityBlock:postCity"]' ).autocomplete({
+                source: details,
+                select: function( event, ui ) {
+                    var postName = ui.item.label;
+                    
+                    j$( '[id="page:myForm:pageBlock:space:postCityID"]' ).val( ui.item.value );
+                    
+                    postName = postName.substring( 0, postName.indexOf(' ('));
+                    j$( '[id="page:myForm:pageBlock:space:postCityBlock:postCity"]' ).val( postName );
+                    
+                    changeCountry( ui.item.value );
+                    return false;
+                }
+            });
+            
+            j$( '[id="page:myForm:pageBlock:space:typeOfSpaces"]' ).change( function()
+            {
+                var value = j$(this).val();
+                displayContact( value );
+            });
+            
+            
+            changeCountry( j$( '[id="page:myForm:pageBlock:space:postCityID"]' ).val() );
+            j$( '#photoUpload' ).hide();
+            
+            displayContact( j$( '[id="page:myForm:pageBlock:space:typeOfSpaces"]' ).val() );
+        });
+        
+        
+        function displayContact( value )
+        {
+            if (value == 'Information Resource Center' || value == 'American Center' || value == '')
+            {
+                j$( '#photoUpload' ).hide();
+            }
+            else
+            {
+                j$( '#photoUpload' ).show();
+            }
+        }
+        
+
+        function changeCountry( id )
+        {
+            sforce.connection.sessionId = "{!$Api.Session_ID}";
+            var result = sforce.connection.query( "SELECT Country__c, Region__c FROM American_Spaces_Post_Contacts__c WHERE id = '" + id + "' limit 1" );
+            var records = result.getArray( "records" );
+            
+            j$( '[id="page:myForm:pageBlock:space:country"]' ).text( records[0].Country__c );
+            j$( '[id="page:myForm:pageBlock:space:region"]' ).text( records[0].Region__c );
+        }
+   </script>
+   
+        <apex:pageBlock id="pageBlock" title="{!$ObjectType.American_Spaces_Contact__c.label} Edit" mode="edit">
+                <apex:pageBlockButtons >
+                        <apex:commandButton styleClass="save" action="{!save}" value="Save"/>
+                        <apex:commandButton action="{!cancel}" value="Cancel"/>
+                </apex:pageBlockButtons>
+                
+                <apex:pageBlockSection id="spaceHeader" showHeader="true" title="Space Information" columns="1">
+                    <apex:outputPanel style="text-align:center">
+                        These fields are meant for business contact information only. 
+                        Please do not input personal or home contact information. Thank you. 
+                    </apex:outputPanel>
+                </apex:pageBlockSection>
+                <apex:pageBlockSection id="space" columns="2">  
+                        <apex:pageBlockSectionItem id="postCityBlock">
+                            Managing Post City
+                            <apex:inputText label="Managing Post City" id="postCity" value="{!postName}" required="true" />
+                        </apex:pageBlockSectionItem>
+                        <apex:inputField value="{!American_Spaces_Contact__c.Host_Institution_Name__c}" />
+                        <apex:outputField id="region" value="{!American_Spaces_Contact__c.Region__c}" />
+                        <apex:inputField value="{!American_Spaces_Contact__c.Open_to_public__c}" />
+                        <apex:outputField id="country" value="{!American_Spaces_Contact__c.Country__c}" />
+                        <apex:inputField value="{!American_Spaces_Contact__c.Other_Open_to_Public_Other__c}" />
+                        <apex:inputField value="{!American_Spaces_Contact__c.City__c}" />
+                        <apex:inputField value="{!American_Spaces_Contact__c.Year_Opened__c}" />
+                        <apex:inputField value="{!American_Spaces_Contact__c.Name}" required="true"/>
+                        <apex:inputField value="{!American_Spaces_Contact__c.Status__c}" />
+                        <apex:inputField id="typeOfSpaces" value="{!American_Spaces_Contact__c.Type_of_Space__c}" required="true"/>
+                        <apex:inputField value="{!American_Spaces_Contact__c.Performance_Level__c}" />
+                        <apex:inputField value="{!American_Spaces_Contact__c.IIP_Supported_Space__c}" />
+                        <apex:inputField value="{!American_Spaces_Contact__c.On_or_Off_Compound__c}" />
+                        <apex:inputField value="{!American_Spaces_Contact__c.Priority_Space__c}" />
+                        <apex:inputField value="{!American_Spaces_Contact__c.Location__c}" />
+                    	<apex:inputField id="oboPropertyId" value="{!American_Spaces_Contact__c.OBO_Property_ID__c}" 
+                                         rendered="{!(American_Spaces_Contact__c.Type_of_Space__c == 'Information Resource Center' ||
+                                					American_Spaces_Contact__c.Type_of_Space__c == 'American Center')}"/>
+                      	<apex:inputText id="postCityID" value="{!postId}" style="visibility:hidden" />
+                <apex:pageBlockSectionItem />
+                </apex:pageBlockSection>
+                
+                <apex:pageBlockSection id="contact" showHeader="true" title="Contact Information" columns="2">
+                        <apex:inputField value="{!American_Spaces_Contact__c.First_Name__c}"/>
+                        <apex:inputField value="{!American_Spaces_Contact__c.Email_1__c}" />
+                        <apex:inputField value="{!American_Spaces_Contact__c.Middle_Name__c}" />
+
+                                                <apex:inputField value="{!American_Spaces_Contact__c.Email_2__c}" />
+                                                <apex:inputField value="{!American_Spaces_Contact__c.Last_Name__c}" />
+
+                                                <apex:inputField value="{!American_Spaces_Contact__c.Phone_1__c}" />
+                        <apex:inputField value="{!American_Spaces_Contact__c.Salutation__c}"/>
+                        <apex:inputField value="{!American_Spaces_Contact__c.Phone_2__c}" />
+                        <apex:inputField value="{!American_Spaces_Contact__c.Job_Title__c}"/>
+                        <apex:inputField value="{!American_Spaces_Contact__c.Latitude__c}" />
+                        <apex:inputField value="{!American_Spaces_Contact__c.Address__c}" />
+                        <apex:inputField value="{!American_Spaces_Contact__c.Longitude__c}" />   
+                        <apex:inputField value="{!American_Spaces_Contact__c.State_Province__c}" />                      
+                <apex:pageBlockSectionItem />
+                </apex:pageBlockSection>
+
+                <apex:pageBlockSection id="media" showHeader="true" title="Social Media" columns="2">
+                        <apex:inputField value="{!American_Spaces_Contact__c.Facebook_Account__c}"/>
+                        <apex:inputField value="{!American_Spaces_Contact__c.Blog_URL__c}"/>
+                        <apex:inputField value="{!American_Spaces_Contact__c.Twitter_Account__c}" />
+                        <apex:inputField value="{!American_Spaces_Contact__c.Website_URL__c}" />
+                        <apex:inputField value="{!American_Spaces_Contact__c.Skype_Account__c}"/>
+                <apex:pageBlockSectionItem />
+                </apex:pageBlockSection>
+
+                <apex:pageBlockSection id="attachment" showHeader="true" title="Notes & Attachments" columns="1">
+                    <apex:inputField value="{!American_Spaces_Contact__c.Notes__c}"/>
+                    <apex:pageBlockSectionItem helpText="Upload Up to 3 images (JPG, PNG, GIF). Size limit of 300 KB per image. Click on the image thumbnail to see the full sized photo.">
+                        <apex:commandButton action="{!newAttachment}" value="New Attachment" />
+                        <span>&nbsp;</span>
+                        <span id="photoUpload">Partner spaces cannot upload photos at this time. We hope to introduce this functionality later in 2014.</span>
+                    </apex:pageBlockSectionItem>
+                    <apex:outputPanel id="attachmentList">
+                    <apex:variable value="{!0}" var="rowNum" />
+                        <apex:repeat value="{!attachments}" var="attachment" >
+                            <apex:variable var="rowNum" value="{!rowNum + 1}"/>
+                            <apex:pageBlockSection columns="2"  title="Attachment {!attachment.attachment.Name}" collapsible="true">
+                                <apex:inputField value="{!attachment.information.Type_of_Document__c}" />
+                                <apex:outputPanel >
+                                <apex:outputPanel rendered="{!attachment.information.id != '' && (attachment.information.extension__c == 'jpg' || attachment.information.extension__c == 'png' || attachment.information.extension__c == 'gif')}">
+                                    <a href="../servlet/servlet.FileDownload?file={!attachment.attachment.id}" target="_blank"><img src="../servlet/servlet.FileDownload?file={!attachment.attachment.id}" width="50px" height="50px" /></a>
+                                </apex:outputPanel>
+                                <apex:outputPanel rendered="{!attachment.information.id != '' && attachment.information.extension__c != 'jpg' && attachment.information.extension__c != 'png' && attachment.information.extension__c != 'gif'}">
+                                    <a href="../servlet/servlet.FileDownload?file={!attachment.attachment.id}" target="_blank">Download the file</a>
+                                </apex:outputPanel>
+                                <apex:inputFile value="{!attachment.attachmentDetail}" filename="{!attachment.attachment.name}" id="file" rendered="{!attachment.attachment.id == ''}" />
+                                </apex:outputPanel>
+                                <apex:inputField value="{!attachment.information.Description__c}" />
+                                &nbsp;
+                                <apex:inputField value="{!attachment.information.Comments__c}" />
+                                &nbsp;
+                                <apex:inputField value="{!attachment.information.Date__c}" />
+                                &nbsp;
+                                <apex:commandLink value="Delete Attachment" action="{!deleteAttachment}" onclick="return confirm('Are you sure you want to delete?');">
+                                <apex:param name="picNumber" value="{!rowNum}" assignTo="{!attachmentNumber}" />
+                                </apex:commandLink>
+                             </apex:pageBlockSection>
+                        </apex:repeat>
+                    </apex:outputPanel>
+                </apex:pageBlockSection>
+  </apex:pageBlock>
+ </apex:form>
+</apex:page>

@@ -1,0 +1,19 @@
+<apex:page standardController="CMS_SARF__c" extensions="SARF_Controller">
+    <apex:form >
+    <apex:pageMessages id="errMessages"/>
+        <br/><br/><br/>
+        <apex:pageBlock >
+            <p style="font-size:14px;text-align:center;">
+            You are about to deactivate this User which will remove all access, including the ability to log into Salesforce.
+            </p> 
+            <br/><br/>
+            <div style="font-weight:bold;font-size:14px;text-align:center;">
+                <apex:outputText rendered="{!CMS_SARF__c.User_Created__c == false}">
+                Please click FINISH to complete the deactivation process or CANCEL to return to the previous page.<br/><br/>
+            </apex:outputText>
+            <apex:commandButton value="FINISH" action="{!confirmDeactivation}"/>
+            <apex:commandButton value="CANCEL" action="{!cancelDeactivation}"/>
+            </div>
+        </apex:pageBlock>
+    </apex:form>
+</apex:page>

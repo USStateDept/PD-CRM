@@ -1,0 +1,22 @@
+<apex:page standardController="Digital_Asset__c" extensions="DA_PublishArticle">
+<c:publishing_system_resources />
+  <apex:messages />
+  <apex:form >
+     <apex:pageBlock >
+        <!--You are about to publish {!Digital_Asset__c.name} to the live site. <p/>
+        Are you sure?: <p/> -->
+        <apex:actionFunction name="publishArticle" action="{!publish}"/>
+        <!--<apex:commandButton action="{!publish}" styleClass="publishBtn" value="YES, PUBLISH!"/>-->
+        <script type="text/javascript">
+            j(document).ready(function() {
+                var answer = confirm('You are about to publish {!Digital_Asset__c.name} to the live site. Are you sure you want to do this?');
+                if (answer) {
+                    publishArticle();
+                }
+                else {
+                }
+            });
+        </script>
+     </apex:pageBlock>
+  </apex:form>
+</apex:page>

@@ -1,0 +1,134 @@
+<apex:page id="myPage" standardController="File__c" extensions="Folder_Controller" showHeader="true" sidebar="false">
+    <apex:sectionHeader title="Add to Topic" />
+    <apex:includeScript value="{!URLFOR($Resource.jQueryLibrary, 'jquery-1.8.3.js')}" />
+    <script type="text/javascript">
+        function colorPageBlock( pageblock, color )
+        {
+            if (pageblock != null) pageblock.firstChild.style.cssText = "background-color: " + color + ";";
+        }
+        
+        function loading( val )
+        {
+            if (val)
+            {
+                j$( ".contentLoading" ).show();
+            }
+            else
+            {
+                j$( ".contentLoading" ).hide();
+            }
+        }
+        
+        j$ = $.noConflict();
+        
+        j$(document).ready(function ()
+        {
+            j$( ".contentLoading" ).hide();
+            j$( '[id="myPage:myForm:pageBlock:folderInfo"]' ).width( '800px' );
+            j$( '[id="myPage:myForm:pageBlock:allFiles"]' ).width( '650px' );
+            j$( '[id="myPage:myForm:pageBlock:availFiles"]' ).width( '1200px' );
+            j$( '[id="myPage:myForm:pageBlock:availFiles:filter"]' ).width( '400px' );
+            
+            j$( '[id="myPage:myForm:pageBlock:availFiles:filter"]' ).keydown(function (e) {
+                if (e.keyCode == 13) {
+                    e.preventDefault();
+                    j$('[id="myPage:myForm:pageBlock:availFiles:filter:filterBtn"]').click();
+                }
+            });
+            
+        });
+    </script>
+    <apex:form id="myForm">
+        <apex:pageMessages id="errMessages" />
+        <apex:pageBlock id="pageBlock">
+            <apex:pageBlockButtons id="actions">
+                <apex:commandButton action="{!saveMe}"   value="Save"   />
+                <apex:commandButton action="{!cancel}" value="Cancel" />
+            </apex:pageBlockButtons>
+            <apex:pageBlockSection id="folderInfo" showHeader="true" title="Folder Details" columns="2" collapsible="false">
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="Folder Name" />
+                    <apex:outputlink value="/{!folder.id}">{!folder.name}</apex:outputlink>
+                </apex:pageBlockSectionItem>
+                <apex:outputField value="{!folder.Status__c}" />
+                <apex:outputField value="{!folder.CreatedbyId}" />
+                <apex:outputField value="{!folder.LastModifiedById}" />
+                <script>colorPageBlock( document.getElementById( "{!$Component.folderInfo}" ), "#606060" );</script>
+            </apex:pageBlockSection>
+            
+            
+            
+            <apex:pageBlockSection id="availFiles" showHeader="true" title="Available Documents" columns="1" collapsible="false">
+                <apex:pageBlockSection id="filter" showHeader="true" title="Filter" columns="2" collapsible="true">
+                    <apex:outputLabel value="File Name" />
+                    <apex:inputText value="{!fileName}" />
+                    <apex:outputLabel value="File Type" />
+                    <apex:inputText value="{!fileType}" />
+                    <apex:outputLabel value="Uncategorized Files" />
+                    <apex:inputCheckbox value="{!isNotInFile}" />
+                    <apex:commandButton action="{!refresh}" value="Filter" id="filterBtn" />
+                    <script>colorPageBlock( document.getElementById( "{!$Component.filter}" ), "#909090" );</script>
+                </apex:pageBlockSection>
+                <apex:pageBlockTable id="attachmentTables" value="{!availableFiles}" var="availObj" rowClasses="odd,even" styleClass="tableClass">
+                    <apex:column id="checkBox">
+                        <apex:facet name="header"><input type="checkbox" onclick="if ( this.checked ){ j$('.checkBox' ).prop('checked', true);}else{ j$('.checkBox' ).prop('checked', false); }" /></apex:facet>
+                        <apex:inputCheckbox styleClass="checkBox" value="{!availObj.checked}"/>
+                    </apex:column>
+                    <apex:column id="preview">
+                        <img src="/sfc/servlet.shepherd/version/renditionDownload?rendition=THUMB720BY480&versionId={!availObj.content.LatestPublishedVersionId}" height="42" width="42"     alt="Click to preview" class="contentThumbnail" title="Click to preview" id="ext-gen7"/>
+                    </apex:column>
+                    <apex:column id="fileName">
+                        <apex:facet name="header">Name</apex:facet>
+                        <apex:outputlink value="/{!availObj.content.id}">{!availObj.content.Title}</apex:outputlink>
+                    </apex:column>
+                    <apex:column id="fileNameType">
+                        <apex:facet name="header">Type</apex:facet>
+                        <apex:outputField value="{!availObj.content.LatestPublishedVersion.fileType}"/>
+                    </apex:column>
+                    <apex:column id="createdBy">
+                        <apex:facet name="header">Owner</apex:facet>
+                        <apex:outputField value="{!availObj.content.OwnerId}" />
+                    </apex:column>
+                    <apex:column id="createdOn">
+                        <apex:facet name="header">Last Modified</apex:facet>
+                        <apex:outputField value="{!availObj.content.LastModifiedDate}" />
+                    </apex:column>
+                    <apex:column id="comments">
+                        <apex:facet name="header">Comments</apex:facet>
+                        <apex:inputTextarea label="Comments" value="{!availObj.comments}" rows="3" cols="60" />
+                    </apex:column>
+                </apex:pageBlockTable>
+                <script>colorPageBlock( document.getElementById( "{!$Component.allFiles}" ), "#0099F0" );</script>
+            </apex:pageBlockSection>
+            
+            <apex:pageBlockSection id="allFiles" showHeader="true" title="Associated Documents" columns="1">
+                <apex:pageBlockTable id="attachmentTables" value="{!myFolderFiles}" var="obj" rowClasses="odd,even" styleClass="tableClass">
+                    <apex:column id="preview">
+                        <img src="/sfc/servlet.shepherd/version/renditionDownload?rendition=THUMB720BY480&versionId={!obj.RelatedRecordId}" height="42" width="42"   alt="Click to preview" class="contentThumbnail" title="Click to preview" id="ext-gen7"/>
+                    </apex:column>
+                    <apex:column id="fileName">
+                        <apex:facet name="header">View</apex:facet>
+                        <apex:outputlink value="/{!obj.RelatedRecordId}">{!obj.title}</apex:outputlink>
+                    </apex:column>
+                    <apex:column id="createdBy">
+                        <apex:facet name="header">Created By</apex:facet>
+                        <apex:outputField value="{!obj.CreatedById}" />
+                    </apex:column>
+                    <apex:column id="createdOn">
+                        <apex:facet name="header">Created By</apex:facet>
+                        <apex:outputField value="{!obj.CreatedDate}" />
+                    </apex:column>
+                    <apex:column id="status">
+                        <apex:facet name="header">Status</apex:facet>
+                        <apex:outputField value="{!obj.Parent.Status__c}" />
+                    </apex:column>
+                    <apex:column id="body">
+                        <apex:facet name="header">Comments</apex:facet>
+                        <apex:outputField value="{!obj.body}" />
+                    </apex:column>
+                </apex:pageBlockTable>
+                <script>colorPageBlock( document.getElementById( "{!$Component.allFiles}" ), "#0099FF" );</script>
+            </apex:pageBlockSection>
+        </apex:pageBlock>
+    </apex:form>
+</apex:page>

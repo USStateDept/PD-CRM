@@ -1,0 +1,24 @@
+<apex:page sidebar="false" showHeader="false">
+  <!-- Begin Default Content REMOVE THIS -->
+  <!--apex:stylesheet value="{!URLFOR($Resource.Background, 'doslogo.css')}"/-->﻿
+  <!--<div class = "slds" style="text-align: center;"><img src="{!URLFOR($Resource.printbannerlogo)}" style="margin:-15px auto;width:50%;text-align: center;"/></div>-->
+  <apex:stylesheet value="{!URLFOR($Resource.SLDS212, 'assets/styles/salesforce-lightning-design-system-vf.css')}"/>
+  <apex:stylesheet value="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css" />
+  <apex:includeScript value="https://code.jquery.com/jquery-2.2.2.js"/>
+  <apex:includeScript value="//code.jquery.com/ui/1.11.4/jquery-ui.js"/>  
+
+   
+    <apex:form >  
+    <c:DOSRSVPHeader />
+      <div class = "SLDS212" align="center" style="margin:0px auto;width:50%;text-align: center;">
+          <apex:pageBlock title="Event Registration Thank You Page">
+              <h1>Thank you for submitting your response. Please close this window.</h1> 
+          </apex:pageBlock>     
+      </div>
+    <c:DOSRSVPFooter />
+    </apex:form>  
+
+
+
+
+</apex:page>

@@ -1,0 +1,278 @@
+<apex:page id="myPage" showHeader="true" sidebar="false" controller="AmericanSpacesPostContact">
+    <apex:includeScript value="{!URLFOR($Resource.jQueryLibrary, 'jquery-1.8.3.js')}"/>
+    <apex:includeScript value="{!URLFOR($Resource.jQueryLibrary, 'jquery-ui-1.9.2.custom.js')}"/>
+    <apex:includeScript value="{!URLFOR($Resource.jQueryLibrary, 'jquery.ui.autocomplete.js')}"/>
+    <apex:stylesheet value="{!URLFOR($Resource.jQueryLibrary, 'jquery-ui.css')}"/>
+    <script src="/soap/ajax/9.0/connection.js" type="text/javascript"></script>
+    <script language="JavaScript1.2" src="/js/functions.js"></script>
+    
+    <style>
+        .asc {
+            background-color: #888888;
+            font-style:italic;
+        }
+        .underline {
+            text-decoration: underline;
+        }
+    </style>
+    
+    <script type="text/javascript">  
+        j$ = $.noConflict();
+        
+        j$(document).ready(function ()
+        {
+            config();
+
+            var country = new Array();
+            var region = new Array();
+            var name = new Array();
+            var spaceName = new Array();
+            var cityName = new Array();
+            
+            sforce.connection.sessionId = "{!$Api.Session_ID}";
+            var result = sforce.connection.query( "SELECT Country__c FROM American_Spaces_Post_Contacts__c order by country__c" );
+            var records = result.getArray( "records" );
+            
+            for (var i=0; i< records.length; i++)
+            {
+                country[i] = records[i].Country__c;
+            }
+            
+            var uniqueCountry = [];
+            j$.each(country, function(i, el){
+                if(j$.inArray(el, uniqueCountry) === -1) uniqueCountry.push( el );
+            });
+            
+            j$( '[id="myPage:pageBlock:myForm:filter:country"]' ).autocomplete({
+                //source: uniqueCountry
+                source: function(req, responseFn) {
+                    var re = j$.ui.autocomplete.escapeRegex(req.term);
+                    var matcher = new RegExp( "^" + re, "i" );
+                    var a = j$.grep( uniqueCountry, function(item,index){
+                        return matcher.test(item);
+                    });
+                    responseFn( a );
+                }
+            });
+            
+            result = sforce.connection.query( "SELECT Region__c FROM American_Spaces_Post_Contacts__c order by Region__c" );
+            records = result.getArray( "records" );
+            
+            for (var i=0; i< records.length; i++)
+            {
+                region[i] = records[i].Region__c;
+            }
+
+            var uniqueRegion = [];
+            j$.each(region, function(i, el){
+                if(j$.inArray(el, uniqueRegion) === -1) uniqueRegion.push( el );
+            });
+
+            j$( '[id="myPage:pageBlock:myForm:filter:region"]' ).autocomplete({
+                //source: uniqueRegion,
+                source: function(req, responseFn) {
+                    var re = j$.ui.autocomplete.escapeRegex(req.term);
+                    var matcher = new RegExp( "^" + re, "i" );
+                    var a = j$.grep( uniqueRegion, function(item,index){
+                        return matcher.test(item);
+                    });
+                    responseFn( a );
+                }
+            });
+    
+            result = sforce.connection.query( "SELECT name FROM American_Spaces_Post_Contacts__c order by name" );
+            records = result.getArray( "records" );
+            
+            for (var i=0; i< records.length; i++)
+            {
+                name[i] = records[i].Name;
+            }
+            
+            var uniqueName = [];
+            j$.each(name, function(i, el){
+                if(j$.inArray(el, uniqueName) === -1) uniqueName.push( el );
+            });
+            
+            j$( '[id="myPage:pageBlock:myForm:filter:name"]' ).autocomplete({
+                //source: uniqueSpaceName
+                source: function(req, responseFn) {
+                    var re = j$.ui.autocomplete.escapeRegex(req.term);
+                    var matcher = new RegExp( "^" + re, "i" );
+                    var a = j$.grep( uniqueName, function(item,index){
+                        return matcher.test(item);
+                    });
+                    responseFn( a );
+                }
+            });
+    
+            result = sforce.connection.query( "SELECT name FROM American_Spaces_Contact__c order by name" );
+            records = result.getArray( "records" );
+            
+            for (var i=0; i< records.length; i++)
+            {
+                spaceName[i] = records[i].Name;
+            }
+            
+            var uniqueSpaceName = [];
+            j$.each(spaceName, function(i, el){
+                if(j$.inArray(el, uniqueSpaceName) === -1) uniqueSpaceName.push( el );
+            });
+            
+            j$( '[id="myPage:pageBlock:myForm:filter:spaceName"]' ).autocomplete({
+                //source: uniqueSpaceName
+                source: function(req, responseFn) {
+                    var re = j$.ui.autocomplete.escapeRegex(req.term);
+                    var matcher = new RegExp( "^" + re, "i" );
+                    var a = j$.grep( uniqueSpaceName, function(item,index){
+                        return matcher.test(item);
+                    });
+                    responseFn( a );
+                }
+            });
+    
+            result = sforce.connection.query( "SELECT City__c FROM American_Spaces_Contact__c WHERE City__c != '' order by city__c" );
+            records = result.getArray( "records" );
+            
+            for (var i=0; i< records.length; i++)
+            {
+                cityName[i] = records[i].City__c;
+            }
+            
+            var uniqueCityName = [];
+            j$.each(cityName, function(i, el){
+                if(j$.inArray(el, uniqueCityName) === -1) uniqueCityName.push( el );
+            });
+            
+            j$( '[id="myPage:pageBlock:myForm:filter:spaceType"]' ).autocomplete({
+                source: function(req, responseFn) {
+                    var re = j$.ui.autocomplete.escapeRegex(req.term);
+                    var matcher = new RegExp( "^" + re, "i" );
+                    var a = j$.grep( uniqueCityName, function(item,index){
+                        return matcher.test(item);
+                    });
+                    responseFn( a );
+                }
+            });
+        });
+        
+        function config()
+        {
+            j$( ".contentLoading" ).hide();
+            var sortBy = j$( '[id="myPage:pageBlock:myForm:filter:sortBy" ]' ).val();
+            var ascOrDesc = j$( '[id="myPage:pageBlock:myForm:filter:ascOrDesc" ]' ).val();
+
+            if (sortBy != null && sortBy.length > 0)
+            {
+                applySortArrow( j$( "." + sortBy ), ascOrDesc );
+            }
+            
+            j$( "th.headerRow" ).click( function() {
+                var sortBy = j$( this ).attr( "class" );
+                var sortBy = sortBy.replace( "headerRow ", "" ); 
+                var sortBy = j$.trim( sortBy );
+                
+                if (sortBy != "")
+                {
+                    var orderInfo = j$( '[id="myPage:pageBlock:myForm:filter:ascOrDesc" ]' ).val();
+                    j$( '[id="myPage:pageBlock:myForm:filter:ascOrDesc" ]' ).val(orderOption( orderInfo )); 
+                    j$( '[id="myPage:pageBlock:myForm:filter:sortBy" ]' ).val( sortBy );
+                    j$( '[id="myPage:pageBlock:myForm:filter:filterBtn" ]' ).click();
+                }
+            });
+            
+            j$( '[id="myPage:pageBlock:myForm:filter"]' ).css( "width", "500px" );
+        }
+        
+        
+        function orderOption( ascOrDesc )
+        {
+            if (ascOrDesc == ' asc')
+                return ' desc';
+            else
+                return ' asc';
+        }
+        
+        
+        function applySortArrow( element, sort )
+        {
+            j$( element ).parent().addClass( "asc" );
+
+            if (sort == ' asc')
+            {
+                
+                j$( element ).children().append( " ↑" ); 
+            }
+            else
+            {
+                j$( element ).children().append( " ↓" );
+            }
+        }
+    </script>
+    <apex:messages style="padding:5px;margin-top:55px" />
+    <apex:pageBlock title="" id="pageBlock">
+        <apex:form id="myForm">
+        <apex:pageBlockSection id="filter" showHeader="true" title="Filter" columns="3" collapsible="true">
+                <apex:outputText value="Region:" /><apex:inputText id="region" value="{!region}" /><apex:inputText value="{!columnName}" style="visibility:hidden;height:0px;width:0px" id="sortBy" />
+                <apex:outputText value="Country:" /><apex:inputText id="country" value="{!country}" /><apex:inputText value="{!ascOrDesc}" style="visibility:hidden;height:0px;;width:0px" id="ascOrDesc" />
+                <apex:outputText value="Managing Post City:" /><apex:inputText id="name" label="" value="{!name}" /><apex:outputText value="" />
+                <apex:outputText value="Name of Space:" /><apex:inputText id="spaceName" label="" value="{!spaceName}" /><apex:outputText value="" />
+                <apex:outputText value="City of Space:" /><apex:inputText id="spaceType" label=""  value="{!spaceType}" /><apex:outputText value="" />
+                <br/>
+                <apex:commandButton action="{!refresh}" value="Filter" id="filterBtn" style="margin-left:200px;"/>
+                <apex:commandButton action="{!reset}" value="Reset" />
+        </apex:pageBlockSection>
+        </apex:form>
+        <br/><br/>
+        <apex:pageBlockTable id="postInfo" value="{!postContacts}" var="postContact" rowClasses="odd,even" styleClass="tableClass">
+            
+            
+            <apex:column headerClass="Managing_Post_City__r-region__c">
+                <apex:facet name="header"><span class="underline">Region</span></apex:facet>
+                <apex:outputLink value="/apex/AmSpaces_Post_Contacts_ListView?region={!postContact.post.Region__c}"><apex:outputText value="{!postContact.post.Region__c}"/></apex:outputLink>
+            </apex:column>
+            
+            <apex:column headerClass="Managing_Post_City__r-country__c">
+                <apex:facet name="header"><span class="underline">Country</span></apex:facet>
+                <a href="../apex/AmericanSpace_AmSpacePostContactView?country={!URLENCODE(postContact.post.Country__c)}" target="_self" alt="view">{!postContact.post.Country__c}</a>
+            </apex:column>
+			
+            <apex:column rendered="{!bGroup}">
+                <apex:facet name="header">List of Spaces</apex:facet>
+                <apex:repeat value="{!postContact.spaces}" var="space" >
+                    <apex:outputlink value="/{!space.id}">{!space.name}</apex:outputlink>&nbsp;
+                </apex:repeat>
+            </apex:column>
+            
+            <apex:column rendered="{!bGroup}">
+                <apex:facet name="header">City of Spaces</apex:facet>
+                <apex:repeat value="{!postContact.spaces}" var="space" >
+                    <apex:outputlink value="/{!space.id}">{!space.City__c}</apex:outputlink>&nbsp;
+                </apex:repeat>
+            </apex:column>
+            
+            <apex:column headerClass="city__c" rendered="{!!bGroup}">
+                <apex:facet name="header"><span class="underline">City of Space</span></apex:facet>
+                <apex:repeat value="{!postContact.spaces}" var="space" >
+                    <apex:outputlink value="/{!space.id}">{!space.City__c}</apex:outputlink>&nbsp;
+                </apex:repeat>
+            </apex:column>
+            
+            <apex:column headerClass="name" rendered="{!!bGroup}">
+                <apex:facet name="header"><span class="underline">Name of Space</span></apex:facet>
+                <apex:repeat value="{!postContact.spaces}" var="space" >
+                    <apex:outputlink value="/{!space.id}">{!space.name}</apex:outputlink>&nbsp;
+                </apex:repeat>
+            </apex:column>
+            
+            <apex:column headerClass="Managing_Post_City__r-name">
+                <apex:facet name="header"><span class="underline">Managing Post City</span></apex:facet>
+                <a href="../apex/AmericanSpace_AmSpacePostContactView?postID={!postContact.post.id}" target="_self" alt="view"><apex:outputText value="{!postContact.post.name}"/></a>
+            </apex:column>
+        </apex:pageBlockTable>
+        <div id="spinner" class="contentLoading">
+            <div style="text-align: center;">
+                <img src="/img/loading.gif" alt="Loading graphic" /> Loading...
+            </div>
+        </div>
+    </apex:pageBlock>
+</apex:page>

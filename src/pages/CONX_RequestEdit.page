@@ -1,0 +1,769 @@
+<apex:page id="page" title="Edit Program Request" showHeader="true" sidebar="false" standardController="CONX_Program_Request__c" extensions="CONX_ProgramRequestController" tabStyle="CONX_Program_Requests__tab">
+    <apex:includeScript value="{!URLFOR($Resource.jQueryLibrary, 'jquery-1.8.3.js')}" />
+    <apex:includeScript value="{!URLFOR($Resource.jQueryLibrary, 'jquery.timepicker.js')}" />
+    <apex:stylesheet value="{!URLFOR($Resource.jQueryLibrary, 'jquery.timepicker.css')}" />
+    <apex:includeScript value="{!URLFOR($Resource.jQueryLibrary, 'jquery-ui-1.9.2.custom.js')}"/>
+    <apex:includeScript value="{!URLFOR($Resource.jQueryLibrary, 'jquery.ui.autocomplete.js')}"/>
+    <apex:stylesheet value="{!URLFOR($Resource.jQueryLibrary, 'jquery-ui.css')}"/>
+    <script src="/soap/ajax/9.0/connection.js" type="text/javascript"></script>
+    <script language="JavaScript1.2" src="/js/functions.js"></script>
+    
+    <style type="text/css">
+    
+    .requiredArchive {
+	    background-color: #0033FF;
+		position: absolute;
+		left: -4px;
+		width: 3px;
+		top: 1px;
+		bottom: 1px;
+		display: block;
+	}
+	</style>
+    
+    <script type="text/javascript">
+        j$ = $.noConflict();
+        
+        var hide = false;
+        
+        j$(document).ready(function ()
+        {
+        	j$( '.speakerLocation' ).each( function() {
+        		displayOtherForSpeaker( this );
+        	});
+        
+            displayInputs( j$( '[id="page:myForm:pageBlock:metrics:google"]' ) ,"google" );
+            displayInputs( j$( '[id="page:myForm:pageBlock:metrics:watchitoo"]' ) ,"watchitoo" );
+            displayInputs( j$( '[id="page:myForm:pageBlock:metrics:adobe"]' ) ,"adobe" );
+            displayInputs( j$( '[id="page:myForm:pageBlock:metrics:viewingGroup"]' ) ,"viewingGroup" );
+            
+            displayRegion( j$( '[id="page:myForm:pageBlock:programDetails:genReq:postProduced"]' ));
+            displayOptions( j$( '[id="page:myForm:pageBlock:programDetails:genReq:programType"]' ));
+            displayMarketing(  j$( '[id="page:myForm:pageBlock:extMarketing:marketingBlock:marketingReq"]' ));
+            displayStreamLoc( j$( '[id="page:myForm:pageBlock:destination:intStrLoc"]' ));
+            
+            twistSection( document.getElementById( 'page:myForm:pageBlock:productionPlan' ).childNodes[0].childNodes[0] );
+            twistSection( document.getElementById( 'page:myForm:pageBlock:postProd' ).childNodes[0].childNodes[0] );
+            showProdNote();
+
+            j$( '[id="page:myForm:pageBlock:programDetails:langSection:hide"]' ).hide();
+            
+            j$ ( '[id="img_page:myForm:pageBlock:productionPlan"]' ).click( function() {
+                showProdNote();
+            });
+            
+            j$( '.timer' ).timepicker({
+                timeFormat: 'h:i A',
+                separator: ':',
+                step: 15
+            });
+            
+            j$( '.timer' ).find( 'ul' ).append( '<li>11:45 PM</li>' ); 
+            
+            var list= '{!listOfProducers}'.split(";");
+            
+            j$( '[id="page:myForm:pageBlock:program:programInfo:assign:user"]' ).autocomplete({
+                source: list
+            });
+            
+            j$( "div.time-picker" ).css( "width", "150px" );
+
+            var details = [];
+			
+			convertStringToDropDown( '{!regions}', 'requestRegions' );
+			convertStringToDropDown( '{!regions}', 'targetRegions' );
+			
+            convertStringToDropDown( '{!listOfLanguges}', 'languages' );    
+            convertStringToDropDown( '{!listOfPlatforms}', 'platforms' );
+            convertStringToDropDown( '{!ListOfMarketingDestinations}', 'marketingDestinations' );
+            
+            getPost( '{!CONX_Program_Request__c.Request_Region__c}'.replace( ';', ',' ) , 'requestPosts', false );
+            getPost( '{!CONX_Program_Request__c.Target_Region__c}'.replace( ';', ',' ) , 'targetPosts', false );
+            
+            convertStringToDropDown( '{!listOfSourceOfRequest}', 'sourceOfRequest' );
+            convertStringToDropDown( '{!listOfStreamDestination}', 'streamDescs' );
+            convertStringToDropDown( '{!listOfTargetAudience}', 'targetAuds' );
+            convertStringToDropDown( '{!listOfDistributionPlan}', 'disPlans' );
+
+			putSelect( 'requestRegions', j$( '.requestRegion' ).val() );
+            putSelect( 'targetRegions', j$( '.targetRegion' ).val() );
+
+            putSelect( 'languages', j$( '.language' ).val() );
+            putSelect( 'platforms', j$( '.platform' ).val() );
+            putSelect( 'marketingDestinations', j$( '.market' ).val());
+            putSelect( 'requestPosts', j$( '.requestPost' ).val() );
+            putSelect( 'targetPosts', j$( '.targetPost' ).val() );
+            putSelect( 'sourceOfRequest', j$( '.sourceOfRequest' ).val() );
+            putSelect( 'steamDescs', j$( '.streamDesc' ).val() );
+            putSelect( 'targetAuds', j$( '.targetAud' ).val() );
+            putSelect( 'disPlans', j$( '.disPlan' ).val() );
+            
+            j$( '#sourceOfRequest' ).change(function()
+            {
+                var selected = j$( this ).val();
+                var found = false;
+                
+                if (selected != null)
+                {
+                    for (var i=0; i< selected.length; i++)
+                    {
+                        if (selected[i] == 'Other')
+                        {
+                            j$( '[id="page:myForm:pageBlock:programDetails:sourceReq:sourceOther"]' ).parent().parent().show();
+                            found = true;
+                        }
+                    }
+                }
+                
+                if (!found)
+                {
+                    j$( '[id="page:myForm:pageBlock:programDetails:sourceReq:sourceOther"]' ).parent().parent().hide();
+                }
+            });
+            
+            j$( '[id="page:myForm:pageBlock:programDetails:sourceReq:sourceOther"]' ).parent().parent().hide();
+            
+            var selected = j$( '#sourceOfRequest' ).val();
+            
+            if (selected  != null)
+            {
+                for (var i=0; i< selected.length; i++)
+                {
+                    if (selected[i] == 'Other')
+                    {
+                        j$( '[id="page:myForm:pageBlock:programDetails:sourceReq:sourceOther"]' ).parent().parent().show();
+                    }
+                }
+            }
+        });
+        
+        
+        function getPost( regionStr, idStr, isArray )
+        {
+        	sforce.connection.sessionId = "{!$Api.Session_ID}";
+            var queryStr = "SELECT name FROM American_Spaces_Post_Contacts__c";
+            var isGlobal = false;
+            
+            if (regionStr != null && regionStr.length > 0)
+            {
+            	var whereClause = '';
+            	
+            	if (!isArray)
+            	{
+            		regionStr = regionStr.split( ',' );
+            	}
+            	
+            	for (region in regionStr)
+            	{
+            		if (regionStr[region] == 'Global')
+            		{
+            			isGlobal = true;
+            		}
+            		
+            		whereClause += "'" + regionStr[region] + "',";
+            	}
+            	
+            	whereClause = whereClause.substring( 0, whereClause.length - 1 );
+            	
+            	if (!isGlobal)
+            	{
+                	queryStr += " WHERE Region__c in (" + whereClause + ")";
+                }
+            }
+
+			queryStr += " ORDER BY name";
+            result = sforce.connection.query( queryStr );
+            records = result.getArray( "records" );
+            
+            var listStr = "";
+            
+            for (var i=0; i< records.length; i++)
+            {
+                    
+                listStr  += records[i].Name + ";";
+            }        
+            
+            convertStringToDropDown( listStr  , idStr );
+        }
+        
+        function displayOther( input, otherIDStr )
+        {
+            if (j$( input ).val() == 'Other')
+            {
+                j$( '[id="' + otherIDStr + '"]' ).show();
+            }
+            else
+            {
+                j$( '[id="' + otherIDStr + '"]' ).val( '' );
+                j$( '[id="' + otherIDStr + '"]' ).hide();
+            }
+        }
+        
+        
+        function displayOtherForSpeaker( input )
+        {
+            if (j$( input ).val() == 'Other')
+            {
+                j$( input ).closest( "table" ).find( ".speakerOther" ).show();
+            }
+            else
+            {
+                j$( input ).closest( "table" ).find( ".speakerOther" ).val( '' );
+                j$( input ).closest( "table" ).find( ".speakerOther" ).hide();
+            }
+        }
+        
+        
+        function displayOptions( input )
+        {
+            if (j$( input ).val() == 'DVC' )
+            {
+                j$( '.DVCCon' ).parent().show();
+                j$( '.DVCWEB' ).parent().hide();
+                j$( '.Webcast' ).parent().hide();
+                j$( '.programOther' ).parent().hide();
+                j$( '.DVCReq' ).parent().show();
+            }
+            else if (j$( input ).val() == 'DVC with Webcast' )
+            {
+                j$( '.DVCWEB' ).parent().show();
+                j$( '.DVCCon' ).parent().hide();
+                j$( '.Webcast' ).parent().hide();
+                j$( '.programOther' ).parent().hide();
+                j$( '.DVCReq' ).parent().show();
+            }
+            else if (j$( input ).val() == 'Webcast' )
+            {
+                j$( '.Webcast' ).parent().show();
+                j$( '.DVCCon' ).parent().hide();
+                j$( '.DVCWEB' ).parent().hide();
+                j$( '.programOther' ).parent().hide();
+                j$( '.DVCReq' ).parent().hide();
+            }
+            else if (j$( input ).val() == 'Other' )
+            {
+                j$( '.DVCCon' ).parent().hide();
+                j$( '.DVCWEB' ).parent().hide();
+                j$( '.Webcast' ).parent().hide();
+                j$( '.programOther' ).parent().show();
+                j$( '.DVCReq' ).parent().hide();
+            }
+            else
+            {
+                j$( '.DVCCon' ).val( '' );
+                j$( '.DVCWEB' ).val( '' );
+                j$( '.Webcast' ).val( '' );
+                j$( '.programOther' ).val( '' );
+                
+                j$( '.DVCCon' ).parent().hide();
+                j$( '.DVCWEB' ).parent().hide();
+                j$( '.Webcast' ).parent().hide();
+                j$( '.programOther' ).parent().hide();
+                j$( '.DVCReq' ).parent().hide();
+            }
+        }
+        
+        
+        function displayRegion( input )
+        {
+            if (j$( input ).is(':checked'))
+            {
+                j$( '.region' ).parent().show();
+            }
+            else
+            {
+                j$( '.region' ).parent().hide();
+            }
+        }
+        
+        
+        function displayMarketing( input )
+        {
+            if (j$( input ).is(':checked'))
+            {
+                j$( '.externalMarkingInfo' ).show();
+            }
+            else
+            {
+                j$( '.externalMarkingInfo' ).hide();
+            }
+        }
+        
+        
+        function displayStreamLoc( input )
+        {
+            if (j$( input ).is(':checked'))
+            {
+                j$( '.streamLoc' ).show();
+            }
+            else
+            {
+                j$( '.streamLoc' ).hide();
+            }
+        }
+        
+        
+        function showProdNote()
+        {
+            if (hide)
+            {
+                j$( '[id="page:myForm:pageBlock:prodNote"]' ).show();
+                hide = false;
+            }
+            else
+            {
+                j$( '[id="page:myForm:pageBlock:prodNote"]' ).hide();
+                hide = true;
+            }
+        }
+        
+        function displayInputs( input, styleStr )
+        {
+            if (j$( input ).is(':checked'))
+            {
+                j$( '.' + styleStr  ).show();
+                j$( '.' + styleStr  ).parent().parent().show();
+            }
+            else
+            {
+                j$( '.' + styleStr  ).hide();
+                j$( '.' + styleStr  ).parent().parent().hide();
+            }
+        }
+        
+        
+        function captureSelect( select, styleStr )
+        {
+            var selectedItems = "";
+            
+            for (var i = 0; i < select.options.length; i++)
+            {
+                if (select.options[i].selected)
+                {
+                    selectedItems = selectedItems + select.options[i].value + ",";
+                }
+            }
+            
+            selectedItems = selectedItems.substring(0, selectedItems.length - 1);
+            j$( '.' + styleStr ).val( selectedItems );
+        }
+
+
+        function putSelect( selectList, picklistValues )
+        {
+            if (picklistValues != null && picklistValues.length > 0)
+            {
+                j$( '#' + selectList + ' > option' ).each( function() {	
+                     if (picklistValues.indexOf( j$( this ).val() ) != -1)
+                     {
+                         j$( this ).attr("selected", "selected");
+                     }
+                 });
+             }
+        }
+        
+        
+        function convertStringToDropDown( listStr, idStr )
+        {
+            var records = listStr.split( ";" );        
+            var s = document.getElementById( idStr );
+            
+            j$( '#' + idStr ).empty();
+            
+            for (var i=0; i< records.length; i++)
+            {
+                var obj = records[i];
+                if (j$( '#' + idStr + ' option[value="' + obj +'"]' ).length == 0 && obj.length > 0)
+                {
+                    s.options[s.options.length] = new Option( obj, obj );
+                }
+            }
+            
+            j$( '#' + idStr ).scrollTop( 0 );         
+        }
+        
+        
+        function colorPageBlock( pageblock, color )
+        {
+            if (pageblock != null) pageblock.firstChild.style.cssText = "background-color: " + color + ";";
+        }
+    </script>
+    
+    <apex:form id="myForm">
+        <apex:messages style="padding:5px;margin-top:55px" />
+        
+        <apex:pageBlock id="pageBlock" title="{!$ObjectType.CONX_Program_Request__c.label} Edit" mode="view">
+            <apex:pageBlockButtons >
+                <apex:commandButton action="{!save}" value="Save"/>
+                <apex:commandButton action="{!cancel}" value="Cancel"/>
+            </apex:pageBlockButtons>
+            
+            <apex:pageBlockSection id="requestorInfo" showHeader="true" title="Requestor Information" columns="2">
+                <apex:inputField value="{!CONX_Program_Request__c.Requestor_Last_Name__c}"  required="true" />
+                <apex:inputField value="{!CONX_Program_Request__c.Date_of_Request__c}"      required="true" />
+                <apex:inputField value="{!CONX_Program_Request__c.Requestor_First_Name__c}" required="true" />
+                <apex:inputField value="{!CONX_Program_Request__c.Requestor_Email_Work__c}" required="true" />
+            </apex:pageBlockSection>
+            
+            <apex:pageBlockSection id="program" showHeader="true" title="Program Information" columns="1">
+            	<apex:pageBlockSection id="programInfo" showHeader="false" columns="2">
+	                <apex:inputField required="true" value="{!CONX_Program_Request__c.Washington_Date_of_Program__c}" />
+	                <apex:inputField required="true" label="Local Date of Program" value="{!CONX_Program_Request__c.Date_of_Program__c}" />
+	
+	                <apex:inputField value="{!CONX_Program_Request__c.Washington_Alternate_Date__c}" />
+	                <apex:inputField value="{!CONX_Program_Request__c.Local_Alternate_Date__c}" />
+	
+	                <apex:inputField required="true" styleClass="timer" value="{!CONX_Program_Request__c.Washington_Start_Time__c}" />
+	                <apex:inputField required="true" label="Local Start Time" styleClass="timer" value="{!CONX_Program_Request__c.Start_EDT_UTC_Local__c}" />
+	                
+	                <apex:inputField required="true" styleClass="timer" value="{!CONX_Program_Request__c.Washington_End_Time__c}" />
+	                <apex:inputField required="true" label="Local End Time" styleClass="timer" value="{!CONX_Program_Request__c.End_Time__c}" />
+	                
+	                <apex:inputField label="Program Title" required="true" value="{!CONX_Program_Request__c.Program_Titles__c}" />
+	                <apex:inputField value="{!CONX_Program_Request__c.Moderator_Last_Name__c}" />
+	
+	                <apex:inputField value="{!CONX_Program_Request__c.Moderator_Title__c}" />
+	                <apex:inputField value="{!CONX_Program_Request__c.Moderator_First_Name__c}" />
+	
+	                <apex:pageBlockSectionItem id="assign" rendered="{!myPermissionset == 'CONX Project Coordinator'}">
+	                    Assigned to (Producer):
+	                    <apex:inputText id="user" value="{!assignTo}" />
+	                </apex:pageBlockSectionItem>
+	                <apex:pageBlockSectionItem rendered="{!myPermissionset != 'CONX Project Coordinator'}">
+	                    &nbsp;
+	                </apex:pageBlockSectionItem>
+	                &nbsp;
+                </apex:pageBlockSection>
+                
+                <apex:pageBlockSection id="speakers" showHeader="true" title="Speaker(s)" columns="1">
+                	<apex:commandButton action="{!addSpeaker}" value="New Speaker" immediate="true" />
+	                <apex:outputPanel id="speakerInfo">
+	                	<apex:variable value="{!0}" var="rowNumSpeaker" />
+	                    <apex:repeat value="{!speakers}" var="speaker" >
+	                        <apex:variable var="rowNumSpeaker" value="{!rowNumSpeaker + 1}"/>
+	                        <apex:pageBlockSection id="key" columns="2"  title="Speaker {!ROUND(rowNumSpeaker, 0)}" collapsible="true">
+	                            <apex:inputField value="{!speaker.First_Name__c}" />
+	                            <apex:inputField value="{!speaker.Last_Name__c}" />
+	                            <apex:inputField value="{!speaker.Title__c}" />
+	                            <apex:pageBlockSectionItem >
+	                            	<apex:outputLabel value="Location" />
+	                            	<apex:pageBlockSectionItem >
+	                            		<apex:inputField styleClass="speakerLocation" value="{!speaker.Location__c}" onchange="displayOtherForSpeaker( this );" />
+		                            	<apex:inputField styleClass="speakerOther" label="" value="{!speaker.Other__c}" />
+	                            	</apex:pageBlockSectionItem>
+	                            </apex:pageBlockSectionItem>
+	                            <apex:commandLink value="delete" action="{!deleteSpeaker}" immediate="true" onclick="return confirm('Are you sure?');">
+	                                <apex:param name="speakerNumber" value="{!ROUND(rowNumSpeaker, 0)}" assignTo="{!speakerNumber}" />
+	                            </apex:commandLink>
+	                        </apex:pageBlockSection>
+	                    </apex:repeat>
+	                </apex:outputPanel>
+                </apex:pageBlockSection>
+            </apex:pageBlockSection>
+            
+            <apex:pageBlockSection id="programDetails" showHeader="true" title="Program Details" columns="1">
+                <apex:pageBlockSection id="sourceReq" showHeader="true" title="Source of Request" columns="2">
+                    <apex:pageBlockSectionItem >
+                        <apex:outputLabel value="Source of Request-Who generated the original program concept?" />
+                        <apex:outputPanel styleClass="requiredInput" layout="block">
+                            <apex:outputPanel styleClass="requiredBlock" layout="block"/>
+                            <select id="sourceOfRequest" multiple="multiple" size="3" onChange="captureSelect( this, 'sourceOfRequest'  );"></select>
+                        </apex:outputPanel>
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem >
+                        <apex:outputLabel value="Request Region" />
+                       	<select id="requestRegions" multiple="multiple" size="4" onchange="captureSelect( this, 'requestRegion'  );getPost( j$(this).val(), 'requestPosts', true );"></select>
+                    </apex:pageBlockSectionItem>
+                    
+                    <apex:inputField id="sourceOther" value="{!CONX_Program_Request__c.Source_of_Request_Other__c}" />
+                    &nbsp;
+                    
+                    <apex:inputField value="{!CONX_Program_Request__c.Recruited_By_Talent_Office__c}" />
+                    <apex:pageBlockSectionItem >
+                        <apex:outputLabel value="Request Country"  />
+                        <apex:inputField value="{!CONX_Program_Request__c.Request_Country__c}" />
+                    </apex:pageBlockSectionItem>
+                    
+                    &nbsp;
+                    <apex:pageBlockSectionItem >
+                        <apex:outputLabel value="Request Post" />
+                        <select id="requestPosts" multiple="multiple" size="5" onChange="captureSelect( this, 'requestPost' );"></select>
+                    </apex:pageBlockSectionItem>
+                </apex:pageBlockSection>
+                
+                <apex:pageBlockSection id="targetAud" showHeader="true" title="Target Audience" columns="2">
+                    <apex:pageBlockSectionItem >
+                        <apex:outputLabel value="Target Audience" />
+                        <select id="targetAuds" multiple="multiple" size="5" onChange="captureSelect( this, 'targetAud'  );"></select>
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem >
+                        <apex:outputLabel value="Target Region" />
+                        <select id="targetRegions" multiple="multiple" size="5" onchange="captureSelect( this, 'targetRegion'  );getPost( j$(this).val(), 'targetPosts', true );"></select>
+                    </apex:pageBlockSectionItem>
+                    
+                    &nbsp;
+                    <apex:pageBlockSectionItem >
+                        <apex:outputLabel value="Target Country"  />
+                        <apex:inputField value="{!CONX_Program_Request__c.Target_Country__c}" />
+                    </apex:pageBlockSectionItem>
+                    
+                    &nbsp;
+                    <apex:pageBlockSectionItem >
+                        <apex:outputLabel value="Target Post" />
+                        <select id="targetPosts" multiple="multiple" size="5" onChange="captureSelect( this, 'targetPost'  );"></select>
+                    </apex:pageBlockSectionItem>
+                </apex:pageBlockSection>
+                
+                <apex:pageBlockSection id="genReq" showHeader="true" title="General" columns="1">
+                    <apex:inputField id="programType" value="{!CONX_Program_Request__c.Program_Type__c}" required="true" onchange="displayOptions( this );" />
+                    <apex:pageBlockSectionItem dataStyleClass="programOther">
+                        <apex:outputLabel value="" styleClass="programOther" />
+                        <apex:inputField value="{!CONX_Program_Request__c.Program_Type_Other__c}" />
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem dataStyleClass="DVCCon">
+                        <apex:outputLabel value="What is your connection address? (IP, ISDN, OpenNet)" styleClass="DVCCon" />
+                        <apex:inputField value="{!CONX_Program_Request__c.DVC_Connection_Detail__c}" />
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem dataStyleClass="DVCWEB">
+                        <apex:outputLabel value="Will there be an interactive component?" styleClass="DVCWEB" />
+                        <apex:inputField value="{!CONX_Program_Request__c.DVC_Web_Interactive_Component__c}" />
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem dataStyleClass="DVCWEB">
+                        <apex:outputLabel value="What is your connection address? (IP, ISDN, OpenNet)" styleClass="DVCWEB" />
+                        <apex:inputField value="{!CONX_Program_Request__c.DVC_Web_Connection_Detail__c}" />
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem dataStyleClass="Webcast">
+                        <apex:outputLabel value="Will there be an interactive component?" styleClass="Webcast" />
+                        <apex:inputField value="{!CONX_Program_Request__c.Webcast_Interactive_Component__c}" />
+                    </apex:pageBlockSectionItem>
+                    
+                    <apex:inputField id="postProduced" Label="Is this post produced?" value="{!CONX_Program_Request__c.Produced_By_Post__c}" onclick="displayRegion( this );" />
+                    <apex:pageBlockSectionItem dataStyleClass="region">
+                        <apex:outputLabel value="If yes, will you need assistance from a CO.NX Producer in Washington?" styleClass="region" />
+                        <apex:inputField value="{!CONX_Program_Request__c.CONX_Assistance__c}" />
+                    </apex:pageBlockSectionItem>
+                    
+                    <apex:pageBlockSectionItem >
+                        <apex:outputLabel value="What is the platform?" />
+                        <select id="platforms" multiple="multiple" size="5" onChange="captureSelect( this, 'platform'  );"></select>
+                    </apex:pageBlockSectionItem>
+                    
+                    <apex:inputField value="{!CONX_Program_Request__c.Themes__c}" required="true" />
+                    
+                    <apex:pageBlockSectionItem >
+                        <apex:outputLabel value="Language" />
+                        <apex:outputPanel styleClass="requiredInput" layout="block">
+                            <apex:outputPanel styleClass="requiredBlock" layout="block"/>
+                            <select id="languages" multiple="multiple" size="5" onChange="captureSelect( this, 'language'  );"></select>
+                        </apex:outputPanel>
+                    </apex:pageBlockSectionItem>
+    
+                    <apex:inputField value="{!CONX_Program_Request__c.Studio_Location__c}"  rendered="{!myPermissionset == 'CONX Project Coordinator'}" />
+                    <apex:outputField value="{!CONX_Program_Request__c.Studio_Location__c}" rendered="{!myPermissionset != 'CONX Project Coordinator'}" />
+                </apex:pageBlockSection>
+                
+                <apex:pageBlockSection columns="2">    
+                    <apex:inputField value="{!CONX_Program_Request__c.Program_Goal_s__c}" />
+                    <apex:inputField value="{!CONX_Program_Request__c.Notes__c}" />
+                </apex:pageBlockSection>
+                 
+                <apex:pageBlockSectionItem id="langSection">
+                    <apex:outputPanel id="hide">
+                        <apex:inputField styleClass="language"        label="" value="{!CONX_Program_Request__c.Language__c}" required="true" />
+                        <apex:inputField styleClass="platform"        label="" value="{!CONX_Program_Request__c.Marketing_Platforms__c}" />
+                        <apex:inputText styleClass="requestRegion"   label="" value="{!CONX_Program_Request__c.Request_Region__c}" />
+                        <apex:inputField styleClass="requestPost"     label="" value="{!CONX_Program_Request__c.Request_Post__c}" />
+                        <apex:inputText styleClass="targetRegion"    label="" value="{!CONX_Program_Request__c.Target_Region__c}" />
+                        <apex:inputField styleClass="targetPost"      label="" value="{!CONX_Program_Request__c.Target_Post__c}" />
+                        <apex:inputField styleClass="sourceOfRequest" label="" value="{!CONX_Program_Request__c.Source_of_Request__c}" required="true" />
+                        <apex:inputField styleClass="streamDesc"      label="" value="{!CONX_Program_Request__c.Stream_Destinations__c}" />
+                        <apex:inputField styleClass="targetAud"       label="" value="{!CONX_Program_Request__c.Target_Audiences__c}" />
+                        <apex:inputField styleClass="disPlan"         label="" value="{!CONX_Program_Request__c.Distribution_Plans__c}" />
+                        <apex:inputField styleClass="market"          label="" value="{!CONX_Program_Request__c.Marketing_Destinations__c}" />
+                        <apex:outputField label="" value="{!CONX_Program_Request__c.Status__c}" />
+                        <apex:outputField label="" value="{!CONX_Program_Request__c.OwnerId}" />
+                        <apex:outputField label="" value="{!CONX_Program_Request__c.Assigned_User__c}" />
+                    </apex:outputPanel>
+                </apex:pageBlockSectionItem>
+            </apex:pageBlockSection>
+            
+            <apex:pageBlockSection id="extMarketing" showHeader="True" Title="External Marketing Support" columns="2">
+            	<apex:pageBlockSectionItem id="marketingBlock" helpText="Select ‘Yes’ if you would like to request marketing support for an external-facing program that is open to public, global audiences. The producer assigned to this program will discuss marketing options with you, such as promotion via the CO.NX newsletter, portal and or/social media. Please select ‘No’ if your program does not require marketing.">
+            		<apex:outputLabel value="Would you like External Marketing?" />
+                	<apex:inputField id="marketingReq" value="{!CONX_Program_Request__c.External_Marketing__c}" onclick="displayMarketing(this);"/>
+                </apex:pageBlockSectionItem>
+            </apex:pageBlockSection>
+            
+            <apex:outputPanel styleClass="externalMarkingInfo">
+                <apex:pageBlockSection showHeader="True" Title="Marketing/Promotion" columns="2" id="marketingSection">
+                    <apex:pageBlockSectionItem >
+                        <apex:outputLabel value="Marketing Destination" />
+                        <select id="marketingDestinations" multiple="multiple" size="4" onChange="captureSelect( this, 'market'  );"></select>
+                    </apex:pageBlockSectionItem>
+                    <apex:inputField value="{!CONX_Program_Request__c.Hashtag_s__c}" />
+                    <apex:inputField value="{!CONX_Program_Request__c.Tags__c}" />
+                    <apex:inputField value="{!CONX_Program_Request__c.Keywords__c}" />
+                    <apex:inputField Label="Links to relevant content, organizations or websites for promotions" value="{!CONX_Program_Request__c.Program_Description_for_Promotion__c}" />
+                    <apex:inputField value="{!CONX_Program_Request__c.Promotion_Link__c}" />
+                    <script>colorPageBlock(document.getElementById("{!$Component.marketingSection}"), "#33CC99");</script>
+                </apex:pageBlockSection>
+                <apex:pageBlockSection showHeader="false" columns="1">
+                    <apex:inputField value="{!CONX_Program_Request__c.Marketing_Notes__c}" />
+                </apex:pageBlockSection>
+                <apex:pageBlockSection id="destination" showHeader="True" Title="Destination" columns="2">
+                    <apex:inputField id="intStrLoc" label="Are we capturing the stream from another location?" value="{!CONX_Program_Request__c.Internal_Stream_Location__c}" onclick="displayStreamLoc( this );" />
+                    <apex:pageBlockSectionItem >
+                        <apex:outputLabel value="If yes, from where?" styleClass="streamLoc" />
+                        <apex:inputField value="{!CONX_Program_Request__c.Stream_Location__c}" styleClass="streamLoc" />
+                    </apex:pageBlockSectionItem>
+                    
+                    <apex:pageBlockSectionItem >
+                        <apex:outputLabel value="Stream Destination" />
+                        <select id="streamDescs" multiple="multiple" size="4" onChange="captureSelect( this, 'streamDesc'  );"></select>
+                    </apex:pageBlockSectionItem>
+                    <apex:inputField value="{!CONX_Program_Request__c.Audio_Conference_line__c}" />
+                    <script>colorPageBlock(document.getElementById("{!$Component.destination}"), "#33CC99");</script>
+                </apex:pageBlockSection>
+                <apex:pageBlockSection showHeader="false" columns="1">
+                    <apex:inputField value="{!CONX_Program_Request__c.What_are_the_destination_URLS__c}" />
+                </apex:pageBlockSection>
+                <apex:pageBlockSection showHeader="true" Title="Attachment" columns="1" id="attachment">
+                    <script>colorPageBlock(document.getElementById("{!$Component.attachment}"), "#33CC99");</script>
+                    <apex:pageBlockSectionItem >
+                        <apex:outputLabel value="Upload Promotional Image" />
+                        <apex:inputFile value="{!newAttachment.body}" filename="{!newAttachment.name}" id="file" />
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem rendered="{!attachment.id != '' && (attachment.ContentType == 'jpg' || attachment.ContentType == 'png' || attachment.ContentType == 'gif')}">
+                        <apex:outputLabel value="Previous Upload" />
+                        <apex:outputPanel >
+                            <a href="../servlet/servlet.FileDownload?file={!attachment.id}" target="_blank"><img src="../servlet/servlet.FileDownload?file={!attachment.id}" width="50px" height="50px" /></a>
+                        </apex:outputPanel>
+                   </apex:pageBlockSectionItem>
+                   <apex:pageBlockSectionItem rendered="{!attachment.id != '' && attachment.ContentType != 'jpg' && attachment.ContentType != 'png' && attachment.ContentType != 'gif'}">
+                       <apex:outputLabel value="Previous Upload" />
+                       <apex:outputPanel >
+                           <a href="../servlet/servlet.FileDownload?file={!attachment.id}" target="_blank">Download the file</a>
+                       </apex:outputPanel>
+                   </apex:pageBlockSectionItem>
+                   <apex:pageBlockSectionItem rendered="{!attachment.id != ''}">
+                       <apex:outputLabel value="" />
+                       <apex:commandLink value="Delete Attachment" action="{!deleteAttachment}" />     
+                   </apex:pageBlockSectionItem>
+                </apex:pageBlockSection>
+            </apex:outputPanel>
+            
+            <apex:pageBlockSection id="productionPlan" showHeader="True" Title="Production Plan" columns="2">
+                <apex:pageBlockSectionItem >
+            		<apex:outputLabel value="Lead Producer Last Name" />
+            		<apex:outputPanel styleClass="requiredInput" layout="block">
+                        <apex:outputPanel styleClass="requiredArchive" layout="block"/>
+            			<apex:inputField value="{!CONX_Program_Request__c.Lead_Producer_Last_Name__c}" />
+            		</apex:outputPanel>
+            	</apex:pageBlockSectionItem>
+            	<apex:pageBlockSectionItem >
+            		<apex:outputLabel value="Lead Producer First Name" />
+            		<apex:outputPanel styleClass="requiredInput" layout="block">
+                        <apex:outputPanel styleClass="requiredArchive" layout="block"/>
+                		<apex:inputField value="{!CONX_Program_Request__c.Lead_Producer_First_Name__c}" />
+                	</apex:outputPanel>
+                </apex:pageBlockSectionItem>
+                
+                <apex:pageBlockSectionItem >
+            		<apex:outputLabel value="Technical Director Last Name" />
+            		<apex:outputPanel styleClass="requiredInput" layout="block">
+                        <apex:outputPanel styleClass="requiredArchive" layout="block"/>
+                		<apex:inputField value="{!CONX_Program_Request__c.Technical_Director_Last_Name__c}" />
+                	</apex:outputPanel>
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+            		<apex:outputLabel value="Techincal Director First Name" />
+            		<apex:outputPanel styleClass="requiredInput" layout="block">
+                        <apex:outputPanel styleClass="requiredArchive" layout="block"/>
+                		<apex:inputField value="{!CONX_Program_Request__c.Technical_Director_First_Name__c}" />
+                	</apex:outputPanel>
+                </apex:pageBlockSectionItem>
+                
+                <apex:pageBlockSectionItem >
+            		<apex:outputLabel value="How many tests were conducted for this program?" />
+            		<apex:outputPanel styleClass="requiredInput" layout="block">
+                        <apex:outputPanel styleClass="requiredArchive" layout="block"/>
+                    	<apex:inputField value="{!CONX_Program_Request__c.Production_Test_Number__c}" />
+                    </apex:outputPanel>   
+                </apex:pageBlockSectionItem>
+                <script>colorPageBlock(document.getElementById("{!$Component.productionPlan}"), "#3399FF");</script>
+            </apex:pageBlockSection>
+            
+            <apex:pageBlockSection id="prodNote" showHeader="false" columns="1">
+            	<apex:pageBlockSectionItem >
+            		<apex:outputLabel value="Production Notes" />
+            		<apex:outputPanel styleClass="requiredInput" layout="block">
+                        <apex:outputPanel styleClass="requiredArchive" layout="block"/>
+               			<apex:inputField value="{!CONX_Program_Request__c.Production_Notes__c}" />
+               		</apex:outputPanel>
+               	</apex:pageBlockSectionItem>
+            </apex:pageBlockSection>
+            
+            <apex:pageBlockSection id="postProd" showHeader="True" Title="Post Production" columns="1">
+                <script>colorPageBlock(document.getElementById("{!$Component.postProd}"), "#3399FF");</script>
+                <apex:pageBlockSectionItem >
+            		<apex:outputLabel value="On-Demand Description of the Program" />
+            		<apex:outputPanel styleClass="requiredInput" layout="block">
+                        <apex:outputPanel styleClass="requiredArchive" layout="block"/>
+                		<apex:inputField value="{!CONX_Program_Request__c.On_Demand_Description_of_the_program__c}" />
+                	</apex:outputPanel>
+                </apex:pageBlockSectionItem>
+            </apex:pageBlockSection>
+            
+            <apex:pageBlockSection id="metrics" showHeader="True" Title="Metrics" columns="1">
+                <script>colorPageBlock(document.getElementById("{!$Component.metrics}"), "#3399FF");</script>
+                <apex:pageBlockSectionItem >
+            		<apex:outputLabel value="Number of Portal Participants" />
+            		<apex:outputPanel styleClass="requiredInput" layout="block">
+                        <apex:outputPanel styleClass="requiredArchive" layout="block"/>
+                		<apex:inputField value="{!CONX_Program_Request__c.Number_of_Portal_Participants__c}" />
+                	</apex:outputPanel>
+                </apex:pageBlockSectionItem>
+                <apex:inputField Label="Will you need analytics after the program?" value="{!CONX_Program_Request__c.Analytics_Required__c}" />
+                <apex:inputField id="google" value="{!CONX_Program_Request__c.Are_you_using_Google_Analytics__c}" onclick="displayInputs( this, 'google' );" />
+                <apex:inputField value="{!CONX_Program_Request__c.Google_Analytics_Metrics__c}" styleClass="google" />
+                <apex:inputField id="watchitoo" value="{!CONX_Program_Request__c.Are_you_using_Watchitoo__c}" onclick="displayInputs( this, 'watchitoo' );" />
+                <apex:inputField value="{!CONX_Program_Request__c.Watchitoo_Metrics__c}" styleClass="watchitoo" />
+                <apex:inputField id="adobe" value="{!CONX_Program_Request__c.Are_you_using_Adobe_Connect__c}" onclick="displayInputs( this, 'adobe' );" />
+                <apex:inputField value="{!CONX_Program_Request__c.Adobe_Connect_Metrics__c}" styleClass="adobe" />
+                <apex:inputField id="viewingGroup" value="{!CONX_Program_Request__c.Did_you_have_viewing_groups__c}" onclick="displayInputs( this, 'viewingGroup' );"/>
+                <apex:inputField value="{!CONX_Program_Request__c.How_many_viewing_groups__c}" styleClass="viewingGroup" />
+                <apex:inputField value="{!CONX_Program_Request__c.What_is_their_location__c}" styleClass="viewingGroup" />
+                <apex:inputField value="{!CONX_Program_Request__c.Estimated_number_of_viewers__c}" styleClass="viewingGroup" />
+                <apex:inputField value="{!CONX_Program_Request__c.Number_of_Active_Participants__c}" />
+                <apex:pageBlockSectionItem dataStyleClass="DVCReq">
+            		<apex:outputLabel value="If this was a DVC, how many audience members were there?" />
+            		<apex:outputPanel styleClass="requiredInput" layout="block">
+                        <apex:outputPanel styleClass="requiredArchive" layout="block"/>                	
+                    	<apex:inputField value="{!CONX_Program_Request__c.DVC_Audience_member_number__c}" />
+                    </apex:outputPanel>   
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+            		<apex:outputLabel value="STUDIO ONLY: Recording Link" />
+            		<apex:outputPanel styleClass="requiredInput" layout="block">
+                        <apex:outputPanel styleClass="requiredArchive" layout="block"/>   
+                		<apex:inputField value="{!CONX_Program_Request__c.STUDIO_ONLY_Recording_Link__c}"  style="width:300px;" />
+                	</apex:outputPanel>
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+            		<apex:outputLabel value="STUDIO ONLY: Digital Copy Location" />
+            		<apex:outputPanel styleClass="requiredInput" layout="block">
+                        <apex:outputPanel styleClass="requiredArchive" layout="block"/>   
+                		<apex:inputField value="{!CONX_Program_Request__c.STUDIO_ONLY_Digital_Copy_Location__c}" style="width:300px;" />
+                	</apex:outputPanel>
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="Distribution Plan" />
+                    <apex:outputPanel styleClass="requiredInput" layout="block">
+                    <apex:outputPanel styleClass="requiredArchive" layout="block"/>   
+                    	<select id="disPlans" multiple="multiple" size="5" onChange="captureSelect( this, 'disPlan'  );"></select>
+                    </apex:outputPanel>
+                </apex:pageBlockSectionItem>
+            </apex:pageBlockSection>
+        </apex:pageBlock>
+    </apex:form>
+</apex:page>

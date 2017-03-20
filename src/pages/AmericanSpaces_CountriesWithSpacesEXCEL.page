@@ -1,0 +1,7 @@
+<apex:page controller="AmericanSpacesReport" cache="true" contentType="text/csv#countriesWithSpaces.csv" language="en-US" >
+"Region","Number of Countries with Spaces"
+<apex:repeat value="{!countriesWithSpaces}" var="record" >
+"{!record.region}","{!record.numOfCountriesWithSpaces}"
+</apex:repeat>
+"Total","{!totalCountries}"
+</apex:page>

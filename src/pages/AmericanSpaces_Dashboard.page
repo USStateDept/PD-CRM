@@ -1,0 +1,52 @@
+<apex:page >
+	<apex:messages style="padding:5px;margin-top:55px" />
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.js"></script>
+	<script type="text/javascript">     
+		j$ = $.noConflict();
+		
+		j$(document).ready(function ()
+		{
+			var pausingTime = 0;
+		
+			j$( "div.report" ).each( function()
+			{
+				var id = j$( this ).attr( "id" );
+				var visualForce = j$( this ).attr( "apexClass" );
+				
+				var height = j$( this ).attr( "height-property" );
+				var width = j$( this ).attr( "width-property" );
+				
+				pausingTime += 2000;
+				
+				setTimeout(function() {
+					j$( "#" + id ).find( ".reportDiv" ).empty();
+				 	j$( "#" + id ).find( ".reportDiv" ).append( '<iframe src="/apex/' + visualForce + '?drawData=false" width="' + width + '" height="' + height + '" />'  );
+				    j$( "#" + id ).attr( "loaded", "true" );
+				}, pausingTime);
+			});
+		});
+	</script>
+
+	<div style="clear: left;margin-bottom:10px;">
+		<div id="typeOfspaces" class="report" apexClass="AmericanSpaces_NumberOfSpace"  width-property="815px" height-property="280px" style="float:left;margin-right:10px;">
+			<div class="reportDiv"><img src="/img/loading32.gif" /></div>
+		</div>
+	    <div id="countrieswithSpace" class="report" apexClass="AmericanSpaces_CountriesWithSpaces" width-property="310px" height-property="275px" style="float:left;margin-right:10px;">
+			<div class="reportDiv"><img src="/img/loading32.gif" /></div>
+		</div>
+	</div>
+	<div style="clear: left;margin-bottom:10px;">
+		<div id="adminRegionType" class="report" apexClass="AmericanSpaces_AdminRegionType" width-property="530px" height-property="470px" style="float:left; margin-right:10px;">
+			<div class="reportDiv"><img src="/img/loading32.gif" /></div>
+		</div>
+		<div id="proportionOfAmericanSpaces" class="report" apexClass="AmericanSpaces_ProportionOfSpaces"  width-property="580px" height-property="470px" style="float:left;  margin-right:20px;">
+			<div class="reportDiv"><img src="/img/loading32.gif" /></div>
+		</div>
+		<div id="proportionOfAmericanSpacesType" class="report" apexClass="AmericanSpaces_PropAmericanSpacesReport"  width-property="1110px" height-property="465px" style="float:left;  margin-right:10px;">
+			<div class="reportDiv"><img src="/img/loading32.gif" /></div>
+		</div>
+	</div>
+	<div id="stats" class="report" apexClass="AmericanSpaces_AmSpacesStatisticsReport" width-property="1110px" height-property="475px">
+		<div class="reportDiv"><img src="/img/loading32.gif" /></div>
+	</div>
+</apex:page>

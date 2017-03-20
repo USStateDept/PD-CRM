@@ -1,0 +1,204 @@
+<apex:page id="myPage" standardController="CMS_Weekly_Status_Report__c" extensions="CMS_WeeklyStatusReportController" sidebar="false"  tabStyle="CMS_Weekly_Status_Reports__tab">
+    <apex:includeScript value="{!URLFOR($Resource.jQueryLibrary, 'jquery-1.8.3.js')}"/>
+    <script src="/soap/ajax/9.0/connection.js" type="text/javascript"></script>
+    <script language="JavaScript1.2" src="/js/functions.js"></script>
+    <script type="text/javascript">
+        j$ = $.noConflict();
+        
+        j$(document).ready(function ()
+        {
+        	j$( '.expandAll' ).click( function() {
+        		var text = j$( this ).text();
+        		
+        		if (text == 'Expand All')
+        		{
+        			j$( this ).text( 'Collapse All' );
+        			
+        			if (!j$( document.getElementById( 'myPage:myForm:pageBlock:projectTasks' ).childNodes[0].childNodes[0] ).hasClass( 'hideListButton' ))
+        			{
+        				twistSection( document.getElementById( 'myPage:myForm:pageBlock:projectTasks' ).childNodes[0].childNodes[0] );
+        			}
+        			if (!j$( document.getElementById( 'myPage:myForm:pageBlock:upcomingLeaves' ).childNodes[0].childNodes[0] ).hasClass( 'hideListButton' ))
+        			{
+	        			twistSection( document.getElementById( 'myPage:myForm:pageBlock:upcomingLeaves' ).childNodes[0].childNodes[0] );
+	        		}
+	        		if (!j$( document.getElementById( 'myPage:myForm:pageBlock:onGoingTaskList' ).childNodes[0].childNodes[0] ).hasClass( 'hideListButton' ))
+        			{
+	        			twistSection( document.getElementById( 'myPage:myForm:pageBlock:onGoingTaskList' ).childNodes[0].childNodes[0] );
+	        		}
+	        		if (!j$( document.getElementById( 'myPage:myForm:pageBlock:newTasks' ).childNodes[0].childNodes[0] ).hasClass( 'hideListButton' ))
+        			{
+	        			twistSection( document.getElementById( 'myPage:myForm:pageBlock:newTasks' ).childNodes[0].childNodes[0] );
+	        		}
+        		}
+        		else
+        		{
+        			j$( this ).text( 'Expand All' );
+        			
+        			if (j$( document.getElementById( 'myPage:myForm:pageBlock:projectTasks' ).childNodes[0].childNodes[0] ).hasClass( 'hideListButton' ))
+        			{
+        				twistSection( document.getElementById( 'myPage:myForm:pageBlock:projectTasks' ).childNodes[0].childNodes[0] );
+        			}
+        			if (j$( document.getElementById( 'myPage:myForm:pageBlock:upcomingLeaves' ).childNodes[0].childNodes[0] ).hasClass( 'hideListButton' ))
+        			{
+	        			twistSection( document.getElementById( 'myPage:myForm:pageBlock:upcomingLeaves' ).childNodes[0].childNodes[0] );
+	        		}
+	        		if (j$( document.getElementById( 'myPage:myForm:pageBlock:onGoingTaskList' ).childNodes[0].childNodes[0] ).hasClass( 'hideListButton' ))
+        			{
+	        			twistSection( document.getElementById( 'myPage:myForm:pageBlock:onGoingTaskList' ).childNodes[0].childNodes[0] );
+	        		}
+	        		if (j$( document.getElementById( 'myPage:myForm:pageBlock:newTasks' ).childNodes[0].childNodes[0] ).hasClass( 'hideListButton' ))
+        			{
+	        			twistSection( document.getElementById( 'myPage:myForm:pageBlock:newTasks' ).childNodes[0].childNodes[0] );
+	        		}
+        		}
+        	});
+        });
+      	
+	    function colorPageBlock( pageblock, color )
+	    {
+	        if (pageblock != null) pageblock.firstChild.style.cssText = "background-color: " + color + ";";
+	    }
+    </script>
+
+	<apex:form id="myForm">
+	    <apex:pageMessages id="errMessages" escape="false" />
+	    <apex:pageBlock id="pageBlock" title="CMS Weekly Status Report ({!timePeriod})" mode="view">
+			<apex:outputPanel style="margin-left:500px;">
+		    	<apex:commandButton action="{!edit}"   value="Edit"                 rendered="{!editable}" />
+		    	<apex:commandButton action="{!submit}" value="Submit to Supervisor" rendered="{!statusReport.Status__c == 'Open'}" />
+	    	</apex:outputPanel>
+	    	
+	        <apex:pageBlockSection id="requestorInfo" showHeader="true" title="Details" columns="2">
+	        	<apex:outputField value="{!CMS_Weekly_Status_Report__c.Report_Start_Date__c}" />
+	        	<apex:outputField value="{!CMS_Weekly_Status_Report__c.Project_Manager__c}" />
+	        	<apex:outputField value="{!CMS_Weekly_Status_Report__c.Report_End_Date__c}"  />
+				<apex:outputField value="{!CMS_Weekly_Status_Report__c.Supervisor__c}" />
+	        	<apex:outputField value="{!CMS_Weekly_Status_Report__c.Contract_ID__c}" />
+	        	<apex:outputField value="{!CMS_Weekly_Status_Report__c.Owner.name}"  />
+	        	<apex:outputField value="{!CMS_Weekly_Status_Report__c.Status__c}" />
+	    		<script>colorPageBlock(document.getElementById("{!$Component.requestorInfo}"), "#006699");</script>
+	        </apex:pageBlockSection>
+	    	
+	    	<apex:outputPanel >
+		    	<a class="expandAll" href="#">Collapse All</a>
+				
+				<apex:pageBlockSection id="onGoingTaskList" showHeader="true" title="O&M Tasks" columns="1">
+					<apex:pageBlockTable value="{!onGoingTaskList}" var="task" rowClasses="odd,even" styleClass="tableClass" >
+		    			<apex:column >
+			                <apex:facet name="header">Task</apex:facet>
+			                <apex:outputField value="{!task.name}" /> 
+			            </apex:column>
+		    			<apex:column >
+			                <apex:facet name="header">Project Number</apex:facet>
+			                <apex:outputField value="{!task.Project_Numbers__c}" /> 
+			            </apex:column>
+			            <apex:column >
+			                <apex:facet name="header">Functional Role</apex:facet>
+			                <apex:outputField value="{!task.Functional_Roles__c}" /> 
+			            </apex:column>
+			            <apex:column >
+			                <apex:facet name="header">Due Date</apex:facet>
+			                <apex:outputField value="{!task.Due_Date__c}" /> 
+			            </apex:column>
+			            <apex:column >
+			                <apex:facet name="header">Percentage Complete</apex:facet>
+			                <apex:outputField value="{!task.Percentage_Complete__c}" /> 
+			            </apex:column>
+			            <apex:column >
+			                <apex:facet name="header">Hours</apex:facet>
+			                <apex:outputField value="{!task.Hours__c}" /> 
+			            </apex:column>
+			            <apex:column >
+			                <apex:facet name="header">Comments</apex:facet>
+			                <apex:outputField value="{!task.Comments__c}" /> 
+			            </apex:column>
+		    		</apex:pageBlockTable>
+					<script>colorPageBlock(document.getElementById("{!$Component.projectTasks}"), "#400000");</script>
+				</apex:pageBlockSection>
+				<apex:outputPanel layout="block" style="text-align:center;font-size:13px;" rendered="{!onGoingTaskList.size == 0}">
+					<apex:outputText value="There are no records to display." />
+				</apex:outputPanel>
+				
+				<apex:pageBlockSection id="projectTasks" showHeader="true" title="Project Tasks" columns="1">
+					<apex:pageBlockTable value="{!projectTaskList}" var="task" rowClasses="odd,even" styleClass="tableClass" >
+		    			<apex:column >
+			                <apex:facet name="header">Task</apex:facet>
+			                <apex:outputField value="{!task.name}" /> 
+			            </apex:column>
+		    			<apex:column >
+			                <apex:facet name="header">Project Name</apex:facet>
+			                <apex:outputField value="{!task.Project_Numbers__c}" /> 
+			            </apex:column>
+			            <apex:column >
+			                <apex:facet name="header">Functional Roles</apex:facet>
+			                <apex:outputField value="{!task.Functional_Roles__c}" /> 
+			            </apex:column>
+			            <apex:column >
+			                <apex:facet name="header">Due Date</apex:facet>
+			                <apex:outputField value="{!task.Due_Date__c}" /> 
+			            </apex:column>
+			            <apex:column >
+			                <apex:facet name="header">Percentage Complete</apex:facet>
+			                <apex:outputField value="{!task.Percentage_Complete__c}" /> 
+			            </apex:column>
+			            <apex:column >
+			                <apex:facet name="header">Hours</apex:facet>
+			                <apex:outputField value="{!task.Hours__c}" /> 
+			            </apex:column>
+			            <apex:column >
+			                <apex:facet name="header">Comments</apex:facet>
+			                <apex:outputField value="{!task.Comments__c}" /> 
+			            </apex:column>
+		    		</apex:pageBlockTable>
+					<script>colorPageBlock(document.getElementById("{!$Component.projectTasks}"), "#400000");</script>
+				</apex:pageBlockSection>
+				<apex:outputPanel layout="block" style="text-align:center;font-size:13px;" rendered="{!projectTaskList.size == 0}">
+					<apex:outputText value="There are no records to display." />
+				</apex:outputPanel>
+				
+				<apex:pageBlockSection id="newTasks" showHeader="true" title="Key Tasks Planned for Next Period" columns="1">
+					<apex:pageBlockTable value="{!keyTaskList}" var="task" rowClasses="odd,even" styleClass="tableClass" >
+		    			<apex:column >
+			                <apex:facet name="header">Task</apex:facet>
+			                <apex:outputField value="{!task.name}" /> 
+			            </apex:column>
+		    			<apex:column >
+			                <apex:facet name="header">Project Name</apex:facet>
+			                <apex:outputField value="{!task.Project_Numbers__c}" /> 
+			            </apex:column>
+			            <apex:column >
+			                <apex:facet name="header">Functional Roles</apex:facet>
+			                <apex:outputField value="{!task.Functional_Roles__c}" /> 
+			            </apex:column>
+			            <apex:column >
+			                <apex:facet name="header">Due Date</apex:facet>
+			                <apex:outputField value="{!task.Due_Date__c}" /> 
+			            </apex:column>
+		    		</apex:pageBlockTable>
+					<script>colorPageBlock(document.getElementById("{!$Component.projectTasks}"), "#400000");</script>
+				</apex:pageBlockSection>
+				<apex:outputPanel layout="block" style="text-align:center;font-size:13px;" rendered="{!keyTaskList.size == 0}">
+					<apex:outputText value="There are no records to display." />
+				</apex:outputPanel>
+				
+				<apex:pageBlockSection id="upcomingLeaves" showHeader="true" title="Upcoming Leave" columns="1">
+					<apex:pageBlockTable value="{!upcomingLeavesList}" var="task" rowClasses="odd,even" styleClass="tableClass" >
+		    			<apex:column >
+			                <apex:facet name="header">Start Date</apex:facet>
+			                <apex:outputField value="{!task.Start_Date__c}" /> 
+			            </apex:column>
+			            <apex:column >
+			                <apex:facet name="header">End Date</apex:facet>
+			                <apex:outputField value="{!task.End_Date__c}" /> 
+			            </apex:column>
+		    		</apex:pageBlockTable>
+					<script>colorPageBlock(document.getElementById("{!$Component.upcomingLeaves}"), "#282828");</script>
+				</apex:pageBlockSection>
+				<apex:outputPanel layout="block" style="text-align:center;font-size:13px;" rendered="{!upcomingLeavesList.size == 0}">
+					<apex:outputText value="There are no records to display." />
+				</apex:outputPanel>
+			</apex:outputPanel>
+		</apex:pageBlock>
+	</apex:form>
+</apex:page>

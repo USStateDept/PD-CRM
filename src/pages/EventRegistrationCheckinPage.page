@@ -1,0 +1,93 @@
+<apex:page standardController="Event_Registration__c" sidebar="false" showHeader="false" extensions="EventRegistrationCheckinExt" action="{!checkIn}" cache="false">
+
+  	<head> 
+ 		<apex:stylesheet value="{!URLFOR($Resource.SLDS, 'assets/styles/salesforce-lightning-design-system-vf.css')}"/>  
+	</head>
+
+	<apex:form >
+<!--   	<div class="slds-page-header" role="banner" style="display:{!if(showGuest,"block","none")};">
+        <apex:pageBlock title="Guest Details:">
+			<apex:pageBlockSection columns="2" collapsible="false" title="Please verify guest details and check in">
+				<apex:PageBlockSectionItem >
+					<apex:outputLabel value="First Name"/>
+					<apex:outputText value="{!FirstName}"/>
+				</apex:PageBlockSectionItem>
+				<apex:PageBlockSectionItem >
+					<apex:outputLabel value="Last Name"/>
+					<apex:outputText value="{!LastName}"/>
+				</apex:PageBlockSectionItem>
+				<apex:PageBlockSectionItem >
+					<apex:outputLabel value="Title"/>
+					<apex:outputText value="{!Title}"/>
+				</apex:PageBlockSectionItem>
+				<apex:PageBlockSectionItem >
+					<apex:outputLabel value="Organization"/>
+					<apex:outputText value="{!Org}"/>
+				</apex:PageBlockSectionItem>
+<!--  				<apex:PageBlockSectionItem >
+					<apex:outputText value="{!objEvent.QR_Code__c}" escape="false"/>
+				</apex:PageBlockSectionItem>	
+			</apex:pageBlockSection>
+
+			<apex:pageBlockButtons >
+				<apex:commandButton value="Check In"  action="{!checkIn}"  styleClass="slds-button slds-button--neutral" />
+			</apex:pageBlockButtons>
+			
+		</apex:pageBlock>
+	</div> -->
+	<div style="margin:0px auto;width:50%;text-align: center;display:{!if(showConf,"block","none")};">
+	  <apex:outputPanel >
+	     <b><div style="margin:0px auto;width:100%;text-align:left; font-size: 125%;">
+	      <p><apex:outputText value="{!FirstName} {!LastName}"/> successfully checked in. </p>    
+<!-- 	      	<script type="text/javascript">
+				//window.location = "https://iipstate--sprint9.cs33.my.salesforce.com";
+				window.location = "salesforce1://sObject/{!strEventRegId}/view";
+			</script> 	 -->
+	     </div></b>
+	  </apex:outputPanel>
+	</div>
+
+	<div style="margin:0px auto;width:50%;text-align: center;display:{!if(checkedin,"block","none")};">
+	  <apex:outputPanel >
+	     <b><div style="margin:0px auto;width:100%;text-align:left; font-size: 125%; color=red;">
+	      <p><apex:outputText value="{!FirstName} {!LastName}"/> already checked in. </p>    
+<!-- 	      	<script type="text/javascript">
+				//window.location = "https://iipstate--sprint9.cs33.my.salesforce.com";
+				window.location = "salesforce1://sObject/{!strEventRegId}/view";
+			</script> 	 -->
+	     </div></b>
+	  </apex:outputPanel>
+	</div>
+
+
+     </apex:form>   
+
+<!--  
+	<apex:outputPanel rendered="{!searchResult == 'no matches'}">		
+		{!searchResult}
+	</apex:outputPanel>
+
+	<apex:outputPanel rendered="{!searchResult == 'match'}">		
+		{!redirectId}
+		<script type="text/javascript">
+			window.location = "salesforce1://sObject/{!redirectId}/view";
+		</script>
+	</apex:outputPanel>
+
+	<apex:outputPanel rendered="{!searchResult == 'checkedin'}">
+		<div class="slds"> 
+			<div style="margin:0px auto;width:50%;text-align: center;">
+			  <apex:outputPanel >
+			     <b><div style="margin:0px auto;width:100%;text-align:left; font-size: 125%;">
+			      <p><apex:outputText value="Guest checked in already."/> </p>    
+			     </div></b>
+			  </apex:outputPanel>
+			</div>
+		</div>
+
+ 	</apex:outputPanel>
+
+-->
+	<!-- js redirect -->
+	          
+</apex:page>

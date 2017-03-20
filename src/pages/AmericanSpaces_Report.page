@@ -1,0 +1,132 @@
+<apex:page controller="AmericanSpacesReport">
+	<apex:messages style="padding:5px;margin-top:55px" />
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.js"></script>
+	<select id="reportNames">
+		<option value="adminRegionType">Number and Type of American Spaces by Region</option>
+		<option value="numOfCountriesWithSpaces">Number of Countries with Spaces</option>
+		<option value="statisitics">Statistics by Type of Space</option>
+		<option value="proportionOfSpaces">Proportion of American Spaces by Region</option>
+		<option value="proportionOfSpacesType">Proportion of American Spaces by Type</option>
+	</select>
+	<apex:outputPanel rendered="{!isAmericanWashington}">
+		<a href="/00O/o">Salesforce Report</a>
+	</apex:outputPanel>
+	<br/>
+	<div id="loading"><img src="/img/loading32.gif" />Loading...</div>
+	<div id="adminRegionType" class="report" apexClass="AmericanSpaces_AdminRegionType" loaded="false">
+		<div class="reportDiv"></div>
+	</div>
+
+	<div id="numOfCountriesWithSpaces" class="report" apexClass="AmericanSpaces_CountriesWithSpaces" loaded="false">
+		<div class="reportDiv"></div>
+	</div>
+	
+	<div id="statisitics" class="report" apexClass="AmericanSpaces_AmSpacesStatisticsReport" loaded="false">
+		<div class="reportDiv"></div>
+	</div>
+	
+	<div id="proportionOfSpaces" class="report" apexClass="AmericanSpaces_ProportionOfSpaces" loaded="false">
+		<div class="reportDiv"></div>
+	</div>
+	
+	<div id="proportionOfSpacesType" class="report" apexClass="AmericanSpaces_PropAmericanSpacesReport" loaded="false">
+		<div class="reportDiv"></div>
+	</div>
+	
+	<script type="text/javascript">
+		j$ = $.noConflict();
+		
+		j$(document).ready(function ()
+		{
+			j$( "div#loading" ).hide();
+			j$("div.report").hide();
+			
+			if ('{!$CurrentPage.parameters.reportName}' == '')
+			{
+				loadReport( 'adminRegionType' );
+			}
+			else
+			{
+				j$( "select#reportNames option[value='{!$CurrentPage.parameters.reportName}']" ).attr( "selected", "selected" );
+				loadReport( '{!$CurrentPage.parameters.reportName}' );
+			}
+			
+			j$( '#reportNames' ).change( function(){
+				var value = j$( this ).val();
+				loadReport( value );
+			});
+		});
+		
+		
+		function filter( divVal )
+		{
+			j$("div.report").hide();
+			j$( "div#loading" ).show();
+			
+			var params = '';
+
+			j$( divVal ).parent().find( '.param' ).each( function() {
+				params += j$( this ).attr( 'id' ) + '=' + j$( this ).val() + '&';
+			});
+			
+			var parentID = j$( divVal ).parent().parent().parent().parent().parent().parent().parent().attr( "id" );
+			var visualForce = j$( "#" + parentID ).attr( "apexClass" );
+
+			j$.ajax(
+			{
+				url: "/apex/" + visualForce + "?drawData=true&" + params,
+				success:function( result )
+			 	{
+			 		j$( "div#loading" ).hide();
+			 		j$( "#" + parentID ).show();
+
+			 		j$( "#" + parentID + " div.reportDiv" ).empty();
+			    	j$( "#" + parentID + " div.reportDiv" ).html( result );
+			  	}
+			});
+		
+		}
+		
+		
+		function exportToExcel( divVal )
+		{
+			var params = '';
+		
+			j$( divVal ).parent().parent().find( '.param' ).each( function() {
+				params += j$( this ).attr( 'id' ) + '=' + j$( this ).val() + '&';
+			});
+			
+			var visualForce = j$( divVal ).attr( "apexClass" );
+			window.open( "/apex/" + visualForce + "?" + params );
+		}
+		
+		
+		function loadReport( value )
+		{
+			j$( "div#loading" ).show();
+			j$( "div.report" ).hide();
+		
+			var visualForce = j$( "#" + value ).attr( "apexClass" );
+			
+			if (j$( "#" + value ).attr( "loaded" ) == "false")
+			{
+				j$.ajax(
+				{
+					url: "/apex/" + visualForce + "?drawData=true",
+					success:function( result )
+				 	{
+				 		j$( "div#loading" ).hide();
+				 		j$( "#" + value ).show();
+				    	j$( "#" + value ).find( ".reportDiv" ).append( result );
+				    	j$( "#" + value ).attr( "loaded", "true" );
+				  	}
+				});
+			}
+			else
+			{
+				j$( "#" + value ).show();
+				j$( "div#loading" ).hide();
+			}
+		}
+	</script>
+</apex:page>

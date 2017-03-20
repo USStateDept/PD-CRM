@@ -1,0 +1,139 @@
+<apex:page id="myPage" controller="AmericanSpacesReport" showHeader="false">
+<apex:includeScript value="{!URLFOR($Resource.jQueryLibrary, 'jquery-1.8.3.js')}" />
+
+	<script type="text/javascript">
+		{!IF('$CurrentPage.parameters.drawData' == 'false', "", "j$ = $.noConflict();" )}
+	
+		document.onclick= function( event ) {
+			if ('{!$CurrentPage.parameters.drawData}' == 'true')
+			{
+				// No need to do anything...
+			}
+			else
+			{
+				window.open( "/apex/AmericanSpaces_Report?reportName=statisitics", "_top" );
+			}
+		};
+	
+		j$( document ).ready(function ()
+		{
+			j$( '[id="myPage:pageBlock:postInfo:GrandTotalheader"]' ).css( "background-color", "#E3E3D7" );
+			
+			j$( ".number" ).each( function() {
+				j$(this).text( j$(this).text().replace(/(\d)(?=(\d\d\d)+(?!\d))/g, "$1,") );
+			});
+			
+			j$( '[id="myPage:pageStat"]' ).css( "width", "1100px" );
+		});
+	</script>
+	<apex:pageBlock title="FY {!year} Statisitics by Type of Space" id="pageStat">
+		<apex:outputPanel rendered="{!$CurrentPage.parameters.drawData}" style="width:1100px">
+			<div style="text-align:left;float:left;">Fiscal Year: <input id="year" class="param" type="text" value="{!year}" /><input type="button" value="filter" onclick="filter( this )" /></div>
+			<div style="text-align:right;float:right;"><a apexClass="AmericanSpaces_AmSpacesStatisticsEXCEL" onclick="exportToExcel( this );"><img src="/img/icon/console24.png" />Export to Excel</a></div>
+		</apex:outputPanel>
+		<br/><br/>
+		<apex:pageBlockTable id="postInfo" value="{!americanSpacesStatistics}" var="asRecord" rowClasses="odd,even" styleClass="tableClass">
+			<apex:column id="region">
+				<apex:facet name="header">region</apex:facet>
+				<apex:outputText value="{!asRecord.region}"/>
+				<apex:facet name="footer">Grand Total</apex:facet>
+			</apex:column> 
+			
+			<apex:column id="result">
+				<apex:facet name="header"></apex:facet>
+				Total Programs<br/>
+				Total Program Attendees<br/>
+				Total Visitors
+				<apex:facet name="footer">
+					Total Programs<br/>
+					Total Program Attendees<br/>
+					Total Visitors
+				</apex:facet>
+			</apex:column>
+			
+			<apex:column id="IRC" style="text-align:right">
+				<apex:facet name="header">Information Resource Center</apex:facet>
+				<apex:outputText value="{!asRecord.infoResourceCenterProgram}" styleClass="number" /><br/>
+				<apex:outputText value="{!asRecord.infoResourceCenterAttendee}" styleClass="number" /><br/>
+				<apex:outputText value="{!asRecord.infoResourceCenterVisitor}"  styleClass="number" />
+				<apex:facet name="footer">
+					<div style="text-align:right">
+						<span class="number">{!grandTotal.infoResourceCenterProgram}</span><br/>
+						<span class="number">{!grandTotal.infoResourceCenterAttendee}</span><br/>
+						<span class="number">{!grandTotal.infoResourceCenterVisitor}</span>
+					</div>
+				</apex:facet>
+			</apex:column>
+			
+			<apex:column id="AmCenter" style="text-align:right">
+				<apex:facet name="header">American Center</apex:facet>
+				<apex:outputText value="{!asRecord.americanCenterProgram}" styleClass="number" /><br/>
+				<apex:outputText value="{!asRecord.americanCenterAttendee}" styleClass="number" /><br/>
+				<apex:outputText value="{!asRecord.americanCenterVisitor}"  styleClass="number" />
+				<apex:facet name="footer">
+					<div style="text-align:right">
+						<span class="number">{!grandTotal.americanCenterProgram}</span><br/>
+						<span class="number">{!grandTotal.americanCenterAttendee}</span><br/>
+						<span class="number">{!grandTotal.americanCenterVisitor}</span>
+					</div>
+				</apex:facet>
+			</apex:column>
+			
+			<apex:column id="BC" style="text-align:right">
+				<apex:facet name="header">Binational Center</apex:facet>
+				<apex:outputText value="{!asRecord.binationalCenterProgram}" styleClass="number" /><br/>
+				<apex:outputText value="{!asRecord.binationalCenterAttendee}" styleClass="number" /><br/>
+				<apex:outputText value="{!asRecord.binationalCenterVisitor}"  styleClass="number" />
+				<apex:facet name="footer">
+					<div style="text-align:right">
+						<span class="number">{!grandTotal.binationalCenterProgram}</span><br/>
+						<span class="number">{!grandTotal.binationalCenterAttendee}</span><br/>
+						<span class="number">{!grandTotal.binationalCenterVisitor}</span>
+					</div>
+				</apex:facet>
+			</apex:column>
+			<!--
+			<apex:column id="SC" style="text-align:right">
+				<apex:facet name="header">Science Corner</apex:facet>
+				<apex:outputText value="{!asRecord.scienceCenterProgram}" styleClass="number" /><br/>
+				<apex:outputText value="{!asRecord.scienceCenterAttendee}" styleClass="number" /><br/>
+				<apex:outputText value="{!asRecord.scienceCenterVisitor}"  styleClass="number" />
+				<apex:facet name="footer">
+					<div style="text-align:right">
+						<span class="number">{!grandTotal.scienceCenterProgram}</span><br/>
+						<span class="number">{!grandTotal.scienceCenterAttendee}</span><br/>
+						<span class="number">{!grandTotal.scienceCenterVisitor}</span>
+					</div>
+				</apex:facet>
+			</apex:column>
+			-->
+			<apex:column id="AmCorner" style="text-align:right">
+				<apex:facet name="header">American Corner</apex:facet>
+				<apex:outputText value="{!asRecord.americanCornorProgram}" styleClass="number" /><br/>
+				<apex:outputText value="{!asRecord.americanCornorAttendee}" styleClass="number" /><br/>
+				<apex:outputText value="{!asRecord.americanCornorVisitor}"  styleClass="number" />
+				<apex:facet name="footer">
+					<div style="text-align:right">
+						<span class="number">{!grandTotal.americanCornorProgram}</span><br/>
+						<span class="number">{!grandTotal.americanCornorAttendee}</span><br/>
+						<span class="number">{!grandTotal.americanCornorVisitor}</span>
+					</div>
+				</apex:facet>
+			</apex:column>
+			
+			<apex:column id="GrandTotal" styleClass="grandTotal" style="text-align:right;background-color: #E3E3D7;font-weight: bold;">
+				<apex:facet name="header">Grand Total</apex:facet>
+				<apex:outputText value="{!asRecord.totalPrograms}" styleClass="number" /><br/>
+				<apex:outputText value="{!asRecord.totalAttendee}" styleClass="number" /><br/>
+				<apex:outputText value="{!asRecord.totalVisitor}" styleClass="number" />
+				<apex:facet name="footer">
+					<div style="text-align:right">
+						<span class="number">{!grandTotal.totalPrograms}</span><br/>
+						<span class="number">{!grandTotal.totalAttendee}</span><br/>
+						<span class="number">{!grandTotal.totalVisitor}</span>
+					</div>
+				</apex:facet>
+			</apex:column>
+		</apex:pageBlockTable>
+	</apex:pageBlock>
+</apex:page>

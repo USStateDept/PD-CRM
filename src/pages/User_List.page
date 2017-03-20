@@ -1,0 +1,96 @@
+<apex:page id="myPage" controller="User_ListController"  sidebar="false">
+    <apex:includeScript value="{!URLFOR($Resource.jQueryLibrary, 'jquery-1.8.3.js')}"/>
+    <apex:includeScript value="{!URLFOR($Resource.jQueryLibrary, 'jquery-ui-1.9.2.custom.js')}"/>
+    <apex:includeScript value="{!URLFOR($Resource.jQueryLibrary, 'jquery.ui.autocomplete.js')}"/>
+    <apex:includeScript value="{!URLFOR($Resource.jQueryLibrary, 'jquery.timePicker.js')}" />
+    <apex:stylesheet value="{!URLFOR($Resource.jQueryLibrary, 'timePicker.css')}" />
+    <apex:stylesheet value="{!URLFOR($Resource.jQueryLibrary, 'jquery-ui.css')}"/>
+    <script src="/soap/ajax/9.0/connection.js" type="text/javascript"></script>
+    <script language="JavaScript1.2" src="/js/functions.js"></script>
+    
+    <style>
+        .asc {
+            font-style:italic;
+        }
+    </style>
+    
+    <script type="text/javascript">  
+        j$ = $.noConflict();
+        
+        j$(document).ready(function ()
+        {
+            config();
+        });
+        
+        function config()
+        {
+            j$( '[id="myPage:myForm:pageBlock:filter"]' ).css( "width", "500px" );
+        }
+    </script>
+<apex:form id="myForm">
+    <apex:pageMessages id="errMessages" escape="false" />
+	<apex:pageBlock id="pageBlock" title="Site.com Users" mode="view">
+		<apex:pageBlockSection id="filter" showHeader="true" title="Filter" columns="1" collapsible="true">
+            <apex:inputText Label="User Name"  value="{!username}" />
+            <apex:inputText Label="First Name" value="{!firstName}" />
+            <apex:inputText Label="Last Name"  value="{!lastName}" />
+
+            <apex:commandButton action="{!refresh}" value="Filter" id="filterBtn" style="margin-left:200px;"/>
+        </apex:pageBlockSection>
+        <br/><br/>
+        
+        <apex:commandButton action="{!create}" value="New User" style="margin-right:10px" />
+
+        <br/><br/>
+	
+	    <apex:pageBlockSection id="users" columns="1">
+	        <apex:pageBlockTable id="activeSitecomusers" value="{!listOfSitecomUsers}" var="user" rowClasses="odd,even" styleClass="tableClass" >
+	        	<apex:column >
+	                <apex:facet name="header">Action</apex:facet>
+	                <apex:outputLink value="../{!user.id}">View</apex:outputLink>&nbsp;
+	                <apex:outputLink value="../{!user.id}/e?retURL=/apex/User_List&noredirect=1">Edit</apex:outputLink>&nbsp;
+	                <apex:commandLink value="Reset Password" action="{!resetPassword}" onclick="return confirm('This will generate an email to the user. Do you wish to continue?');">
+						<apex:param name="picNumber" value="{!user.id}" assignTo="{!userID}" />
+					</apex:commandLink>&nbsp;
+					<apex:outputLink value="../udd/PermissionSet/assignPermissionSet.apexp?userId={!user.id}&retURL=/apex/User_List&noredirect=1">Edit Permissionset</apex:outputLink>&nbsp;
+					<apex:commandLink value="Activate" action="{!activateUser}" rendered="{!user.isActive == false}">
+						<apex:param name="picNumber" value="{!user.id}" assignTo="{!userID}" />
+					</apex:commandLink>
+					<apex:commandLink value="Deactivate" action="{!deactivateUser}" rendered="{!user.isActive}">
+						<apex:param name="picNumber" value="{!user.id}" assignTo="{!userID}" />
+					</apex:commandLink>
+	            </apex:column>
+	            <apex:column headerClass="name" >
+	                <apex:facet name="header">Name</apex:facet>
+	                <apex:outputText value="{!user.name}" /> 
+	            </apex:column>
+	            <apex:column headerClass="username" >
+	                <apex:facet name="header">User Name</apex:facet>
+	                <apex:outputText value="{!user.username}" /> 
+	            </apex:column>
+	            <apex:column headerClass="LastLoginDate" >
+	                <apex:facet name="header">Last Login Date</apex:facet>
+	                <apex:outputText value="{0, date, MM/dd/yyyy HH:mm:ss}">
+		            	<apex:param value="{!user.LastLoginDate}" />
+					</apex:outputText>
+	            </apex:column>
+	            <apex:column headerClass="LastPasswordChangeDate">
+	            	<apex:facet name="header">Last Password Change Date</apex:facet>
+	            	<apex:outputText value="{0, date, MM/dd/yyyy HH:mm:ss}">
+		            	<apex:param value="{!user.LastPasswordChangeDate}" />
+					</apex:outputText>
+					<apex:outputText value="({!user.CommunityNickname})" rendered="{!user.CommunityNickname != null}" style="margin-left:3px" />
+	            </apex:column>
+	            <apex:column headerClass="LastLoginDate" >
+	                <apex:facet name="header">Application</apex:facet>
+	                <apex:outputField value="{!user.accountid}" /> 
+	            </apex:column>
+	            <apex:column headerClass="isActive" >
+	                <apex:facet name="header">Active</apex:facet>
+	                <apex:outputField value="{!user.isActive}" /> 
+	            </apex:column>
+	        </apex:pageBlockTable>
+	    </apex:pageBlockSection>
+	</apex:pageBlock>
+</apex:form>
+</apex:page>

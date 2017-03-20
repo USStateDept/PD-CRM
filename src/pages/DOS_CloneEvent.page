@@ -1,0 +1,2 @@
+<apex:page standardController="Event__c" sidebar="true" showHeader="true" extensions="DOS_EventDeepCloneUtility" action="{!cloneEvent}">
+</apex:page>

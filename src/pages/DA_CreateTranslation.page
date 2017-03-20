@@ -1,0 +1,9 @@
+<apex:page standardController="Digital_Asset__c" extensions="DA_Create_Translation">
+   <apex:messages />
+   <apex:form >
+      <apex:pageBlock title="Creating a Translation ">
+         You are about to create a translation for test. <p/>
+         <apex:commandButton action="{!LoadAsset2Translate}" value="Create Translation"/>
+      </apex:pageBlock>
+   </apex:form>
+</apex:page>

@@ -1,0 +1,77 @@
+<apex:page standardController="IRO_Contacts__c" extensions="AmericanSpacesIROContacts" id="myPage" showHeader="true" sidebar="false">
+    <apex:sectionHeader title="IRO Contacts" subtitle="{!IRO_Contacts__c.Name}" />
+    <apex:form id="myForm">
+        <apex:pageMessages id="errMessages" />
+        <apex:pageBlock id="pageBlock">
+            <apex:pageBlockButtons >
+                <apex:commandButton action="{!edit}" value="Edit"/>
+                <apex:commandButton action="{!delete}" value="Delete"  onclick="return confirm( 'Are you sure you want to delete?' );"/>    
+            </apex:pageBlockButtons>
+            
+            <apex:pageBlockSection id="spaceHeader" showHeader="true" title="IRO Contacts Detail" columns="2">
+                <apex:outputField value="{!IRO_Contacts__c.First_Name__c}" />
+                <apex:outputField value="{!IRO_Contacts__c.Status__c}" />
+                <apex:outputField value="{!IRO_Contacts__c.Middle_Name__c}" />
+                <apex:outputField value="{!IRO_Contacts__c.Email_1__c}" />
+                <apex:outputField value="{!IRO_Contacts__c.Last_Name__c}" />
+                <apex:outputField value="{!IRO_Contacts__c.Email_2__c}" />
+                <apex:outputField value="{!IRO_Contacts__c.Salutation__c}" />
+                <apex:outputField value="{!IRO_Contacts__c.Email_3__c}" />
+                <apex:outputField value="{!IRO_Contacts__c.Region__c}" />
+                <apex:outputField value="{!IRO_Contacts__c.Phone_1__c}" />
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="Portfolio" />
+                    <apex:repeat value="{!portfolio}" var="country">
+                        <apex:outputLink value="/apex/AmericanSpace_AmSpacePostContactView?country={!country}">{!country}</apex:outputLink>&nbsp;
+                    </apex:repeat>
+                </apex:pageBlockSectionItem>
+                <apex:outputField value="{!IRO_Contacts__c.Phone_2__c}" />
+                <apex:outputField value="{!IRO_Contacts__c.Country__c}" />
+                <apex:outputField value="{!IRO_Contacts__c.Phone_3__c}" />
+                <apex:outputField value="{!IRO_Contacts__c.Return_to_Directory_Listing__c}" />
+                <apex:outputField value="{!IRO_Contacts__c.Home_Post__c}" />
+                &nbsp;
+                <apex:inputHidden value="{!IRO_Contacts__c.Portfolio__c}" />
+            </apex:pageBlockSection>
+        
+            <apex:pageBlockSection id="spaceHeader2" showHeader="true" title="Note & Attachments" columns="1">
+                <apex:outputPanel >
+                <table width="100%" border="0" cellpadding="0" cellspacing="16">
+                    <apex:repeat value="{!attachments}" var="attachment">
+                        <tr>
+                            <td width="16%" align="right" valign="top"><span>Attachment</span></td>
+                            <td colspan="2" align="left"><apex:outputField value="{!attachment.information.name}" />.<apex:outputField value="{!attachment.information.extension__c}" /></td>
+                        </tr>
+                        <tr>
+                            <td width="16%" align="right" valign="top"><span>Type of Document</span></td>
+                            <td width="8%" valign="top"><apex:outputField value="{!attachment.information.Type_of_Document__c}" /></td>
+                            <td align="left" rowspan="2" valign="top">
+                                <apex:outputPanel >
+                                    <apex:outputPanel rendered="{!attachment.information.id != '' && (attachment.information.extension__c == 'jpg' || attachment.information.extension__c == 'png' || attachment.information.extension__c == 'gif')}">
+                                        <a href="../servlet/servlet.FileDownload?file={!attachment.attachment.id}" target="_blank"><img src="../servlet/servlet.FileDownload?file={!attachment.attachment.id}" width="50px" height="50px" /></a>
+                                    </apex:outputPanel>
+                                    <apex:outputPanel rendered="{!attachment.information.id != '' && attachment.information.extension__c != 'jpg' && attachment.information.extension__c != 'png' && attachment.information.extension__c != 'gif'}">
+                                        <a href="../servlet/servlet.FileDownload?file={!attachment.attachment.id}" target="_blank">Download the file</a>
+                                    </apex:outputPanel>
+                                </apex:outputPanel>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td width="16%" align="right" valign="top"><span>Description</span></td>
+                            <td colspan="2"><apex:outputField value="{!attachment.information.Description__c}" /></td>
+                        </tr>
+                        <tr>
+                            <td width="16%" align="right" valign="top"><span>Comments</span></td>
+                            <td colspan="2"><apex:outputField value="{!attachment.information.Comments__c}" /></td>
+                        </tr>
+                        <tr>
+                            <td width="16%" align="right" valign="top"><span>Date</span></td>
+                            <td colspan="2"><apex:outputField value="{!attachment.information.Date__c}" /></td>
+                        </tr>
+                    </apex:repeat>
+                </table>
+                </apex:outputPanel>
+            </apex:pageBlockSection>
+        </apex:pageBlock>
+    </apex:form>
+</apex:page>

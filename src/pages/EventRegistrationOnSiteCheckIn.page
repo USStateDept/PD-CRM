@@ -1,0 +1,188 @@
+<apex:page standardController="Event__c" sidebar="true" showHeader="false" extensions="DOSEventRegistrationCheckIn" cache="false">
+    <!-- Begin Default Content REMOVE THIS -->
+
+    <head>
+        <apex:stylesheet value="{!URLFOR($Resource.SLDS, 'assets/styles/salesforce-lightning-design-system-vf.css')}" />
+        <apex:stylesheet value="{!URLFOR($Resource.RSVP, 'default-styles.css')}" />
+        <apex:stylesheet value="{!URLFOR($Resource.RSVP, 'font-awesome.min.css')}" />
+        <apex:stylesheet value="{!URLFOR($Resource.RSVP, 'googleapi.css')}" />
+        <apex:stylesheet value="{!URLFOR($Resource.RSVP, 'output.css')}" />
+        <apex:stylesheet value="{!URLFOR($Resource.RSVP, 'styles.css')}" />
+        <apex:stylesheet value="{!URLFOR($Resource.RSVP, 'main.css')}" />
+
+        <apex:stylesheet value="https://fonts.googleapis.com/css?family=Roboto+Condensed%3A%2C300%2C400%2C700&ver=4.6.1" />
+        <apex:stylesheet value="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css" />
+
+
+        <style type="text/css">
+            #FormColumns {
+                width: 500px;
+                //border: 1px solid;
+            }
+            #FormColumns label {
+                //border: 1px solid;
+                width: 100px;
+                float: left;
+            }
+            #FormColumns input {
+                //border: 1px solid;
+                width: 300px;
+                margin-left: 9px;
+            }
+            #map {
+                font-family: Arial;
+                font-size: 12px;
+                line-height: normal !important;
+                height: 175px;
+                //min-width: 300px;
+                background: transparent;
+            }
+        </style>
+
+
+    </head>
+    <apex:form id="landing">
+        <!-- HEADER START -->
+        <div class="mo-header">
+            <div class="container">
+                <div class="mo-language">
+                    <ul class="head-disclaimer">
+                        <li class="throw-away">&nbsp;</li>
+                        <li class="disclaimer">
+                            <span>             </span>
+                        </li>
+                        <li class="language"></li>
+                    </ul>
+                </div>
+                <div class="mo-header-wrap">
+                    <div class="mo-logo">
+                        <a>
+                            <img alt="United States of America, Department of State" src="https://uk.usembassy.gov/wp-content/themes/cms3/dist/images/dos-logo-light.png" />
+                        </a><a style="text-decoration:none; cursor:default;" onMouseOver="this.style.color='#FFF'">U.S. Embassy<br/> {!sEmbassyCountry}</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="widthalert" style="background-color: #ef0707; float: none; margin: auto; padding: 3px;">
+            <div class="container">
+                <div class="threefourth"></div>
+            </div>
+        </div>
+        <br/>
+
+        <!-- HEADER END -->
+
+        <div id="main-page" style="margin:0px auto;width:50%;text-align: center; display:{!if(showMainPage," block ","none ")};">
+            <b><div style="margin:0px auto;width:100%;text-align:left; font-size: 150%;">
+                 
+                {!sEventName} <br/>
+            </div></b>
+            <div style="margin:0px auto;width:100%;text-align:left; font-size: 125%;">
+                {!sEventDesc}
+            </div>
+            <br/>
+            <div style="border:visible; width: 700px;">
+                <div style="float: left; width: 400px;text-align:left;">
+                    <br/>
+                    <!-- CONTACT INFORMATION BLOCK -->
+                    <div style="margin:0px auto;width:225%;text-align: left;">
+                        <apex:outputPanel >
+                            <div style="font-size: 100%;">
+                                {!$Component.msg}
+                                <apex:pagemessages ></apex:pagemessages>
+                                <b><p>Please enter your information below to check in</p></b>
+                                <br></br>
+                                <div id="Checkoutform">
+                                    <div style="margin:0px auto;width:50%;text-align: left;">
+<!--                                          <div id="FormColumns">
+                                            <label>First Name <span style="color:red">*</span>
+                                            </label>
+                                            <div id="input">
+                                                <apeX:inputtext value="{!FirstName}" id="FirstName" onkeydown="return disableKeys(event);" html-placeholder="Enter First Name" />
+                                            </div>
+                                        </div>
+                                        <div id="FormColumns">
+                                            <label>Last Name <span style="color:red">*</span>
+                                            </label>
+                                            <div id="input">
+                                                <apeX:inputtext value="{!LastName}" id="LastName" onkeydown="return disableKeys(event);" html-placeholder="Enter Last Name" />
+                                            </div>
+                                        </div>	-->
+                                        <div id="FormColumns">
+                                            <label>Email <span style="color:red">*</span>
+                                            </label>
+                                            <div id="input">
+                                                <apeX:inputtext value="{!Email}" id="Email" onkeydown="return disableKeys(event);" html-placeholder="Enter Email" />
+                                            </div>
+                                        </div>
+                                        <br/>
+                                    </div>
+                                </div>
+                            </div>
+                        </apex:outputPanel>
+	                    <div class="slds" style="margin:0px auto;text-align: center;display:{!if(objER.Status__c != " Accepted ","block ","none ")};">
+	                        <apex:commandButton action="{!onAccept}" value="Find and Check In" styleClass="slds-button slds-button--neutral" />
+	                    </div>
+                    </div>
+                </div>
+                <br/>
+            </div>
+
+            <br style="clear: left;" />
+        </div>
+
+        <div id="Thankyou" style="margin:0px auto;width:50%;text-align: center;display:{!if(showThankYouPage," block ","none ")};">
+            <apex:outputPanel id="thankYou">
+                <b><div style="margin:0px auto;width:100%;text-align:left; font-size: 150%;"><br/>
+                <p>{!FirstName} {!LastName} successfully checked in</p>
+            </div></b>
+            </apex:outputPanel>
+        </div>
+
+        <div id="Thankyou" style="margin:0px auto;width:50%;text-align: center;display:{!if(showCheckedIn," block ","none ")};">
+            <apex:outputPanel id="checkedin">
+                <b><div style="margin:0px auto;width:100%;text-align:left; font-size: 150%; color:red;"><br/>
+                <p>{!FirstName} {!LastName} is already checked in</p>
+            </div></b>
+            </apex:outputPanel>
+        </div>
+
+        <div id="Thankyou" style="margin:0px auto;width:50%;text-align: center;display:{!if(showErrorPage," block ","none ")};">
+            <apex:outputPanel id="error">
+                <b><div style="margin:0px auto;width:100%;text-align:left; font-size: 150%; color:red;"><br/>
+                <p>No registration records found for this event.</p>
+            </div></b>
+            </apex:outputPanel>
+        </div>
+
+        <!-- Footer Start -->
+
+        <div class="mo-footer">
+            <footer class="content-info">
+                <div class="container">
+                    <center>
+                        <div>U.S. Embassy {!sEmbassyCountry}
+                            <br/>{!sEmbassyAddress}
+                            <br/>Phone: {!sEmbassyPhone}
+                            <br/>
+                            <apex:outputLink value="{!sEmbassyWebsite}" id="theLink">{!sEmbassyWebsite}</apex:outputLink>
+                        </div>
+
+                    </center>
+                </div>
+            </footer>
+        </div>
+
+        <div class="mo-copyright">
+            <div class="container">
+                <center>
+                    <p><span class="sr-only">Disclaimer &#8211; Footer</span> 
+                        <div class="textwidget">This is the official website of the U.S. Embassy {!sEmbassyCountry}. External links to other Internet sites should not be construed as an endorsement of the views or privacy policies contained therein.</div>
+                    </p>
+                    <img src="https://uk.usembassy.gov/wp-content/themes/cms3/dist/images/us-flag-logo.png" alt="American Flag" />
+                </center>
+            </div>
+        </div>
+        <!-- Footer End -->
+    </apex:form>
+</apex:page>

@@ -1,0 +1,40 @@
+<apex:page id="myPage" controller="AmericanSpacesReport" showHeader="false" >
+<apex:includeScript value="{!URLFOR($Resource.jQueryLibrary, 'jquery-1.8.3.js')}" />
+<script type="text/javascript">
+	document.onclick= function( event ) {
+		if ('{!$CurrentPage.parameters.drawData}' == 'true')
+		{
+			// No need to do anything...
+		}
+		else
+		{
+			window.open( "/apex/AmericanSpaces_Report?reportName=numOfCountriesWithSpaces", "_top" );
+		}
+	};
+
+	{!IF('$CurrentPage.parameters.drawData' == 'false', "", "j$ = $.noConflict();" )}
+	
+	j$( document ).ready(function ()
+	{
+		j$( '[id="myPage:pageBlock"]' ).css( "width", "300px" );
+	});
+</script>	
+	<apex:pageBlock id="pageBlock">
+		<apex:outputPanel rendered="{!$CurrentPage.parameters.drawData}">
+	    	<div style="text-align:right; width: 280px;"><a apexClass="AmericanSpaces_CountriesWithSpacesEXCEL" onclick="exportToExcel( this );"><img src="/img/icon/console24.png" />Export to Excel</a></div>
+	    </apex:outputPanel>
+		<apex:pageBlockTable id="postInfo" value="{!countriesWithSpaces}" var="record" rowClasses="odd,even" styleClass="tableClass">
+			<apex:column id="region">
+				<apex:facet name="header">Region</apex:facet>
+				<apex:outputText value="{!record.region}"/>
+				<apex:facet name="footer">Total</apex:facet>
+			</apex:column> 
+			
+			<apex:column id="GrandTotal">
+				<apex:facet name="header">Number of Countries with Spaces</apex:facet>
+				<apex:outputText value="{!record.numOfCountriesWithSpaces}"/>
+				<apex:facet name="footer">{!totalCountries}</apex:facet>
+			</apex:column>
+		</apex:pageBlockTable>
+	</apex:pageBlock>
+</apex:page>

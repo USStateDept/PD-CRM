@@ -1,0 +1,402 @@
+<apex:page id="myPage" title="Program Request List View" showHeader="true" sidebar="false" controller="CONX_RequestListView" tabStyle="CONX_Program_Requests__tab">
+    <apex:includeScript value="{!URLFOR($Resource.jQueryLibrary, 'jquery-1.8.3.js')}"/>
+    <apex:includeScript value="{!URLFOR($Resource.jQueryLibrary, 'jquery-ui-1.9.2.custom.js')}"/>
+    <apex:includeScript value="{!URLFOR($Resource.jQueryLibrary, 'jquery.ui.autocomplete.js')}"/>
+    <apex:includeScript value="{!URLFOR($Resource.jQueryLibrary, 'jquery.timepicker.js')}" />
+    <apex:stylesheet value="{!URLFOR($Resource.jQueryLibrary, 'jquery.timepicker.css')}" />
+    <apex:stylesheet value="{!URLFOR($Resource.jQueryLibrary, 'jquery-ui.css')}"/>
+    <script src="/soap/ajax/9.0/connection.js" type="text/javascript"></script>
+    <script language="JavaScript1.2" src="/js/functions.js"></script>
+    
+    <style>
+        .asc {
+            font-style:italic;
+        }
+    </style>
+    
+    <script type="text/javascript">  
+        j$ = $.noConflict();
+        
+        var status = '{!status}';
+        
+        j$(document).ready(function ()
+        {
+            redrawList();
+        
+            config();
+            
+            j$( '[id="myPage:pageBlock:myForm:filter:start" ]' ).timepicker({
+                timeFormat: 'h:i A',
+                separator: ':',
+                step: 15
+            });
+            j$( "div.time-picker" ).css( "width", "150px" );
+
+            var list= '{!listOfProducers}'.split(";");
+            
+            j$( '.user' ).autocomplete({
+                source: list
+            });
+    
+            j$( '#queues' ).val( '{!queue}' );
+        });
+        
+        
+        function redrawList()
+        {
+            j$( '.content' ).html( j$( '[id="myPage:pageBlock:myForm:listView"]' ).html() );
+            j$( '[id="myPage:pageBlock:myForm:listView"]' ).hide();
+            
+            config();
+        }
+        
+        function config()
+        {
+            j$( ".contentLoading" ).hide();
+            
+            convertStringToDropDown( '{!regions}', 'requestRegions' );
+            putSelect( 'requestRegions', j$( '.requestRegion' ).val() );
+        
+            var sortBy = j$( '[id="myPage:pageBlock:myForm:filter:sortBy" ]' ).val();
+            var ascOrDesc = j$( '[id="myPage:pageBlock:myForm:filter:ascOrDesc" ]' ).val();
+
+            if (sortBy != null && sortBy.length > 0)
+            {
+                applySortArrow( j$( "." + sortBy ), ascOrDesc );
+            }
+            //twistSection( document.getElementById( 'myPage:pageBlock:myForm:filter' ).childNodes[0].childNodes[0] );
+            
+            j$( '[id="myPage:pageBlock:myForm:filter"]' ).css( "width", "720px" );
+            
+            j$( 'th.headerRow' ).click( function() {
+                var sortBy = j$( this ).attr( "class" );
+                var sortBy = sortBy.replace( "headerRow ", "" ); 
+                var sortBy = j$.trim( sortBy );
+                
+                if (sortBy != "")
+                {
+                    var orderInfo = j$( '[id="myPage:pageBlock:myForm:filter:ascOrDesc" ]' ).val();
+                    
+                    j$( '[id="myPage:pageBlock:myForm:filter:ascOrDesc" ]' ).val( orderOption( orderInfo ));    
+                    j$( '[id="myPage:pageBlock:myForm:filter:sortBy" ]' ).val( sortBy );
+                
+                    j$( '[id="myPage:pageBlock:myForm:filter:filterBtn" ]' ).click();
+                }
+            });
+            
+            j$( '[id="myPage:pageBlock:myForm:filter:status"]' ).find( "option[value='Archive']" ).remove();
+            j$( '[id="myPage:pageBlock:myForm:filter:status"]' ).find( "option[value='Not Approved']" ).remove();
+            
+            j$( '.user' ).keydown(function (e) {
+                if (j$(".user:focus") && e.keyCode == 13) {
+                    e.preventDefault();
+                    j$('[id="myPage:pageBlock:myForm:assignProgram"]').click();
+                }
+            });
+            
+            j$( '[id="myPage:pageBlock:myForm:filter"]' ).keydown(function (e) {
+                if (e.keyCode == 13) {
+                    e.preventDefault();
+                    j$('[id="myPage:pageBlock:myForm:filter:filterBtn"]').click();
+                }
+            });
+            
+        }
+        
+        
+        function getSelectedTabName()
+        {
+            if (RichFaces) 
+            {
+                var tabs = RichFaces.panelTabs['myPage:pageBlock:myForm:statusPanel'];
+                for (var i = 0; i < tabs.length; i++)
+                {
+                    var tab = tabs[i];
+        
+                    if (RichFaces.isTabActive(tab.id + '_lbl'))
+                    {
+                        return tab.name;
+                    }
+                }
+            }
+            return null;
+        }
+        
+        
+        function setSelectedTabOnController()
+        {
+            var newSelectedTab = getSelectedTabName();
+
+            if (newSelectedTab != status)
+            {
+                status = newSelectedTab;
+                reloadList( newSelectedTab );
+                
+                if (status == 'Active')
+                {
+                    j$( '[id="myPage:pageBlock:myForm:filter:status"]' ).show();
+                }
+                else
+                {
+                    j$( '[id="myPage:pageBlock:myForm:filter:status"]' ).hide();
+                }
+            }
+        }
+        
+
+        function setFocusOnLoad() {} 
+        
+        function orderOption( ascOrDesc )
+        {
+            if (ascOrDesc == ' asc')
+                return ' desc';
+            else
+                return ' asc';
+        }
+        
+        
+        function applySortArrow( element, sort )
+        {
+            j$( element ).children().addClass( "asc" );
+                    
+            if (sort == ' asc')
+            {
+                j$( element ).children().append( " ↑" ); 
+            }
+            else
+            {
+                j$( element ).children().append( " ↓" );
+            }
+        }
+        
+        
+        function captureQueue( select )
+        {
+            var selectedItem = "";
+            
+            for (var i = 0; i < select.options.length; i++)
+            {
+                if (select.options[i].selected)
+                {
+                    selectedItem =  select.options[i].value;
+                    break;
+                }
+            }
+            
+            j$( '.queue' ).val( selectedItem );
+        }
+        
+        function captureSelect( select, styleStr )
+        {
+            var selectedItems = "";
+            
+            for (var i = 0; i < select.options.length; i++)
+            {
+                if (select.options[i].selected)
+                {
+                    selectedItems = selectedItems + select.options[i].value + ",";
+                }
+            }
+            
+            selectedItems = selectedItems.substring(0, selectedItems.length - 1);
+            j$( '.' + styleStr ).val( selectedItems );
+        }
+
+
+        function putSelect( selectList, picklistValues )
+        {
+            if (picklistValues != null && picklistValues.length > 0)
+            {
+                j$( '#' + selectList + ' > option' ).each( function() { 
+                     if (picklistValues.indexOf( j$( this ).val() ) != -1)
+                     {
+                         j$( this ).attr("selected", "selected");
+                     }
+                 });
+             }
+        }
+        
+        
+        function convertStringToDropDown( listStr, idStr )
+        {
+            var records = listStr.split( ";" );        
+            var s = document.getElementById( idStr );
+            
+            j$( '#' + idStr ).empty();
+            s.options[0] = new Option( '--None--', '' );
+            for (var i=0; i< records.length; i++)
+            {
+                var obj = records[i];
+                if (j$( '#' + idStr + ' option[value="' + obj +'"]' ).length == 0 && obj.length > 0)
+                {
+                    s.options[ s.options.length ] = new Option( obj, obj );
+                }
+            }
+        }
+        
+        
+        function loading( val )
+        {
+            if (val)
+            {
+                j$( '.content' ).html( j$( ".contentLoading" ).html() );
+                j$( ".contentLoading" ).show();
+                j$( ".list" ).hide();
+                j$( "#spinner" ).hide();
+            }
+            else
+            {
+                j$( ".contentLoading" ).hide();
+            }
+        }
+    </script>
+    
+    <apex:pageBlock title="" id="pageBlock">
+        <apex:messages style="padding:5px;margin-top:55px" />
+        <apex:form id="myForm">
+        <apex:pageBlockSection id="filter" showHeader="true" title="Filter" columns="2" collapsible="true">
+            <apex:inputField value="{!filter.Washington_Date_of_Program__c}" />
+            <apex:inputField value="{!filter.Program_Titles__c}" />
+            <apex:inputField id="start" value="{!filter.Washington_Start_Time__c}" />
+            <apex:pageBlockSectionItem >
+                <apex:outputLabel value="Request Region" />
+                <select id="requestRegions" onchange="captureSelect( this, 'requestRegion'  );"></select>
+            </apex:pageBlockSectionItem>
+            <apex:inputField value="{!filter.Studio_Location__c}" />
+            <!-- apex:inputField value="{!filter.Status__c}" / -->
+            <apex:pageBlockSectionItem id="queueItems">
+                <apex:outputLabel value="Owner:" />
+                <select id="queues" onchange="captureQueue( this );">
+                    <option value="">All</option>
+                    <option value="CONX Project Coordinator">Project Coordinator</option>
+                    <option value="CONX Producer">Producer</option>
+                    <option value="CONX General Queue">General Queue</option>
+                </select>
+            </apex:pageBlockSectionItem>
+            <apex:pageBlockSectionItem id="assign">
+                Assigned to (Producer):
+                <apex:inputText styleClass="user" value="{!assignedTo}" />
+            </apex:pageBlockSectionItem>
+            <apex:inputField id="status" value="{!filter.Status__c}" />
+            <apex:inputFIeld value="{!filter.Technical_Director_First_Name__c}" />
+            <apex:inputFIeld value="{!filter.Technical_Director_Last_Name__c}" />
+            <apex:commandButton action="{!refresh}" rerender="listView" value="Filter" id="filterBtn" status="loading" style="margin-left:200px;"  oncomplete="redrawList();"/>
+            <apex:actionStatus id="loading" onstart="loading(true)" onstop="loading(false)" />
+            <apex:actionFunction name="reloadList" action="{!updateStatus}" rerender="listView"  status="loading" oncomplete="redrawList();">
+                <apex:param name="status" value="" assignTo="{!status}" />
+            </apex:actionFunction>
+            
+            <apex:inputText value="{!queue}" style="visibility:hidden;height:0px;;width:0px" styleClass="queue" />
+            <apex:inputText value="{!columnName}" style="visibility:hidden;height:0px;;width:0px" id="sortBy" />
+            <apex:inputText value="{!ascOrDesc}" style="visibility:hidden;height:0px;;width:0px" id="ascOrDesc" />
+            <apex:inputText styleClass="requestRegion" label="" value="{!filter.Request_Region__c}" style="visibility:hidden;height:0px;;width:0px" />
+        </apex:pageBlockSection>
+        
+        <apex:commandButton action="{!create}" value="New Program" rendered="{!(myPermissionset != 'CONX General Queue') && (myPermissionset != 'CONX View Only')}" style="margin-right:10px" />
+        <apex:outputPanel rendered="{!myPermissionset == 'CONX Project Coordinator'}">
+            Producer: <apex:inputText styleClass="user" value="{!producer}" />
+            <apex:commandButton id="assignProgram" action="{!assignProgram}" value="Assign Program"  />
+        </apex:outputPanel>
+        <br/><br/>
+        
+        <apex:tabPanel switchType="client" selectedTab="tabOne" id="statusPanel" height="0px" onclick="setSelectedTabOnController();">
+            <apex:tab label="Active" name="Active" id="tabOne"><apex:outputPanel layout="block" styleClass="content"></apex:outputPanel></apex:tab>
+            <apex:tab label="Archive" name="Archive" id="tabTwo"><apex:outputPanel layout="block" styleClass="content"></apex:outputPanel></apex:tab>
+            <apex:tab label="Not Approved" name="Not Approved" id="tabThree"><apex:outputPanel layout="block" styleClass="content"></apex:outputPanel></apex:tab>
+        </apex:tabPanel>
+        
+        <apex:outputPanel id="listView" layout="block" styleClass="list">
+            <apex:pageBlockTable id="progInfo" value="{!programRequests}" var="prog" rowClasses="odd,even" styleClass="tableClass">
+                <apex:column id="checkBox" rendered="{!myPermissionset != 'CONX View Only'}">
+                    <apex:facet name="header"><input type="checkbox" onclick="if ( this.checked ){ j$('.checkBox' ).prop('checked', true);}else{ j$('.checkBox' ).prop('checked', false); }" /></apex:facet>
+                    <apex:inputCheckbox styleClass="checkBox" value="{!prog.checked}"/>
+                </apex:column>
+                
+                <apex:column rendered="{!myPermissionset == 'CONX General Queue'}">
+                    <apex:facet name="header">Action</apex:facet>
+                    <apex:outputLink value="../apex/CONX_RequestView?id={!prog.programRequest.id}">View</apex:outputLink>&nbsp;
+                    <apex:outputLink value="../apex/CONX_RequestEdit?id={!prog.programRequest.id}&from=listView" rendered="{!prog.queue == 'CONX General Queue'}">Edit</apex:outputLink>&nbsp;
+                </apex:column>
+                
+                <apex:column rendered="{!myPermissionset == 'CONX Project Coordinator'}">
+                    <apex:facet name="header">Action</apex:facet>
+                    <apex:outputLink value="../apex/CONX_RequestView?id={!prog.programRequest.id}">View</apex:outputLink>&nbsp;
+                    <apex:outputLink value="../apex/CONX_RequestEdit?id={!prog.programRequest.id}&from=listView">Edit</apex:outputLink>&nbsp;
+                </apex:column>
+                
+                <apex:column rendered="{!myPermissionset == 'CONX Producer'}">
+                    <apex:facet name="header">Action</apex:facet>
+                    <apex:outputLink value="../apex/CONX_RequestView?id={!prog.programRequest.id}">View</apex:outputLink>&nbsp;
+                    <apex:outputLink value="../apex/CONX_RequestEdit?id={!prog.programRequest.id}&from=listView" rendered="{!prog.queue != 'CONX Project Coordinator'}">Edit</apex:outputLink>&nbsp;
+                </apex:column>
+                
+                <apex:column rendered="{!myPermissionset == 'CONX View Only'}">
+                    <apex:facet name="header">Action</apex:facet>
+                    <apex:outputLink value="../apex/CONX_RequestView?id={!prog.programRequest.id}">View</apex:outputLink>
+                </apex:column>
+                 
+                <apex:column headerClass="Washington_Date_of_Program__c" >
+                    <apex:facet name="header">Washington<br/>Date of Program</apex:facet>
+                    <apex:outputText value="{0,date,MM'/'dd'/'yyyy}">
+                        <apex:param value="{!prog.programRequest.Washington_Date_of_Program__c}" />
+                    </apex:outputText>
+                </apex:column>
+                
+                <apex:column headerClass="Date_of_Request__c" >
+                    <apex:facet name="header">Date of Request</apex:facet>
+                    <apex:outputText value="{0,date,MM'/'dd'/'yyyy}">
+                        <apex:param value="{!prog.programRequest.Date_of_Request__c}" />
+                    </apex:outputText>
+                </apex:column>
+                
+                
+                
+                <apex:column headerClass="Program_Titles__c" >
+                    <apex:facet name="header">Title of Program</apex:facet>
+                    <apex:outputText value="{!prog.programRequest.Program_Titles__c}"/>
+                </apex:column>
+                
+                <apex:column headerClass="Washington_Start_Time__c" >
+                    <apex:facet name="header">Washington<br/>Start Time</apex:facet>
+                    <apex:outputText value="{!prog.programRequest.Washington_Start_Time__c}"/>
+                </apex:column>
+                
+                <apex:column headerClass="Washington_End_Time__c" >
+                    <apex:facet name="header">Washington<br/>End Time</apex:facet>
+                    <apex:outputText value="{!prog.programRequest.Washington_End_Time__c}"/>
+                </apex:column>
+                
+                <apex:column headerClass="Request_Region__c" >
+                    <apex:facet name="header">Request<br/>Region</apex:facet>
+                    <apex:outputText value="{!prog.programRequest.Request_Region__c}"/>
+                </apex:column>
+                
+                <apex:column headerClass="Status__c" >
+                    <apex:facet name="header">Status</apex:facet>
+                    <apex:outputText value="{!prog.programRequest.Status__c}"/>
+                </apex:column>
+                
+                <apex:column headerClass="Speaker_1_Location__c" >
+                    <apex:facet name="header">Speaker 1 Location</apex:facet>
+                    <apex:outputText value="{!prog.programRequest.Speaker_1_Location__c}" />
+                </apex:column>
+                
+                <apex:column headerClass="Program_Type__c" >
+                    <apex:facet name="header">Type of Program</apex:facet>
+                    <apex:outputText value="{!prog.programRequest.Program_Type__c}"/>
+                </apex:column>
+                
+                <apex:column headerClass="ownerID">
+                    <apex:facet name="header">Owner</apex:facet>
+                    <apex:outputText value="{!prog.queue}" /><apex:outputText value=" ({!prog.programRequest.Assigned_User__c})" rendered="{!prog.programRequest.Assigned_User__c != ''}" />
+                </apex:column>
+            </apex:pageBlockTable>
+        </apex:outputPanel>
+        <div id="spinner" class="contentLoading">
+            <div style="text-align: center;">
+                <img src="/img/loading.gif" alt="Loading graphic" /> Loading...
+            </div>
+        </div>
+        </apex:form>
+    </apex:pageBlock>
+</apex:page>

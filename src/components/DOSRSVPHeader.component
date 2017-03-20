@@ -1,0 +1,37 @@
+<apex:component >
+  <!-- Component Header Start -->
+  <!--apex:stylesheet value="{!URLFOR($Resource.Background, 'default-styles.css')}"/-->
+  <!--apex:stylesheet value="{!URLFOR($Resource.Background, 'output.css')}"/-->
+  <!--apex:stylesheet value="{!URLFOR($Resource.Background, 'styles.css')}"/-->
+  <!--apex:stylesheet value="{!URLFOR($Resource.Background, 'UK EmbassyFont.css')}"/-->  
+  <!-- Component Header End -->
+  <apex:stylesheet value="https://fonts.googleapis.com/css?family=Roboto+Condensed%3A%2C300%2C400%2C700&ver=4.6.1"/> 
+  <apex:stylesheet value="https://uk.usembassy.gov/wp-content/plugins/bwp-minify/min/?f=wp-content/plugins/contact-form-7/includes/css/styles.css,wp-content/plugins/ubermenu3/pro/assets/css/ubermenu.min.css,wp-content/plugins/ubermenu3/pro/assets/css/skins/white.css,wp-content/plugins/ubermenu3/assets/css/fontawesome/css/font-awesome.min.css,wp-content/themes/cms3/dist/styles/main-10e6f94f.css"/>
+  <link rel='stylesheet' id='addthis_output-group-css' href='https://uk.usembassy.gov/wp-content/plugins/bwp-minify/min/?f=wp-content/plugins/addthis/css/output.css' type='text/css' media='all' />
+
+
+    
+  <div class="mo-header">
+    <div class="container">
+      <div class="mo-language">
+        <ul class="head-disclaimer">
+          <li class="throw-away">&nbsp;</li>
+          <li class="disclaimer">
+           <span>             </span>
+        </li>
+          <li class="language">  </li>
+        </ul>
+      </div>
+      <div class="mo-header-wrap">
+        <div class="mo-logo">
+          <a class="brand-logo" href="https://uk.usembassy.gov/"><img alt="United States of America, Department of State" src="https://uk.usembassy.gov/wp-content/themes/cms3/dist/images/dos-logo-light.png"/></a><h1><a class="brand" href="https://uk.usembassy.gov/" title="U.S. Embassy &amp; Consulates in the United Kingdom"><span class="head-title-1">U.S. Embassy &amp; Consulates<br></br></span><span class="head-title-2">in</span><span class="head-title-3"> the United Kingdom</span></a></h1>
+        </div>
+        <!--div class="mo-header-social-search"-->
+        <!--section class="mo-footer-subscription widget text-6 widget_text"><div class="textwidget"><div class="mo-social-links"><a class="fa fa-twitter" href="http://twitter.com/USAinUK" style="color:#ffffff;background:#003875; border:1px solid #003875" title="Twitter" ><span>Twitter</span></a><a class="fa fa-facebook" href="https://www.facebook.com/uk.usembassy" style="color:#ffffff;background:#003875; border:1px solid #003875" title="Facebook" ><span>Facebook</span></a><a class="fa fa-youtube" href="http://www.youtube.com/user/USEmbassyLondon" style="color:#ffffff;background:#003875; border:1px solid #003875" title="YouTube" ><span>YouTube</span></a></div></div></section-->
+        <a href="/social-media/" class="topplus">
+        <i class="fa fa-plus-square"></i></a> <span class="toppipe">|</span>  
+       <!--/div-->
+      </div>  
+      </div>  
+   </div>              
+</apex:component>

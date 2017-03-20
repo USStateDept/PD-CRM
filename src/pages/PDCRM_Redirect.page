@@ -1,0 +1,5 @@
+<apex:page >
+<script type="text/javascript">
+    window.location = "https://iipstate.my.salesforce.com";
+</script>
+</apex:page>

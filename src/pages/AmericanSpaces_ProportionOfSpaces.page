@@ -1,0 +1,50 @@
+<apex:page id="myPage" controller="AmericanSpacesReport" showHeader="false">
+<apex:includeScript value="{!URLFOR($Resource.jQueryLibrary, 'jquery-1.8.3.js')}" />
+<script type="text/javascript">
+	document.onclick= function( event ) {
+		if ('{!$CurrentPage.parameters.drawData}' == 'true')
+		{
+			// No need to do anything...
+		}
+		else
+		{
+			window.open( "/apex/AmericanSpaces_Report?reportName=proportionOfSpaces", "_top" );
+		}
+	};
+	
+	{!IF('$CurrentPage.parameters.drawData' == 'false', "", "j$ = $.noConflict();" )}
+	
+	j$( document ).ready(function ()
+	{
+		if ('{!$CurrentPage.parameters.drawData}' == 'true')
+		{
+			j$( '[id="myPage:pageBlock"]' ).css( "width", "490px" );
+		}
+	});
+</script>
+	<apex:pageBlock id="pageBlock">
+	    <apex:chart height="400px" width="400px" data="{!countriesWithSpacesPieData}" id="asrProp2">
+	        <apex:pieSeries id="percentageOfCountriesWithSpaces" dataField="percentageOfCountriesWithSpaces" labelField="region" />
+	        <apex:legend position="right"/>
+	    </apex:chart>
+		<apex:outputPanel rendered="{!$CurrentPage.parameters.drawData}">
+	    	<div style="text-align:right;width:460px"><a apexClass="AmericanSpaces_ProportionOfSpacesEXCEL" onclick="exportToExcel( this );"><img src="/img/icon/console24.png" />Export to Excel</a></div>
+	    </apex:outputPanel>
+		<apex:pageBlockTable id="postCont" value="{!countriesWithSpacesPieData}" var="pas" rowClasses="odd,even" styleClass="tableClass" rendered="{!$CurrentPage.parameters.drawData}">
+			<apex:column width="11%">
+				<apex:facet name="header">Region</apex:facet>
+				<apex:outputText value="{!pas.Region}" />
+			</apex:column>
+		
+			<apex:column width="25%">
+				<apex:facet name="header">Detail Information</apex:facet>
+				{!pas.percentageOfCountriesWithSpaces}% ({!pas.numOfCountriesWithSpaces})
+			</apex:column>
+		</apex:pageBlockTable>
+		<div>
+			<apex:repeat value="{!countriesWithSpacesPieData}" var="cwsp" rendered="{!IF($CurrentPage.parameters.drawData == 'false', true, false )}">
+				{!cwsp.region}-{!cwsp.percentageOfCountriesWithSpaces}%({!cwsp.numOfCountriesWithSpaces})&nbsp;&nbsp;
+			</apex:repeat>
+		</div>
+	</apex:pageBlock>
+</apex:page>

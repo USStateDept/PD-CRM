@@ -1,0 +1,3 @@
+<apex:page >
+  <p>If you're experiencing technical difficulties with the IIP Publishing System, please send an email outlining your problem to <a href="mailto:salesforce@getusinfo.com">salesforce@getusinfo.com</a>.</p>
+</apex:page>

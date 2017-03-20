@@ -1,0 +1,78 @@
+<apex:page doctype="html-5.0" standardController="Contact" applyhtmltag="true" showheader="true" standardstylesheets="false"
+			cache="false">
+    <head>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css" rel="stylesheet" />
+         <script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+            <meta name="viewport" content="width=device-width, initial-scale=1"/>
+        <meta charset="utf-8" />
+        <style>
+            	.top-buffer { margin-top:20px; }
+            .btn{
+                background-color : #4c4c4c;
+                border : solid 1px #ffffff;
+                color : #ffffff;
+                padding : 2px 2px;
+                }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+             <div class="span7 text-center top-buffer">
+                <h2>Contact Details</h2>
+            </div>
+            <apex:form >
+                <div class="form-horizontal top-buffer">
+                    <div class="row top-buffer">
+                        <div class="col-md-6  form-group">
+                            <label class="col-md-6 control-label" for="firstName">Name</label>
+                             <div class="col-md-6">
+                                <p class="form-control-static" id="firstName">{!contact.Name}</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6 form-group">
+                            <label class="col-md-6 control-label" for="organization">Organization</label>
+                             <div class="col-md-6">
+                                <p class="form-control-static" id="organization">{!contact.Account.Name}</p>
+                            </div>
+                        </div>
+                     </div>
+                    <div class="row">
+                     <div class="col-md-6  form-group">
+                            <label class="col-md-6 control-label" for="region">Region</label>
+                             <div class="col-md-6">
+                                <p class="form-control-static" id="region">{!contact.Region__c}</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6  form-group">
+                            <label class="col-md-6 control-label" for="country">Email</label>
+                             <div class="col-md-6">
+                                <p class="form-control-static" id="organization">{!contact.Email}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                     <div class="col-md-6  form-group">
+                            <label class="col-md-6 control-label" for="region">Country</label>
+                             <div class="col-md-6">
+                                <p class="form-control-static" id="region">{!contact.Country__c}</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6  form-group">
+                            <label class="col-md-6 control-label" for="country">City</label>
+                             <div class="col-md-6">
+                                <p class="form-control-static" id="organization">{!contact.City__c}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="form-group span7 text-center">
+                        <apex:commandLink type="button" styleClass="btn btn-primary" action="{!edit}" value="Edit"></apex:commandLink>
+                    </div>
+                </div>
+                </apex:form>
+            </div>
+        
+    </body>
+</apex:page>

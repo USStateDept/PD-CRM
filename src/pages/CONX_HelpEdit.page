@@ -1,0 +1,54 @@
+<apex:page id="page" title="Edit Help Request" showHeader="true" sidebar="false" standardController="CONX_Help_Request__c" extensions="CONX_HelpController" tabStyle="CONX_Help_Requests__tab">
+    <apex:includeScript value="{!URLFOR($Resource.jQueryLibrary, 'jquery-1.8.3.js')}" />
+    <apex:includeScript value="{!URLFOR($Resource.jQueryLibrary, 'jquery.timepicker.js')}" />
+    <apex:stylesheet value="{!URLFOR($Resource.jQueryLibrary, 'jquery.timepicker.css')}" />
+    <apex:includeScript value="{!URLFOR($Resource.jQueryLibrary, 'jquery-ui-1.9.2.custom.js')}"/>
+    <apex:includeScript value="{!URLFOR($Resource.jQueryLibrary, 'jquery.ui.autocomplete.js')}"/>
+    <apex:stylesheet value="{!URLFOR($Resource.jQueryLibrary, 'jquery-ui.css')}"/>
+    <script type="text/javascript">
+        j$ = $.noConflict();
+        
+        var hide = false;
+        
+        j$(document).ready(function ()
+        {
+            j$( '.timer' ).timepicker({
+                timeFormat: 'h:i A',
+                separator: ':',
+                step: 15
+            });
+		});
+    </script>
+    
+    <apex:form id="myForm">
+        <apex:messages style="padding:5px;margin-top:55px" />
+        
+        <apex:pageBlock id="pageBlock" title="{!$ObjectType.CONX_Help_Request__c.label} Edit" mode="view">
+            <apex:pageBlockButtons >
+                <apex:commandButton action="{!save}" value="Save"/>
+                <apex:commandButton action="{!cancel}" value="Cancel"/>
+            </apex:pageBlockButtons>
+            
+            <apex:pageBlockSection id="requestorInfo" showHeader="true" title="Requestor Information" columns="2">  
+                <apex:inputField Label="Requestor Last Name" value="{!CONX_Help_Request__c.Requestor_Last_Name__c}" />
+                <apex:inputField Label="Requestor Email" value="{!CONX_Help_Request__c.Requestor_Email__c}" />
+                <apex:inputField Label="Requestor First Name" value="{!CONX_Help_Request__c.Requestor_First_Name__c}" />
+                <apex:outputField value="{!CONX_Help_Request__c.Date_of_Help_Request__c}" />
+                <apex:outputField label="Owner Name" value="{!CONX_Help_Request__c.ownerId}" />
+            </apex:pageBlockSection>
+            
+            <apex:pageBlockSection showHeader="true" title="Ticket Information" columns="2">
+                <apex:inputField value="{!CONX_Help_Request__c.Priority__c}"/>
+                <apex:inputField required="true" value="{!CONX_Help_Request__c.Status__c}"/>
+                <apex:inputField value="{!CONX_Help_Request__c.Program_Date__c}"/>
+                <apex:inputField styleClass="timer" value="{!CONX_Help_Request__c.Program_Time__c}"/>
+            </apex:pageBlockSection>
+                                   
+            <apex:pageBlockSection showHeader="true" title="Ticket Details" columns="1">
+                <apex:inputField Label="Subject" value="{!CONX_Help_Request__c.Subject__c}" style="width:250px" />
+                <apex:inputField Label="Body" value="{!CONX_Help_Request__c.Body__c}" />
+            </apex:pageBlockSection>
+   
+        </apex:pageBlock>
+    </apex:form>
+</apex:page>

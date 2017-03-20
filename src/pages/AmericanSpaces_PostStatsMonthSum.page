@@ -1,0 +1,8 @@
+<apex:page controller="AmericanSpacesReport" showHeader="false">
+    <apex:chart data="{!statistics}" width="1100" height="400" id="stat">
+    	<apex:legend position="right"/>
+        <apex:axis type="Category" position="bottom" fields="Month__c" title="Month" />
+        <apex:axis type="Numeric" position="left" fields="Number_of_Program_Attendees__c,Number_of_Programs__c,Number_of_Visitors__c" title="" />
+        <apex:barSeries title="Total Number of Program Attendees,Total Number of Programs,Total Number of Visitors" orientation="vertical" axis="bottom" yField="Number_of_Program_Attendees__c,Number_of_Programs__c,Number_of_Visitors__c" xField="Month__c" />
+    </apex:chart>
+</apex:page>

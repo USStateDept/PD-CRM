@@ -1,0 +1,40 @@
+<apex:page id="myPage" sidebar="false" title="Lesson Learned" standardController="CMS_Lesson_Learned__c"
+           extensions="CMS_LessonLearned_Controller" docType="html-5.0">
+   <apex:stylesheet value="{!URLFOR($Resource.lesson_learned_resources, '/lesson_learned_resources/lessonlearned.css')}"/>        
+    <!--<style>
+        .customnotabTab .secondaryPalette, .individualPalette .customnotabBlock .secondaryPalette {
+            background-color: #8ab64e;
+            border-color: #8ab64e;
+        }
+    </style>-->
+    <script type="text/javascript">
+    function colorPageBlock(pageblock, color) {
+        if (pageblock != null) pageblock.firstChild.style.cssText = "background-color: " + color + ";";
+    }
+    </script>
+    <apex:form id="myForm">
+        <apex:pageBlock id="lessonLearnedPageBlock" mode="view" title="Lesson Learned Edit">
+            <apex:pageBlockButtons >
+                <apex:commandButton action="{!save}"   value="Save"   />
+                <apex:commandButton action="{!cancel}" value="Cancel" immediate="true"
+                                    html-formnovalidate="formnovalidate" />
+            </apex:pageBlockButtons>  
+            <apex:pageBlock id="submissionPageBlock" title="Lesson Learned Submission Form" dir="LTR">
+                <apex:pageBlockSection id="lessonLearned" showHeader="true" title="Lesson Learned" columns="1">
+                    <apex:pageBlockSection columns="2">
+                        <apex:outputField id="dtIndentified" value="{!CMS_Lesson_Learned__c.Date_Identified__c}"/> 
+                        <apex:inputField id="category" value="{!CMS_Lesson_Learned__c.Category__c}" />
+                        
+                        <apex:inputField id="projectName" value="{!CMS_Lesson_Learned__c.Project_Name__c}"/>
+                        <apex:inputField id="probability" value="{!CMS_Lesson_Learned__c.Probability__c}"/>
+                        
+                        <apex:inputField id="subject" value="{!CMS_Lesson_Learned__c.Subject__c}"/>
+                    </apex:pageBlockSection>
+                    <apex:inputField id="situation" value="{!CMS_Lesson_Learned__c.Situation__c}"/>
+                    <apex:inputField id="recommendation" value="{!CMS_Lesson_Learned__c.Recommendation__c}"/>
+                    <script>colorPageBlock(document.getElementById("{!$Component.lessonLearned}"), "#8ab64e");</script>
+                </apex:pageBlockSection>
+            </apex:pageBlock>
+        </apex:pageBlock>
+    </apex:form>
+</apex:page>

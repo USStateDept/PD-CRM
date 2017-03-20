@@ -1,0 +1,97 @@
+<apex:page id="page" title="Edit User" showHeader="true" sidebar="false" standardController="User" extensions="User_Controller" >
+    <apex:includeScript value="{!URLFOR($Resource.jQueryLibrary, 'jquery-1.8.3.js')}" />
+    <apex:includeScript value="{!URLFOR($Resource.jQueryLibrary, 'jquery.timePicker.js')}" />
+    <apex:stylesheet value="{!URLFOR($Resource.jQueryLibrary, 'timePicker.css')}" />
+    <apex:includeScript value="{!URLFOR($Resource.jQueryLibrary, 'jquery-ui-1.9.2.custom.js')}"/>
+    <apex:includeScript value="{!URLFOR($Resource.jQueryLibrary, 'jquery.ui.autocomplete.js')}"/>
+    <apex:stylesheet value="{!URLFOR($Resource.jQueryLibrary, 'jquery-ui.css')}"/>
+    <script src="/soap/ajax/9.0/connection.js" type="text/javascript"></script>
+    <script language="JavaScript1.2" src="/js/functions.js"></script>
+    
+    <script type="text/javascript">
+        j$ = $.noConflict();
+        
+        var hide = false;
+        
+        j$(document).ready(function ()
+        {
+  			convertStringToDropDown( '{!applications}', 'application' );
+  			putSelect( 'application', j$( '.application' ).val() );
+  			
+  			j$( '[id="page:myForm:pageBlock:requestorInfo:application"]' ).hide();
+        });
+      
+
+        function captureSelect( select, styleStr )
+        {
+            var selectedItems = "";
+            
+            for (var i = 0; i < select.options.length; i++)
+            {
+                if (select.options[i].selected)
+                {
+                    selectedItems = selectedItems + select.options[i].value + ",";
+                }
+            }
+
+            selectedItems = selectedItems.substring(0, selectedItems.length - 1);
+            j$( '.' + styleStr ).val( selectedItems );
+        }
+
+
+        function putSelect( selectList, picklistValues )
+        {
+            if (picklistValues != null && picklistValues.length > 0)
+            {
+                j$( '#' + selectList + ' > option' ).each( function() {	
+                     if (picklistValues.indexOf( j$( this ).val() ) != -1)
+                     {
+                         j$( this ).attr("selected", "selected");
+                     }
+                 });
+             }
+        }
+
+        function convertStringToDropDown( listStr, idStr )
+        {
+            var records = listStr.split( ";" );        
+            var s = document.getElementById( idStr );
+            
+            j$( '#' + idStr ).empty();
+            
+            for (var i=0; i< records.length; i++)
+            {
+                var obj = records[i];
+                if (j$( '#' + idStr + ' option[value="' + obj +'"]' ).length == 0 && obj.length > 0)
+                {
+                    s.options[s.options.length] = new Option( obj, obj );
+                }
+            }
+        }
+    </script>
+	<apex:form id="myForm">
+        <apex:messages style="padding:5px;margin-top:55px" />
+        
+        <apex:pageBlock id="pageBlock" title="{!$ObjectType.User.label} Edit" mode="view">
+            <apex:pageBlockButtons >
+                <apex:commandButton action="{!save}" value="Save"/>
+                <apex:commandButton action="{!cancel}" value="Cancel"/>
+            </apex:pageBlockButtons>
+            
+            <apex:pageBlockSection id="requestorInfo" showHeader="true" title="General Information" columns="2">  
+                <apex:inputField value="{!User.FirstName}" />
+				<apex:inputField value="{!User.Email}" />
+				<apex:inputField value="{!User.LastName}" />
+				<apex:inputField value="{!User.Username}" />
+				<apex:inputField value="{!User.CommunityNickname}" />
+				<apex:inputField value="{!User.alias}" />
+				<apex:inputField value="{!User.isActive}" />
+				<apex:pageBlockSectionItem >
+                    <apex:outputLabel value="Application" />
+                    <select id="application" onChange="captureSelect( this, 'application' );"><option value=""></option></select>
+                </apex:pageBlockSectionItem>
+                <apex:inputText value="{!application}" styleClass="application" id="application" />
+            </apex:pageBlockSection>
+        </apex:pageBlock>
+    </apex:form>
+</apex:page>

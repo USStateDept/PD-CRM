@@ -1,0 +1,89 @@
+<apex:page id="listViewPage" standardController="CMS_SARF__c" extensions="SARF_List_Controller" tabStyle="SARF_Management__tab" sidebar="false" >
+<style>
+body .bPageBlock, body #bodyCell .bResource .secondaryPalette, body .secondaryPalette.bPageBlock, body .individualPalette .secondaryPalette.bPageBlock, body .bodyDiv .genericTable, body .genericPageBlockTable, body .bodyDiv .bSubBlock, body .bComponentBlock .bPageBlock, body .bMyDashboard .bPageBlock, body.rlHoverFrame .bPageBlock, body.subjectSelectionPopup div.choicesBox, body.lookupTab .secondaryPalette.bPageBlock, body.popupTab .secondaryPalette.bPageBlock, body.UserTagStatsPage .secondaryPalette.bPageBlock {
+    background-color: f6f5f5;
+    border-bottom: 2px solid #4930ad;
+    border-left: 1px solid #4930ad;
+    border-radius: 3px 3px 3px 3px;
+    border-right: 1px solid #4930ad;
+    border-top: 5px solid #4930ad;
+}
+</style>
+ <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.js"></script>
+    <style type="text/css">
+        .disable-link
+        {
+            text-decoration: none !important;
+            color: #E8E8E8 !important;
+            cursor: default;
+        }
+    </style>
+    <style type="text/css">
+        .searchLabel
+        {
+            padding-left:5px !important;
+            padding-right:5px;
+            color:#38197a !important;
+            font-weight:bold;
+            border-radius:4px !important;
+        }
+    </style>
+    <style type="text/css">
+        .searchField
+        {
+            border-radius:3px !important;
+            border-style:solid;
+            border-width:thin;
+            border-color:#e5eaea;
+        }
+    </style>
+    <script type="text/javascript">
+        var j$ = jQuery.noConflict();
+        j$(document).ready(function() { 
+            j$("a.actionLink:contains('Edit')").each(function() {
+                var href = j$(this).attr('href');
+                j$(this).removeAttr('href');
+                j$(this).addClass('disable-link');
+            });
+        });
+    </script>
+<apex:form >
+<apex:actionFunction action="{!doSearch}" name="apexDoSearch"  reRender="myData"/>
+<!--<h1 style="color:#38197a;padding-right:10px;padding-left:5px;font-size:14px;"><strong>Filter SARFs</strong></h1>-->
+<div style="padding-top:5px; padding-bottom:5px;background:#dbdbdb;border-radius:20px;margin-top:8px;border-color:#dbdbdb;border-style:solid;border-width:1px;">
+    <apex:outputLabel value="First name"   styleClass="searchLabel" /> <apex:inputText value="{!searchFN}"         styleClass="searchField" id="firstName"/>
+    <apex:outputLabel value="Last name"    styleClass="searchLabel" /> <apex:inputText value="{!searchLN}"         styleClass="searchField" id="lastName"/>
+    <apex:outputLabel value="SARF User ID" styleClass="searchLabel" /> <apex:inputText value="{!searchSARFUserID}" styleClass="searchField" id="SUID"/><apex:outputLabel value=" " />
+    <apex:commandButton value="Filter SARFs" styleClass="searchLabel"  action="{!doSearch}"    />
+    <apex:commandButton value="Clear"        styleClass="searchLabel"  action="{!clearFilter}" />
+</div>
+<br/>
+<apex:outputText value="{!noSarfsFound}" style="font-weight:bold;"/>
+<br/>
+<apex:pageBlock id="myData" rendered="{!filter}">
+    <apex:pageBlockTable value="{!sarfs}" var="item">
+           <apex:column headerValue="Record Name">
+               <apex:outputLink value="{!$Page.SARF_Detail_Page}?id={!item.id}">{!item.Name}</apex:outputLink>
+           </apex:column>
+           <apex:column value="{!item.SARF_Name__c}"/>
+           <apex:column value="{!item.First_Name__c}"/>
+           <apex:column value="{!item.Last_Name__c}"/>
+           <apex:column value="{!item.Email_Address__c}"/>
+           <apex:column value="{!item.SARF_User_ID__c}"/>
+           <apex:column value="{!item.Is_Current__c}" />
+    </apex:pageBlockTable>
+
+</apex:pageBlock>
+
+</apex:form>
+<apex:form rendered="false">
+<div style="margin-bottom:5px;margin-top:5px;" rendered="showFilter == TRUE">
+    <label rendered="false" style="font-size:14px;"></label>
+    <br/><br/>
+    <apex:inputText />
+</div>
+</apex:form>
+<apex:ListViews type="CMS_SARF__c">
+</apex:ListViews>
+
+</apex:page>

@@ -1,0 +1,8 @@
+<apex:page id="myPage" sidebar="false" title="Lesson Learned" standardController="CMS_Lesson_Learned__c"
+           extensions="CMS_LessonLearned_Controller" docType="html-5.0">
+    <apex:stylesheet value="{!URLFOR($Resource.lesson_learned_resources, '/lesson_learned_resources/lessonlearned.css')}"/>
+    <center>
+        <apex:form />
+    </center>
+    <apex:detail />
+</apex:page>

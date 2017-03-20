@@ -1,0 +1,72 @@
+<apex:page id="main" title="Edit Embassy Contacts" showHeader="true" sidebar="false" standardController="Embassy_Contacts__c" extensions="CRM_EmbassyContactsValidation">
+<apex:sectionHeader title="{!$ObjectType.Embassy_Contacts__c.label}" subtitle="{!Embassy_Contacts__c.Name}"/>
+    <apex:includeScript value="{!URLFOR($Resource.jQueryLibrary, 'jquery-1.8.3.js')}" />
+    <script language="JavaScript1.2" src="/js/functions.js"></script>
+    <script type="text/javascript">
+        j$ = $.noConflict();
+        
+        j$(document).ready(function () {
+            j$( '[id="main:myForm:firstBlock:info:hideMe"]' ).hide();
+        });
+    </script>
+    <apex:form id="myForm">
+        <apex:messages style="padding:5px;margin-top:55px" />
+
+        <apex:pageBlock id="firstBlock" title="{!$ObjectType.Embassy_Contacts__c.label} Edit" mode="edit">
+            <apex:pageBlockButtons >
+                <apex:commandButton action="{!save}" value="Save"/>
+                <apex:commandButton action="{!cancel}" value="Cancel"/>
+                <apex:commandButton action="{!cancel}" value="Back to the view"/>
+            </apex:pageBlockButtons>
+            <apex:pageBlockSection id="info" showHeader="true" title="General Information" columns="2">
+                <apex:inputField value="{!Embassy_Contacts__c.Name}" required="true"/>
+                <apex:inputField value="{!Embassy_Contacts__c.LIVE_Date__c}"/>
+                <apex:inputField value="{!Embassy_Contacts__c.Country__c}" required="true"/>
+                <apex:pageBlockSectionItem />
+                <apex:inputField value="{!Embassy_Contacts__c.Region__c}" required="true"/>
+                <apex:inputField value="{!Embassy_Contacts__c.URL_1__c}"/>
+                <apex:inputField value="{!Embassy_Contacts__c.Organization_Type__c}" required="true"/> 
+                <apex:inputField value="{!Embassy_Contacts__c.DOMO_URL_1__c}"/> 
+                <apex:inputField value="{!Embassy_Contacts__c.Other__c}"/>
+                <apex:inputField value="{!Embassy_Contacts__c.URL_2__c}"/>
+                <apex:inputField value="{!Embassy_Contacts__c.Current_Version__c}"/>
+                <apex:inputField value="{!Embassy_Contacts__c.DOMO_URL_2__c}"/>
+                <apex:outputField id="hideMe" value="{!Embassy_Contacts__c.Job_Title_x__c}" label=""  />
+                <apex:inputField value="{!Embassy_Contacts__c.URL_3__c}"/>
+                <apex:pageBlockSectionItem />
+                <apex:inputField value="{!Embassy_Contacts__c.DOMO_URL_3__c}"/>
+                <apex:pageBlockSectionItem />
+                <apex:inputField value="{!Embassy_Contacts__c.URL_4__c}"/>
+                <apex:pageBlockSectionItem />  
+                <apex:inputField value="{!Embassy_Contacts__c.DOMO_URL_4__c}"/>
+                <apex:pageBlockSectionItem />
+                <apex:inputField value="{!Embassy_Contacts__c.URL_5__c}"/>
+                <apex:pageBlockSectionItem />  
+                <apex:inputField value="{!Embassy_Contacts__c.DOMO_URL_5__c}"/>
+                <apex:pageBlockSectionItem />
+                    <apex:inputField value="{!Embassy_Contacts__c.URL_6__c}"/>
+                <apex:pageBlockSectionItem />  
+                <apex:inputField value="{!Embassy_Contacts__c.DOMO_URL_6__c}"/>
+                <apex:pageBlockSectionItem />          
+                 <apex:inputField value="{!Embassy_Contacts__c.URL_7__c}"/>
+                <apex:pageBlockSectionItem />  
+                <apex:inputField value="{!Embassy_Contacts__c.DOMO_URL_7__c}"/>
+                <apex:pageBlockSectionItem />               
+             
+            </apex:pageBlockSection>
+    
+            <apex:pageBlockSection showHeader="true" title="Contact Information" columns="2">
+                <apex:inputField value="{!Embassy_Contacts__c.First_Name_x__c}" required="true"/>
+                <apex:inputField value="{!Embassy_Contacts__c.Email_Work_x__c}" required="true"/>
+                <apex:inputField value="{!Embassy_Contacts__c.Middle_Name_x__c}"/>
+                <apex:inputField value="{!Embassy_Contacts__c.Email_Alt_x__c}" />
+                <apex:inputField value="{!Embassy_Contacts__c.Last_Name_x__c}" required="true"/>
+                <apex:inputCheckbox value="{!Embassy_Contacts__c.Tied_to_Google_Analytics__c}"/>
+                <apex:inputField Label="Job Title" value="{!Embassy_Contacts__c.Job_Title__c}"  required="true" />
+                <apex:inputField value="{!Embassy_Contacts__c.Phone_Work_x__c}"/>
+                <apex:pageBlockSectionItem />
+                <apex:pageBlockSectionItem />
+            </apex:pageBlockSection>
+        </apex:pageBlock>
+    </apex:form>
+</apex:page>

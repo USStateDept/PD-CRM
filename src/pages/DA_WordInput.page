@@ -1,0 +1,161 @@
+<apex:page standardcontroller="Digital_Asset__c"  extensions="DA_WordOutput" id="thepage" >
+<c:publishing_system_resources />
+<script type="text/javascript">
+            var currentUserId = "<apex:outputText value="{!$User.Id}"/>";
+            var ownerUserId = "<apex:outputText value="{!Digital_Asset__c.Owner.Id}"/>";
+            var profileName = "<apex:outputText value="{!$Profile.Name}"/>"
+            if (currentUserId != ownerUserId && ownerUserId != "" && profileName != "System Administrator" && profileName != "Publishing Copy Desk") {
+                alert('You must be the owner of this asset to edit or import.');
+                window.open('', '_self', ''); 
+				window.close(); 
+                //window.history.back(-1);
+            }
+</script>
+        <!-- TINY MCE -->  
+        <script type="text/javascript">     
+		tinymce.init({
+		        mode : "textareas",
+		        editor_selector :"body",
+		        theme : "advanced",
+		        directionality : "{!IF(Digital_Asset__c.Language__c == 'Arabic' || Digital_Asset__c.Language__c == 'Urdu' ||  Digital_Asset__c.Language__c == 'Persian' || Digital_Asset__c.Language__c == 'Non English RTL', 'rtl', 'ltr')}",
+		        plugins : "spellchecker,inlinepopups,ice,icesearchreplace,pagebreak,style,layer,table,contextmenu,paste,directionality,fullscreen,noneditable,visualchars,nonbreaking,xhtmlxtras,template,visualchars,wordcount",
+		        theme_advanced_buttons1: 'ice_togglechanges,ice_toggleshowchanges,iceacceptall,icerejectall,iceaccept,icereject,|,bold,italic,underline,strikethrough,|,justifyleft,justifycenter,justifyright,tablecontrols,wordcount,ltr,rtl',
+		        theme_advanced_buttons2: 'spellchecker,cut,copy,paste,pastetext,pasteword,|,search,replace,|,bullist,numlist,|,outdent,indent,|,undo,redo,|,link,unlink,anchor,cleanup,code,|,forecolor,backcolor,fontsizeselect,|,charmap',
+	            theme_advanced_buttons3: "",
+	            theme_advanced_buttons4: "",
+	            theme_advanced_toolbar_location: "top",
+	            theme_advanced_toolbar_align: "left",
+	            theme_advanced_toolbar_location : "top",
+     			theme_advanced_statusbar_location : "bottom",
+    			theme_advanced_resizing : true,
+    			//content_css : "https://c.cs15.visual.force.com/resource/1368046160000/tinymce/tinymce/jscripts/tiny_mce/static/content_md.css",
+		        content_css: "{!URLFOR($Resource.tinymce, 'tinymce/jscripts/tiny_mce/static/content_md.css')}",
+		        ice: {
+			          changeIdAttribute:'id', //until sfdc changes how it sanitizes
+			          isTracking: false,
+			          user: { name: '{!$User.Alias}', id: '{!$User.Alias}'},
+			          preserveOnPaste: 'p,a[href],i,em,strong'
+		        	},
+			    width: "100%",
+			    inline_styles : false,
+			    formats : {
+			    	underline: {inline : 'u', exact: true},
+                	//underline : {inline : 'span', 'classes' : 'underline', exact : true},
+                	//strikethrough : {inline : 'span', 'classes' : 'line-through',exact : false},
+                	strikethrough : {inline : 'strike'}
+        		},
+        		//extended_valid_elements : "span[class|style|align]",
+			    extended_valid_elements: "u,strike",
+			    //gecko_spellcheck: true,
+			    browser_spellcheck : true,
+			   // spellchecker_rpc_url: "http://localhost:8888/spellchecker/rpc.php&callback=",
+			    height: "500"	    
+			});
+		</script>
+    <script type="text/javascript">
+        function getValue(varname)
+        {
+          var url = window.location.href;
+          var qparts = url.split("?");
+          if (qparts.length == 0)
+          {
+            return "";
+          }
+          var query = qparts[1];
+          var vars = query.split("&");
+          var value = "";
+          for (i=0;i<vars.length;i++)
+          {
+            var parts = vars[i].split("=");
+            if (parts[0] == varname)
+            {
+              value = parts[1];
+              break;
+            }
+          }
+          value = unescape(value);
+          value.replace(/\+/g," ");
+          return value;
+        }
+        
+        
+        j(document).ready(function(){
+            //var assetId = getValue("id");
+            var assetId = "{!Digital_Asset__c.Id}"
+            var assetHeadline = getValue("headline").replace(/\+/g, " ");
+
+            //j("#showId").text(assetId);
+            j("#showHeadline").text(assetHeadline);
+
+            j("[id$=importButton]").click(function(){
+            var assetId = "{!Digital_Asset__c.Id}"
+				//alert('hello!');
+				
+                    
+				var assetText = tinymce.get('{!$Component.theform.thepageblock.wordBody}').getContent();
+				
+                if (assetId != "" && assetText != "")
+                {
+                    //alert(assetId);
+                    //alert(assetText);
+                    importSubmit(assetId, assetText);
+                }
+                else
+                {
+                    alert("Please fill in the Word Import Text.");
+                }
+            });
+        });
+    </script>
+    
+    
+    <apex:form id="theform">
+	    <apex:actionFunction name="importSubmit" action="{!WordImport}" rerender="thepageblock,msgs" >
+	            <apex:param name="importId" value="" />
+	            <apex:param name="importText" value="" />
+	    </apex:actionFunction>
+	    <apex:outputPanel id="jspanel"> 
+	  	<script>  
+			function onControllerReturn() {
+	          	setInterval(alert("Word Import Complete"),4000);
+	          	window.open('', '_self', '');
+	          	window.close();
+			}
+	  </script>
+	  </apex:outputPanel>  
+    <apex:pageBlock title="Import from Word" id="thepageblock">
+    <apex:pageMessages id="msgs"  />  
+        Asset Name:&nbsp;<apex:outputField value="{!Digital_Asset__c.Name}" id="theAsset"/>
+        <br/><br/>
+        <apex:outputPanel id="theInstructions" rendered="{!IF(messageDisplayed==true,false,true)}" >
+        Paste in the full text of the Publishing System Template. 
+        <br/><br/>
+        The template will automatically populate the correct fields of your Asset. Hit 'Import.'  Refresh your Asset window and the content will show.
+        <hr/>        
+
+        <!--Asset Id: <span id="showId"></span>
+        <br/><br/>-->
+        <!-- Asset Headline: <span id="showHeadline"></span> -->
+        
+        <br/>
+        </apex:outputPanel>
+        <apex:pageblockbuttons location="top">
+        
+        	<apex:actionStatus id="importStatus">
+                    <apex:facet name="stop">
+                    <apex:commandButton id="importButton" status="importStatus" value="Import"  rendered="{!IF(messageDisplayed==true,false,true)}" rerender="thepage,thepageblock,theAsset,msgs" />
+                    </apex:facet>
+                    <apex:facet name="start">
+                    <apex:commandButton status="importStatus" value="Importing..." disabled="true" />
+                    </apex:facet>
+            </apex:actionStatus> 
+        
+        	<!-- <apex:commandButton id="importButton" value="Import"  rerender="thepage,thepageblock,theAsset,msgs" rendered="{!IF(messageDisplayed==true,false,true)}" /> -->
+        	<apex:commandButton id="closeThis" value="Close Window" onclick="window.close();" rendered="{!IF(messageDisplayed==true,true,false)}" />
+        </apex:pageblockbuttons>
+        <apex:inputTextarea id="wordBody" styleClass="body" style="width:80%; height: 500px;margin:10px;" rendered="{!IF(messageDisplayed==true,false,true)}"  /> 
+		<br/><br/>
+		<apex:outputText id="lang" rendered="false" value="{!Digital_Asset__c.Language__c}"/>
+    </apex:pageBlock>    
+    </apex:form>
+</apex:page>

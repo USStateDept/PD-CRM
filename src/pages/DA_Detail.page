@@ -1,0 +1,934 @@
+<apex:page standardcontroller="Digital_Asset__c" tabstyle="Digital_Asset__c" >
+<!-- <apex:sectionHeader title="{!$ObjectType.Digital_Asset__c.label}" subtitle="{!Digital_Asset__c.Name}" /> -->
+<apex:includeScript value="/soap/ajax/21.0/connection.js"/>
+<apex:includeScript value="/soap/ajax/21.0/apex.js"/>
+
+<chatter:feedWithFollowers entityId="{!Digital_Asset__c.Id}" /> 
+<BR/>
+<center>
+<apex:form >
+	<!-- TEMP BUTTONS FOR TESTING/EVAL OF ALT RICH TXT EDITORS; PLEASE REMOVE BEFORE PROD DEPLOY -->
+	<!-- 
+	<span><apex:commandbutton style="margin-top:0px;" value="Edit with A" onclick="window.open('/apex/DA_Edit_TinyMCE?id={!Digital_Asset__c.Id}','_blank')"></apex:commandbutton></span>
+	<span><apex:commandbutton style="margin-top:0px;" value="Edit with B" onclick="window.open('/apex/DA_Edit_CKEditv2?id={!Digital_Asset__c.Id}','_blank')"></apex:commandbutton></span>
+	<span><apex:commandbutton style="margin-top:0px;" value="Edit with C" onclick="window.open('/apex/DA_Edit_Redactor?id={!Digital_Asset__c.Id}','_blank')"></apex:commandbutton></span>
+	 -->
+	<!-- Standard Edit/Delete: style is applied to align buttons with menu buttons -->	
+	<span><apex:commandbutton style="margin-top:0px;" action="{!edit}" value="Edit" /></span>
+	<span><apex:commandbutton style="margin-top:0px;" action="{!delete}" value="Delete"/></span>
+	
+	<!-- Change Status Button -->
+	<apex:outputPanel style="padding-left: 2px;">
+    <div class="menuButton" id="ChangeStatus" ><apex:outputPanel layout="none" rendered="{!IF($Profile.Name=='System Administrator' || 
+																            	$Profile.Name == 'Publishing Copy Desk' ||
+																            	$Profile.Name == 'Publishing Content Creator' || 
+																            	$Profile.Name == 'Publishing Editor' ||
+																            	$Profile.Name == 'IIP User',true,false)}">
+        <div class="menuButtonButton" id="ChangeStatusButton"><span class="menuButtonLabel" id="ChangeStatusLabel">Change Status</span></div>
+        <div class="menuButtonMenu" id="ChangeStatusMenu"><apex:outputPanel layout="none">
+            <apex:outputLink rendered="{!IF($Profile.Name=='System Administrator' || $Profile.Name == 'Publishing Copy Desk',true,false)}" 
+            	onclick="Approve();return false;">Approve</apex:outputLink>
+            <apex:outputLink rendered="{!IF($Profile.Name=='System Administrator' || 
+            	$Profile.Name == 'Publishing Copy Desk' ||
+            	$Profile.Name == 'Publishing Content Creator' || 
+            	$Profile.Name == 'Publishing Editor' ||
+            	$Profile.Name == 'IIP User',true,false)}" 
+            	onclick="SetToPending();return false;">Pending</apex:outputLink>
+            <apex:outputLink rendered="{!IF($Profile.Name=='System Administrator' || 
+            	$Profile.Name == 'Publishing Copy Desk',true,false)}"  onclick="Reject();return false;">Rejected</apex:outputLink>
+        </apex:outputPanel></div>
+    </apex:outputPanel></div>
+    </apex:outputPanel>
+    
+    
+    <!-- Assign Button -->
+    <apex:outputPanel style="padding-left: 4px; padding-right:4px;">
+    <div class="menuButton" id="Assign" ><apex:outputPanel layout="none">
+        <div class="menuButtonButton" id="AssignButton"><span class="menuButtonLabel" id="AssignLabel">Assign</span></div>
+        <div class="menuButtonMenu" id="AssignMenu"><apex:outputPanel layout="none">
+            <apex:outputLink onclick="AssignToMe();return false;">Assign To Me</apex:outputLink>
+            <apex:outputLink rendered="{!IF($Profile.Name=='System Administrator' || 
+            						$Profile.Name == 'Publishing Content Creator' || 
+            						$Profile.Name == 'Publishing Copy Desk',true,false)}" onclick="AssignToEditorQ();return false;">Send To Editor Queue</apex:outputLink>
+            <apex:outputLink rendered="{!IF($Profile.Name=='System Administrator' || 
+            						$Profile.Name == 'Publishing Content Creator' || 
+            						$Profile.Name == 'Publishing Copy Desk' || 
+            						$Profile.Name == 'Publishing Editor' ||
+            						$Profile.Name == 'IIP User',true,false)}" onclick="AssignToCD();return false;">Send to Copy Desk Queue</apex:outputLink>
+            <apex:outputLink rendered="{!IF($Profile.Name=='System Administrator' ||
+            						$Profile.Name == 'Publishing Translator',true,false)}" onclick="AssignToTranslation();return false;">Send to Translation Queue</apex:outputLink>
+            <apex:outputLink rendered="{!IF($Profile.Name=='System Administrator' ||
+            						$Profile.Name == 'Publishing Copy Desk' ||
+            						$Profile.Name == 'Publishing Editor'||
+            						$Profile.Name == 'IIP User',true,false)}" onclick="ReturnToAuthor();return false;">Return to Author</apex:outputLink>
+            <apex:outputLink rendered="{!IF($Profile.Name=='System Administrator' ||
+            						$Profile.Name == 'Publishing Copy Desk',true,false)}" onclick="ReturnToEditor();return false;">Return to Editor</apex:outputLink>
+        </apex:outputPanel></div>
+    </apex:outputPanel></div>
+    </apex:outputPanel>
+	
+	
+	<!-- Custom buttons; style applied to align buttons with menu buttons -->
+	<span><apex:commandbutton style="margin-top:0px;" value="Preview" onclick="window.open('/apex/DA_Preview_Page?id={!Digital_Asset__c.Id}','_blank')"></apex:commandbutton></span>
+	<span><apex:commandbutton style="margin-top:0px;" value="Publish" rendered="{!IF($Profile.Name=='System Administrator' || 
+            						$Profile.Name == 'Publishing Copy Desk'||
+            						$Profile.Name == 'Publishing Translator',true,false)}" onclick="Publish();return false;"></apex:commandbutton></span>
+	<span><apex:commandbutton style="margin-top:0px;" value="New Translation" rendered="{!IF($Profile.Name=='System Administrator' || 
+            						$Profile.Name == 'Publishing Translator',true,false)}" onclick="NewTranslation();return false;"></apex:commandbutton></span>
+	<span><apex:commandbutton style="margin-top:0px;" value="Article To XML" rendered="{!IF($Profile.Name=='System Administrator' || 
+            						$Profile.Name == 'XYZ',true,false)}" onclick="window.open('/apex/DA_ArticleToXML?id={!Digital_Asset__c.Id}','_blank')"></apex:commandbutton></span>
+	<!--Spring 2013 enhancements: replaced w/ menu Email Button
+	<span><apex:commandbutton style="margin-top:0px;" value="Request Photo" rendered="{!IF($Profile.Name=='System Administrator' || 
+            						$Profile.Name == 'Publishing Copy Desk' ||
+            						$Profile.Name == 'Publishing Editor' ||
+            						$Profile.Name == 'IIP User' ||
+            						$Profile.Name == 'Publishing Translator',true,false)}" onclick="window.open('/email/author/emailauthor.jsp?retURL=/{!Digital_Asset__c.Id}&p3_lkid={!Digital_Asset__c.Id}&rtype=003&template_id=00X30000001O8nH&p5=&p26={!($User.Email)}&p24=photoamgov@state.gov, copydesk@state.gov');"></apex:commandbutton></span>	  
+	<span><apex:commandbutton style="margin-top:0px;" value="Notify Video Team" rendered="{!IF($Profile.Name=='System Administrator' || 
+            						$Profile.Name == 'Publishing Copy Desk'||
+            						$Profile.Name == 'Publishing Translator',true,false)}" onclick="window.open('/apex/DA_NotifyVideoTeam?id={!Digital_Asset__c.Id}','_blank')"></apex:commandbutton></span>
+	-->
+	
+
+    <!-- Import/Export Button -->
+    <div class="menuButton" id="ImportExport" ><apex:outputPanel layout="none">
+        <div class="menuButtonButton" id="ImportExportButton"><span class="ImportExportButtonLabel" id="ImportExportLabel">Import/Export</span></div>
+        <div class="menuButtonMenu" id="ImportExportMenu"><apex:outputPanel layout="none">
+            <apex:outputLink rendered="{!IF($User.Id ==Digital_Asset__c.OwnerId,true,false)}" value="/apex/DA_WordInput?id={!Digital_Asset__c.Id}&headline={!URLENCODE(Digital_Asset__c.Headline_long__c)}" target="_blank">Import</apex:outputLink>
+            <apex:outputLink value="/apex/DA_TextOutput?id={!Digital_Asset__c.Id}&lang={!Digital_Asset__c.Language__c}" target="_blank">Export as Text</apex:outputLink>
+            <apex:outputLink value="/apex/DA_WordOutput?id={!Digital_Asset__c.Id}&macro=yes">Export to Word</apex:outputLink>
+        	<apex:outputLink value="/apex/DA_WordOutput?id={!Digital_Asset__c.Id}&macro=no">Export to Word (No macros)</apex:outputLink>
+        </apex:outputPanel></div>
+    </apex:outputPanel></div>
+    
+    
+    <!-- Email Button -->
+    <div class="menuButton" id="Email" ><apex:outputPanel layout="none">
+        <div class="menuButtonButton" id="EmailButton"><span class="EmailLabel" id="EmailLabel">Email</span></div>
+        <div class="menuButtonMenu" id="EmailMenu"><apex:outputPanel layout="none">
+            <apex:outputLink rendered="{!IF($Profile.Name=='System Administrator' || 
+            						$Profile.Name == 'Publishing Copy Desk'||
+            						$Profile.Name == 'Publishing Editor' ||
+            						$Profile.Name == 'IIP User' ||
+            						$Profile.Name == 'Publishing Content Creator' ||
+            						$Profile.Name == 'Publishing Translator',true,false)}"  value="/apex/DA_Email?id={!Digital_Asset__c.Id}&reqtype=generic" target="_blank">Notify Message</apex:outputLink>
+            <apex:outputLink rendered="{!IF($Profile.Name=='System Administrator' || 
+            						$Profile.Name == 'Publishing Copy Desk'||
+            						$Profile.Name == 'Publishing Editor' ||
+            						$Profile.Name == 'IIP User' ||
+            						$Profile.Name == 'Publishing Content Creator' ||
+            						$Profile.Name == 'Publishing Translator',true,false)}"  value="/apex/DA_Email?id={!Digital_Asset__c.Id}&reqtype=video" target="_blank">Notify Video Team</apex:outputLink>
+            <apex:outputLink rendered="{!IF($Profile.Name=='System Administrator' || 
+            						$Profile.Name == 'Publishing Copy Desk' ||
+            						$Profile.Name == 'Publishing Content Creator' ||
+            						$Profile.Name == 'Publishing Editor' ||
+            						$Profile.Name == 'IIP User' ||
+            						$Profile.Name == 'Publishing Translator',true,false)}"  value="/apex/DA_Email?id={!Digital_Asset__c.Id}&reqtype=photo" target="_blank">Notify Photo Team</apex:outputLink>
+        </apex:outputPanel></div>
+    </apex:outputPanel></div>
+    
+
+    
+
+    <script type="text/javascript">new MenuButton('Email', false);</script>
+    <script type="text/javascript">new MenuButton('ImportExport', false);</script>
+    <script type="text/javascript">new MenuButton('Assign', false);</script>
+	<script type="text/javascript">new MenuButton('ChangeStatus', false);</script>
+
+
+<script type = "text/javascript">
+//user variables used in the various button functions
+var userProfile = "{!$Profile.Name}"; 
+var userId = "{!$User.Id}";
+
+
+function Reject()
+{
+	sforce.connection.sessionId = "{!$Api.Session_ID}";
+	var Asset = new sforce.SObject("Digital_Asset__c");
+	Asset.Id = "{!Digital_Asset__c.Id}";
+	var update = 0; 
+	
+	var answer = confirm('You are about to set the status of this Asset to Rejected. Are you sure you want to do this?'); 	
+	if(answer)
+	{ 
+	
+		Asset.Article_Rejected__c = 'Rejected';
+		Asset.Status__c = 'Rejected';
+		update = 1;
+		var reason = prompt("Please enter the reason for rejection","");
+
+		if (reason!=null)
+		{
+		  	Asset.Asset_Rejected_Comments__c = reason;
+		  	
+		}
+	}
+	
+	if(update==1)
+	{
+		var result = sforce.connection.update([Asset]);
+		if (result[0].getBoolean("success")) 
+		{ 
+			alert("Asset successfully updated to Rejected"); 
+			// Refresh window 
+			window.location.reload(); 
+		} 
+		else 
+		{ 
+			alert("Error saving asset"); 
+			alert(result[0]); 	
+		} 
+	}	
+
+}
+
+function SetToPending()
+{
+	sforce.connection.sessionId = "{!$Api.Session_ID}";
+	//need to assign ownership to pubdump (lowest in hierarchy) for users to take ownership
+	var pubDumpUser = sforce.connection.query("SELECT u.Id FROM User u WHERE u.Username LIKE 'pubdump@somewhere.com%' LIMIT 1"); 
+	var Asset = new sforce.SObject("Digital_Asset__c");
+	Asset.Id = "{!Digital_Asset__c.Id}"; 
+	var update = 0;
+	 
+	if("{!Digital_Asset__c.Status__c}" == 'Copy Desk')
+	{
+		Asset.Status__c = 'Pending';
+		Asset.OwnerId = pubDumpUser.records.Id;
+		update = 1;
+	}
+	else
+	{
+		alert("This asset must be in the Copy Desk state for this operation to be performed");
+	}
+	if(update==1)
+	{
+		var result = sforce.connection.update([Asset]);
+		if (result[0].getBoolean("success")) 
+		{ 
+			alert("Asset status successfully changed"); 
+			// Refresh window 
+			window.location.reload(); 
+		} 
+		else 
+		{ 
+			alert("Error saving asset"); 
+			alert(result[0]); 	
+		} 
+	}
+}
+
+
+function Approve()
+{	
+	sforce.connection.sessionId = "{!$Api.Session_ID}";
+	var Asset = new sforce.SObject("Digital_Asset__c"); 
+	Asset.Id = "{!Digital_Asset__c.Id}"; 
+	var CDqueue = sforce.connection.query("SELECT q.QueueId FROM QueueSobject q WHERE q.Queue.Name = 'Copy Desk Queue' LIMIT 1"); 
+
+	if(userId!= "{!Digital_Asset__c.OwnerId}") 
+	{ 
+		alert("Only the object owner can perform this operation"); 
+	} 
+	else if("{!Digital_Asset__c.Status__c}" != 'Copy Desk') 
+	{ 
+		alert("This asset must be in the Copy Desk state for this operation to be performed"); 
+	} 
+	else if(CDqueue.size != 1) 
+	{ 
+		alert("Bad query Copy Desk Queue not found"); 
+		alert(CDqueue); 
+	} 
+	else 
+	{ 
+		Asset.Status__c = 'Approved Not Published'; 
+		Asset.OwnerId = CDqueue.records.QueueId; 
+
+		var result = sforce.connection.update([Asset]); 
+		if (result[0].getBoolean("success")) 
+		{ 
+			alert("Asset successfully approved"); 
+			// Refresh window 
+			window.location.reload(); 
+		} 
+		else 
+		{ 
+			alert("Error saving asset"); 
+			alert(result[0]); 	
+		} 
+	}
+}
+
+
+function Publish()
+{
+	var counter = 0; 
+	var temp = ''; 
+	sforce.connection.sessionId = "{!$Api.Session_ID}";
+	if("{!Digital_Asset__c.Asset_Type__c}" == 'Table of Contents') 
+	{ 
+		var AssetList = sforce.connection.query("SELECT d.Id, d.Status__c, d.OwnerId FROM Digital_Asset__c d WHERE d.Publication_Title__c = \'{!Digital_Asset__c.Id}\'"); 
+		var answer = confirm('You are about to publish this TOC to the live site. Are you sure you want to do this?'); 	
+		if(answer) 
+		{ 
+			var response = sforce.apex.execute("DA_PublishArticle", "publish", {AssetID: "{!Digital_Asset__c.Id}"}); 
+			alert(response); 
+			if(AssetList.size == 1) 
+			{ 
+				temp = AssetList.records.OwnerId; 
+				//need to comment out the next line
+				//temp = temp.substr(0,15); 
+				if(((AssetList.records.Status__c == 'Copy Desk') || (AssetList.records.Status__c == 'Approved Not Published') || 
+				(AssetList.records.Status__c == 'In Translation')) && (temp == userId)) 
+				{ 
+					answer = confirm('You are about to publish a TOC chapter to the live site. Are you sure you want to do this?'); 
+					if(answer) 
+					{ 
+						var response = sforce.apex.execute("DA_PublishArticle", "publish", {AssetID: AssetList.records.Id}); 
+						alert(response); 
+					} //if answer 
+				} //if long 
+			}// if assetsize 
+			else 
+			{ 
+				//alert('in else');
+				for(counter = 0; counter < AssetList.size; counter++) 
+				{ 
+					//alert(AssetList.size);
+					temp = AssetList.records[counter].OwnerId; 
+					//need to comment out this next line
+					//temp = temp.substr(0,15); 
+					//alert(AssetList.records[counter].Id + ' : '+ AssetList.records[counter].Status__c + ' : ' + temp + ' : ' + userId);
+					if(((AssetList.records[counter].Status__c == 'Copy Desk') || (AssetList.records[counter].Status__c == 'In Translation') || 
+					(AssetList.records[counter].Status__c == 'Approved Not Published')) && (temp == userId)) 
+					{ 
+						answer = confirm('You are about to publish a TOC chapter to the live site. Are you sure you want to do this?'); 
+	
+						if(answer) 
+						{ 
+							//alert(AssetList.records[counter].Id + ' : '+ AssetList.records[counter].Status__c);
+							var response = sforce.apex.execute("DA_PublishArticle", "publish", {AssetID: AssetList.records[counter].Id}); 
+							alert(response); 
+						}//if answer 
+					}//if long 
+				}//for loop 
+			}//else 
+			
+			window.location.reload(); 
+		} 
+	} 
+	else 
+	{ 
+		var answer = confirm('You are about to publish to the live site. Are you sure you want to do this?'); 	
+		if(answer) 
+		{ 
+			var response = sforce.apex.execute("DA_PublishArticle", "publish", {AssetID: "{!Digital_Asset__c.Id}"}); 
+			alert(response); 
+			window.location.reload(); 
+		} 
+	}
+}
+
+function NewTranslation()
+{
+	sforce.connection.sessionId = "{!$Api.Session_ID}";
+	var answer = confirm('You are about to create a translation. Are you sure you want to do this?');
+	
+	if(answer)
+	{
+		var response = sforce.apex.execute("DA_Create_Translation", "LoadAsset2Translate", {ParentAsset: "{!Digital_Asset__c.Id}"});
+		response = response.toString();
+	}
+	else
+	{
+	}
+	
+	if (response) 
+	{
+		var resArray = response.split('&&');
+		alert(resArray[1]);
+		if((resArray[0] != '') && (resArray[1] == 'The Translation Asset has been created and assigned to you.'))
+		{
+			window.location.href="/apex/DA_Detail?id=" + resArray[0];
+			//window.location.replace(resArray[0]);
+		}
+	}
+}
+
+
+function ReturnToEditor()
+{
+	sforce.connection.sessionId = "{!$Api.Session_ID}";
+	var Asset = new sforce.SObject("Digital_Asset__c");
+	var user = sforce.connection.query("SELECT u.Id, u.Name FROM User u WHERE u.Username LIKE 'sskip@somewhere.com%' LIMIT 1");
+	
+	Asset.Id = "{!Digital_Asset__c.Id}";
+	
+	if(user.size != 1)
+	{
+		alert("Bad Query");
+		alert(user);
+	}
+	else if(userId != "{!Digital_Asset__c.OwnerId}" )
+	{
+		alert("Only the object owner can perform this operation");
+	}
+	else
+	{
+		if("{!Digital_Asset__c.Status__c}" == 'Copy Desk')
+		{
+			if(!"{!Digital_Asset__c.Copy_Editor_1__c}")
+			{
+				Asset.Copy_Editor_1__c = userId;
+			}
+			else if(!"{!Digital_Asset__c.Copy_Editor_2__c}")
+			{
+				Asset.Copy_Editor_2__c = userId;
+			}
+			else
+			{
+				Asset.Copy_Editor_1__c = userId;
+			}
+	
+			if((!"{!Digital_Asset__c.Editor__c}") || ("{!Digital_Asset__c.Editor__c}" == user.records.Id))
+			{
+				var result = sforce.connection.query("SELECT q.QueueId FROM QueueSobject q WHERE q.Queue.Name = 'Editor Queue' LIMIT 1");
+	
+				if(result.size != 1)
+				{
+					alert("Editor Queue can not be found");
+				}
+				else
+				{
+					Asset.OwnerId = result.records.QueueId;
+				}
+			}
+			else
+			{
+				Asset.OwnerId = "{!Digital_Asset__c.Editor__c}";
+			}
+	
+			Asset.Status__c = 'Editing';
+	
+			var result = sforce.connection.update([Asset]);
+			if (result[0].getBoolean("success"))
+			{
+				// Refresh window
+				alert("Asset successfully reassigned");
+				window.location.reload();
+			}
+			else
+			{
+				alert(result[0]);
+				alert("Error saving Asset");
+			}
+		}
+		else
+		{
+			alert("Asset is not in the correct state \"Copy Desk\" to conduct this action");
+		}
+		
+	}
+}
+
+
+
+function ReturnToAuthor()
+{
+	sforce.connection.sessionId = "{!$Api.Session_ID}";
+	var Asset = new sforce.SObject("Digital_Asset__c");
+	var result = sforce.connection.query("SELECT u.Name,u.Id FROM User u WHERE u.Username LIKE 'sskip@somewhere.com%' LIMIT 1");
+	var resultId = result.records.Id;
+	var resultName = result.records.Name;
+	if(result.size != 1)
+	{
+		alert("the placeholder user ID was not found.");
+	}
+	else
+	{
+		Asset.Id = "{!Digital_Asset__c.Id}";
+	
+		if(userId != "{!Digital_Asset__c.OwnerId}" )
+		{
+			alert("Only the object owner can perform this operation");
+		}
+		else
+		{
+			if(("{!Digital_Asset__c.Asset_Creator__c}" == resultId) || (!"{Digital_Asset__c.Asset_Creator__c}"))
+			{
+				if(("{!Digital_Asset__c.Editor__c}" == resultId) || (!"{!Digital_Asset__c.Editor__c}"))
+				{
+					Asset.OwnerId = "{!Digital_Asset__c.CreatedById}";
+					Asset.Status__c = 'Copy Desk';
+					alert("Reassigning asset to Creator");
+				}
+				else
+				{
+					Asset.OwnerId = "{!Digital_Asset__c.Editor__c}";
+					Asset.Status__c = 'Editing';
+					alert("Reassigning asset to Editor");
+				}
+			}
+			else
+			{
+				Asset.OwnerId = "{!Digital_Asset__c.Asset_Creator__c}";
+				Asset.Status__c = 'In Work';
+				alert("Reassigning asset to Author");
+			}
+
+			var result = sforce.connection.update([Asset]);
+	
+			if (result[0].getBoolean("success"))
+			{
+				// Refresh window
+				window.location.reload();
+			}
+			else
+			{
+				alert("Error saving asset");
+				alert(result[0]);
+			}
+		}
+	}
+}
+
+
+function AssignToTranslation()
+{
+	sforce.connection.sessionId = "{!$Api.Session_ID}";
+	var Asset = new sforce.SObject("Digital_Asset__c");
+	Asset.Id = "{!Digital_Asset__c.Id}";
+	
+	if(userId != "{!Digital_Asset__c.OwnerId}" )
+	{
+		alert("Only the object owner can perform this operation");
+	}
+	else
+	{
+		var found = 1;
+		if("{!Digital_Asset__c.Language__c}"!='')
+		{
+			var result = sforce.connection.query("SELECT q.QueueId FROM QueueSobject q WHERE q.Queue.Name = 'Translators Queue-{!Digital_Asset__c.Language__c}' LIMIT 1");
+			if(result.size != 1)
+			{
+				alert("Warning! Translator Queue-{!Digital_Asset__c.Language__c} was not found");
+				found = 0;
+			}
+			else
+			{
+				Asset.OwnerId = result.records.QueueId;
+			}
+		}
+		else
+		{
+			alert("There is no queue for this language selection");
+			found = 0;
+		}
+	}
+	if(found == 1)
+	{
+		var result = sforce.connection.update([Asset]);
+		if (result[0].getBoolean("success"))
+		{
+			// Refresh window
+			alert("Asset successfully assigned to Translation Queue");
+			window.location.reload();
+		}
+		else
+		{
+			alert("Error saving asset");
+			alert(result[0]);
+		}
+	}
+	else
+	{
+		alert("The translation queue for this language was not found");
+	}
+}
+
+
+function AssignToCD()
+{
+	sforce.connection.sessionId = "{!$Api.Session_ID}";
+	var Asset = new sforce.SObject("Digital_Asset__c"); 
+	var user = sforce.connection.query("SELECT u.Id FROM User u WHERE u.Username LIKE 'sskip@somewhere.com%' LIMIT 1"); 
+	var CDqueue = sforce.connection.query("SELECT q.QueueId FROM QueueSobject q WHERE q.Queue.Name = 'Copy Desk Queue' LIMIT 1"); 
+	
+	Asset.Id = "{!Digital_Asset__c.Id}"; 
+	
+	if(userId != "{!Digital_Asset__c.OwnerId}") 
+	{ 
+		alert("Only the object owner can perform this operation"); 
+	} 
+	else if(user.size != 1) 
+	{ 
+		alert("Bad query step skipped user not found"); 
+		alert(user); 
+	} 
+	else if(CDqueue.size != 1) 
+	{ 
+		alert("Bad query Copy Desk Queue not found"); 
+		alert(CDqueue); 
+	} 
+	else 
+	{ 
+		var performUpdate = 1; 
+		
+		if(userProfile == 'Publishing Content Creator') 
+		{ 
+			Asset.OwnerId = CDqueue.records.QueueId; 
+			Asset.Asset_Creator__c = "{!Digital_Asset__c.OwnerId}"; 
+			Asset.Status__c = 'Copy Desk'; 
+		
+			if(!"{!Digital_Asset__c.Editor__c}") 
+			{ 
+				Asset.Editor__c = user.records.Id; 
+			} 
+		} 
+		else if(userProfile == 'IIP User') 
+		{ 
+			Asset.OwnerId = CDqueue.records.QueueId; 
+			Asset.Editor__c = "{!Digital_Asset__c.OwnerId}"; 
+			Asset.Status__c = 'Copy Desk'; 
+		
+			if(!"{!Digital_Asset__c.Asset_Creator__c}") 
+			{ 
+				Asset.Asset_Creator__c = user.records.Id; 
+			} 
+		} 
+		// Spring Enhancements 2013 - added sys admin to the following condition
+		else if((userProfile == 'Publishing Copy Desk') || (userProfile == 'System Administrator'))
+		{ 
+			Asset.OwnerId = CDqueue.records.QueueId; 
+			Asset.Status__c = 'Copy Desk'; 
+		
+			if(!"{!Digital_Asset__c.Asset_Creator__c}") 
+			{ 
+				Asset.Asset_Creator__c = user.records.Id; 
+			} 
+			if(!"{!Digital_Asset__c.Editor__c}") 
+			{ 
+				Asset.Editor__c = user.records.Id; 
+			} 
+		
+			if(!"{!Digital_Asset__c.Copy_Editor_1__c}") 
+			{ 
+				Asset.Copy_Editor_1__c = "{!Digital_Asset__c.OwnerId}"; 
+			} 
+			else if(!"{!Digital_Asset__c.Copy_Editor_2__c}") 
+			{ 
+				Asset.Copy_Editor_2__c = "{!Digital_Asset__c.OwnerId}"; 
+			} 
+			else 
+			{ 
+				Asset.Copy_Editor_1__c = "{!Digital_Asset__c.OwnerId}"; 
+			} 
+		} 
+		else 
+		{ 
+			alert("This user profile does not have access to this button"); 
+			performUpdate = 0; 
+		} 
+		
+		if(performUpdate == 1) 
+		{ 
+			var result = sforce.connection.update([Asset]); 
+			if (result[0].getBoolean("success")) 
+			{ 
+				alert("Asset successfully assigned to the Copy Desk Queue"); 
+				// Refresh window 
+				window.location.reload(); 
+			} 
+		else 
+		{ 
+			alert("Error saving asset"); 
+			alert(result[0]); 
+		} 
+		} 
+	}
+}
+
+
+
+
+
+function AssignToEditorQ()
+{	
+	sforce.connection.sessionId = "{!$Api.Session_ID}";
+	var Asset = new sforce.SObject("Digital_Asset__c");
+	var EditQueue = sforce.connection.query("SELECT q.QueueId FROM QueueSobject q WHERE q.Queue.Name = 'Editor Queue' LIMIT 1"); 
+	var SkipUser = sforce.connection.query("SELECT u.Id FROM User u WHERE u.Username LIKE 'sskip@somewhere.com%' LIMIT 1"); 
+	Asset.Id = "{!Digital_Asset__c.Id}"; 
+
+	if(EditQueue.size != 1) 
+	{ 
+		alert("Bad Query Editor Queue not found"); 
+		alert(EditQueue); 
+	} 
+	else if(SkipUser.size != 1) 
+	{ 
+		alert("Bad query Step Skipped User not found"); 
+		alert(SkipUser); 
+	} 
+	else if(userId != "{!Digital_Asset__c.OwnerId}") 
+	{ 
+		alert("Only the object owner can perform this operation"); 
+	} 
+	else 
+	{ 
+		var performUpdate = 1; 
+	
+		if(userProfile == 'Publishing Content Creator') 
+		{ 
+			Asset.OwnerId = EditQueue.records.QueueId; 
+			Asset.Status__c = 'Editing'; 
+			Asset.Asset_Creator__c = userId; 
+		} 
+		else if(userProfile == 'IIP User') 
+		{ 
+			Asset.OwnerId = EditQueue.records.QueueId; 
+			Asset.Status__c = 'Editing'; 
+			if(!"{!Digital_Asset__c.Asset_Creator__c}") 
+			{ 
+				Asset.Asset_Creator__c = SkipUser.records.Id; 
+			} 
+			Asset.Editor__c = userId; 
+		} 
+		else if((userProfile == 'Publishing Copy Desk') || (userProfile == 'System Administrator')) 
+		{ 
+			Asset.OwnerId = EditQueue.records.QueueId; 
+			Asset.Status__c = 'Editing'; 
+			if(("{!Digital_Asset__c.Copy_Editor_1__c}" == userId) || ("{!Digital_Asset__c.Copy_Editor_2__c}" == userId)) 
+			{ //do nothing this user is already listed as a reviewer 
+			} 
+			else if(!"{!Digital_Asset__c.Copy_Editor_1__c}") 
+			{ 
+				Asset.Copy_Editor_1__c = userId; 
+			} 
+			else if(!"{!Digital_Asset__c.Copy_Editor_2__c}") 
+			{ 
+				Asset.Copy_Editor_2__c = userId; 
+			} 
+			else 
+			{ 
+				Asset.Copy_Editor_1__c = userId; 
+			} 
+		} 
+		else 
+		{ 
+			performUpdate = 0; 
+			alert("This user profile does not have access to this button"); 
+		} 
+	
+	if(performUpdate == 1) 
+	{ 
+		var result = sforce.connection.update([Asset]); 
+		if(result[0].getBoolean("success")) 
+		{ 
+			alert("Asset sent to queue for review"); 
+			window.location.reload(); 
+		} 
+		else 
+		{ 
+			alert("Error saving Asset"); 
+			alert(result[0]); 
+		} 
+	} 
+	}
+}
+
+
+function AssignToMe()
+{
+	sforce.connection.sessionId = "{!$Api.Session_ID}";
+	var Asset = new sforce.SObject("Digital_Asset__c"); 
+	var SkipUser = sforce.connection.query("SELECT u.Id FROM User u WHERE u.Username LIKE 'sskip@somewhere.com%' LIMIT 1"); 
+	Asset.Id = "{!Digital_Asset__c.Id}"; 	
+	var updateAsset = 0; 
+		
+	if(userProfile == 'Publishing Content Creator') 
+	{ 
+		if("{!Digital_Asset__c.Status__c}" == 'Published' || "{!Digital_Asset__c.Status__c}" == 'Pending') 
+		{ 
+			Asset.OwnerId = userId; 
+			Asset.Status__c = 'In Work'; 
+			updateAsset = 1; 
+		} 
+		else 
+		{ 
+			alert("This operation can only be performed on Published or Pending assets"); 
+		} 
+	} 
+	else if(userProfile == 'IIP User') 
+	{ 
+		if("{!Digital_Asset__c.Owner.Name}" == 'Editor Queue') 
+		{ 
+			Asset.OwnerId = userId; 
+			updateAsset = 1; 
+		} 
+		else if("{!Digital_Asset__c.Status__c}" == 'Published' || "{!Digital_Asset__c.Status__c}" == 'Pending') 
+		{ 
+			Asset.OwnerId = userId; 
+			Asset.Status__c = 'Editing'; 
+			updateAsset = 1; 
+		} 
+		else 
+		{ 
+			alert("This button can only reassign assets that are in the Editor Queue or where the status is Published or Pending"); 
+		} 
+	} 
+	else if(userProfile == 'Publishing Copy Desk') 
+	{ 
+		if(("{!Digital_Asset__c.Language__c}" == 'English') || 
+		("{!Digital_Asset__c.Language__c}" == 'Non English') || 
+		("{!Digital_Asset__c.Language__c}" == 'Non English RTL')) 
+		{ 
+			if("{!Digital_Asset__c.Status__c}" == 'Published' || "{!Digital_Asset__c.Status__c}" == 'Pending') 
+			{ 
+				Asset.OwnerId = userId; 
+				Asset.Status__c = 'Copy Desk'; 
+				updateAsset = 1; 
+			} 
+			else if(SkipUser.size == 1) 
+			{ 
+				if(!"{!Digital_Asset__c.Asset_Creator__c}") 
+				{ Asset.Asset_Creator__c = SkipUser.records.Id; } 
+		
+				if(!"{!Digital_Asset__c.Editor__c}") 
+				{ Asset.Editor__c = SkipUser.records.Id; } 
+		
+				Asset.Status__c = 'Copy Desk'; 
+				Asset.OwnerId = userId; 
+				updateAsset = 1; 
+			} 
+		else 
+		{ 
+			alert("The placeholder user was not found"); 
+			alert(SkipUser); 
+		} 
+		} 
+		else 
+		{ 
+			alert('You can only assign assets in the English, Non English, or Non English RTL languages'); 
+		} 
+	} 
+	else if(userProfile == 'Publishing Translator') 
+	{ 
+		var ObjectOwner = "{!Digital_Asset__c.Owner.Name}"; 
+	
+		if("{!Digital_Asset__c.Status__c}" == 'Published') 
+		{ 
+			if(("{!Digital_Asset__c.Language__c}" != 'English') && 
+			("{!Digital_Asset__c.Language__c}" != 'Non English') && 
+			("{!Digital_Asset__c.Language__c}" != 'Non English RTL')) 
+			{ 
+				Asset.Status__c = 'In Translation'; 
+				Asset.OwnerId = userId; 
+				updateAsset = 1; 
+			} 
+		else 
+		{ 
+			alert('You can only assign assets in official translated languages'); 
+		} 
+		} 
+	else if(ObjectOwner.match("Translators") != null) 
+	{ 
+		Asset.OwnerId = userId; 
+		updateAsset = 1; 
+	} 
+	else 
+	{ 
+		alert("This object must be Published or in a translation queue for this action to occur"); 
+	} 
+	} 
+	else if(userProfile == 'System Administrator') 
+	{ 
+		if(("{!Digital_Asset__c.Language__c}" == 'English') || 
+		("{!Digital_Asset__c.Language__c}" == 'Non English') || 
+		("{!Digital_Asset__c.Language__c}" == 'Non English RTL')) 
+		{ 
+			if("{!Digital_Asset__c.Status__c}" == 'Published' || "{!Digital_Asset__c.Status__c}" == 'Pending') 
+			{ 
+				Asset.OwnerId = userId; 
+				Asset.Status__c = 'Copy Desk'; 
+				updateAsset = 1; 
+			} 
+			else if(SkipUser.size == 1) 
+			{ 
+				if(!"{!Digital_Asset__c.Asset_Creator__c}") 
+				{ Asset.Asset_Creator__c = SkipUser.records.Id; } 
+		
+				if(!"{!Digital_Asset__c.Editor__c}") 
+				{ Asset.Editor__c = SkipUser.records.Id; } 
+		
+				Asset.Status__c = 'Copy Desk'; 
+				Asset.OwnerId = userId; 
+				updateAsset = 1; 
+			} 
+			else 
+			{ 
+				alert("The placeholder user was not found"); 
+				alert(SkipUser); 
+			} 
+		} 
+		else 
+		{ 
+			if("{!Digital_Asset__c.Status__c}" == 'Published' || "{!Digital_Asset__c.Status__c}" == 'Pending') 
+			{ 
+				Asset.OwnerId = userId; 
+				Asset.Status__c = 'In Translation'; 
+				updateAsset = 1; 
+			} 
+			else if(SkipUser.size == 1) 
+			{ 
+				if(!"{!Digital_Asset__c.Translator__c}") 
+				{ Asset.Translator__c = SkipUser.records.Id; } 
+					
+				Asset.Status__c = 'In Translation'; 
+				Asset.OwnerId = userId; 
+				updateAsset = 1; 
+			} 
+			else 
+			{ 
+				alert("The placeholder user was not found"); 
+				alert(SkipUser); 
+			} 
+		} 
+	} 
+	else 
+	{ 
+		alert(userProfile);
+		alert("This user profile does not have access to this button"); 
+		updateAsset = 0; 
+	} 
+		
+	if(updateAsset == 1) 
+	{ 
+		var result = sforce.connection.update([Asset]); 
+		if (result[0].getBoolean("success")) 
+		{ 
+			// Refresh window 
+			alert("Asset has been assigned to your account"); 
+			window.location.reload(); 
+		} 
+		else 
+		{ 
+			if(result[0].errors.statusCode == 'INSUFFICIENT_ACCESS_OR_READONLY') 
+			{ 
+				alert("You do not have permission to edit this object"); 
+				//alert([Asset]);
+				//alert(result[0]);
+			} 
+			else 
+			{ 
+				alert("Error saving asset"); 
+				alert(result[0]); 
+			} 
+		} 
+	}
+}
+</script>
+</apex:form>
+</center>
+<apex:detail />
+</apex:page>

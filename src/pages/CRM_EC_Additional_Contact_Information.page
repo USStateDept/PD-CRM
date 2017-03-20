@@ -1,0 +1,40 @@
+<apex:page id="main" title="Edit Additional Contact information" showHeader="true" sidebar="false" standardController="Additional_Contact_Information__c" extensions="CRM_AdditionalContactValidation">
+    <apex:sectionHeader title="{!$ObjectType.Additional_Contact_Information__c.label} Edit" subtitle="{!Additional_Contact_Information__c.Name}"/>
+    <apex:includeScript value="{!URLFOR($Resource.jQueryLibrary, 'jquery-1.8.3.js')}" />
+    <script language="JavaScript1.2" src="/js/functions.js"></script>
+    <script type="text/javascript">
+        j$ = $.noConflict();
+        
+        j$(document).ready(function () {
+            j$( '[id="main:myForm:firstBlock:info:hideMe"]' ).hide();
+        });
+    </script>
+ <apex:form id="myForm">
+       <apex:pageBlock id="firstBlock" title="{!$ObjectType.Additional_Contact_Information__c.label} Edit" mode="edit">
+                <apex:pageBlockButtons >
+                        <apex:commandButton action="{!save}" value="Save"/>
+                        <apex:commandButton action="{!cancel}" value="Cancel"/>
+                        <apex:commandButton action="{!cancel}" value="Back to the view"/>
+                </apex:pageBlockButtons>
+                <apex:pageBlockSection id="info" showHeader="true" title="Information" columns="2">
+                <apex:inputField value="{!Additional_Contact_Information__c.City__c}" required="true"/>
+                       <apex:pageBlockSectionItem />
+                       <apex:inputField value="{!Additional_Contact_Information__c.First_Name_x__c}"/>
+                       <apex:pageBlockSectionItem />
+                       <apex:inputField value="{!Additional_Contact_Information__c.Middle_Name_x__c}"/>
+                       <apex:pageBlockSectionItem />
+                        <apex:inputField value="{!Additional_Contact_Information__c.Last_Name_x__c}"/>
+                       <apex:pageBlockSectionItem />
+                       <apex:inputField value="{!Additional_Contact_Information__c.Job_Title__c}" required="true"/>
+                       <apex:pageBlockSectionItem />
+                       <apex:inputField value="{!Additional_Contact_Information__c.Email_Work_x__c}" required="true"/>
+                       <apex:pageBlockSectionItem />
+                       <apex:inputField value="{!Additional_Contact_Information__c.Email_Alt_x__c}"/>
+                       <apex:pageBlockSectionItem />
+                       <apex:inputField value="{!Additional_Contact_Information__c.Phone_Work_x__c}"/>
+                       <apex:pageBlockSectionItem />
+                       <apex:outputField id="hideMe" value="{!Additional_Contact_Information__c.Job_Title_x__c}" label=""  />
+                </apex:pageBlockSection>
+  </apex:pageBlock>
+ </apex:form>
+</apex:page>

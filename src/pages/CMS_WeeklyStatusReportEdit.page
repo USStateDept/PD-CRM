@@ -1,0 +1,257 @@
+<apex:page id="myPage" standardController="CMS_Weekly_Status_Report__c" extensions="CMS_WeeklyStatusReportController" sidebar="false" tabStyle="CMS_Weekly_Status_Reports__tab">
+    <apex:includeScript value="{!URLFOR($Resource.jQueryLibrary, 'jquery-1.8.3.js')}"/>
+    <script src="/soap/ajax/9.0/connection.js" type="text/javascript"></script>
+    <script language="JavaScript1.2" src="/js/functions.js"></script>
+    
+    <script type="text/javascript">
+        j$ = $.noConflict();
+        
+        j$(document).ready(function ()
+        {
+            if ('{!editable}' != 'true')
+            {
+                alert( "You cannot edit this record!" );
+                history.back();
+            }
+        
+            j$( '.projMang' ).closest('td').hide();
+            j$( '.supervisor' ).closest('td').hide();
+            j$( '.hide' ).hide();
+            
+            var options = '{!listOfProjectManagers}'.split( ";" );
+            createDropDown( 'projectManager', options );
+            
+            var options = '{!listOfSupervisors}'.split( ";" );
+            createDropDown( 'supervisor', options );
+            
+            var options = '{!listOfContracts}'.split( ";" );
+            createDropDown( 'contractNumber', options );
+
+            j$( '#projectManager' ).val( '{!CMS_Weekly_Status_Report__c.Project_Manager__c}' );
+            j$( '#supervisor' ).val( '{!CMS_Weekly_Status_Report__c.Supervisor__c}' );
+            j$( '#contractNumber' ).val( '{!CMS_Weekly_Status_Report__c.Contract_ID__c}' );
+            
+            j$( '.expandAll' ).click( function() {
+        		var text = j$( this ).text();
+        		
+        		if (text == 'Expand All')
+        		{
+        			j$( this ).text( 'Collapse All' );
+        			
+        			if (!j$( document.getElementById( 'myPage:myForm:pageBlock:projectTasks' ).childNodes[0].childNodes[0] ).hasClass( 'hideListButton' ))
+        			{
+        				twistSection( document.getElementById( 'myPage:myForm:pageBlock:projectTasks' ).childNodes[0].childNodes[0] );
+        			}
+        			if (!j$( document.getElementById( 'myPage:myForm:pageBlock:upcomingLeaves' ).childNodes[0].childNodes[0] ).hasClass( 'hideListButton' ))
+        			{
+	        			twistSection( document.getElementById( 'myPage:myForm:pageBlock:upcomingLeaves' ).childNodes[0].childNodes[0] );
+	        		}
+	        		if (!j$( document.getElementById( 'myPage:myForm:pageBlock:onGoingTaskList' ).childNodes[0].childNodes[0] ).hasClass( 'hideListButton' ))
+        			{
+	        			twistSection( document.getElementById( 'myPage:myForm:pageBlock:onGoingTaskList' ).childNodes[0].childNodes[0] );
+	        		}
+	        		if (!j$( document.getElementById( 'myPage:myForm:pageBlock:newTasks' ).childNodes[0].childNodes[0] ).hasClass( 'hideListButton' ))
+        			{
+	        			twistSection( document.getElementById( 'myPage:myForm:pageBlock:newTasks' ).childNodes[0].childNodes[0] );
+	        		}
+        		}
+        		else
+        		{
+        			j$( this ).text( 'Expand All' );
+        			
+        			if (j$( document.getElementById( 'myPage:myForm:pageBlock:projectTasks' ).childNodes[0].childNodes[0] ).hasClass( 'hideListButton' ))
+        			{
+        				twistSection( document.getElementById( 'myPage:myForm:pageBlock:projectTasks' ).childNodes[0].childNodes[0] );
+        			}
+        			if (j$( document.getElementById( 'myPage:myForm:pageBlock:upcomingLeaves' ).childNodes[0].childNodes[0] ).hasClass( 'hideListButton' ))
+        			{
+	        			twistSection( document.getElementById( 'myPage:myForm:pageBlock:upcomingLeaves' ).childNodes[0].childNodes[0] );
+	        		}
+	        		if (j$( document.getElementById( 'myPage:myForm:pageBlock:onGoingTaskList' ).childNodes[0].childNodes[0] ).hasClass( 'hideListButton' ))
+        			{
+	        			twistSection( document.getElementById( 'myPage:myForm:pageBlock:onGoingTaskList' ).childNodes[0].childNodes[0] );
+	        		}
+	        		if (j$( document.getElementById( 'myPage:myForm:pageBlock:newTasks' ).childNodes[0].childNodes[0] ).hasClass( 'hideListButton' ))
+        			{
+	        			twistSection( document.getElementById( 'myPage:myForm:pageBlock:newTasks' ).childNodes[0].childNodes[0] );
+	        		}
+        		}
+        	});
+
+            if ('{!clickStr}' == 'projectTask')
+            {
+                twistSection( document.getElementById( 'myPage:myForm:pageBlock:upcomingLeaves' ).childNodes[0].childNodes[0] );
+                twistSection( document.getElementById( 'myPage:myForm:pageBlock:ongoingTasks' ).childNodes[0].childNodes[0] );
+            }
+            else if ('{!clickStr}' == 'upcomingLeave')
+            {
+                twistSection( document.getElementById( 'myPage:myForm:pageBlock:projectTasks' ).childNodes[0].childNodes[0] );
+                twistSection( document.getElementById( 'myPage:myForm:pageBlock:ongoingTasks' ).childNodes[0].childNodes[0] );
+            }
+            else
+            {
+                twistSection( document.getElementById( 'myPage:myForm:pageBlock:projectTasks' ).childNodes[0].childNodes[0] );
+                twistSection( document.getElementById( 'myPage:myForm:pageBlock:upcomingLeaves' ).childNodes[0].childNodes[0] );
+                twistSection( document.getElementById( 'myPage:myForm:pageBlock:ongoingTasks' ).childNodes[0].childNodes[0] );
+            }
+            
+        });
+        
+        function setFocusOnLoad() {} 
+        
+        function createDropDown( dropDownID, options )
+        {
+            var select = document.getElementById( dropDownID );
+
+            for (var i = 0; i < options.length; i++)
+            {
+                var opt = options[i];
+                
+                if (opt.length > 0)
+                {
+                    var el = document.createElement("option");
+                    el.value     = opt;
+ 					el.innerHTML = opt;
+                    select.appendChild(el);
+                }
+            }
+        }
+
+        function colorPageBlock(pageblock, color) {
+            if (pageblock != null) pageblock.firstChild.style.cssText = "background-color: " + color + ";";
+        }
+        
+        
+        function validateCompletedDate()
+        {
+        	var errorMsg = "";
+        	
+        	j$( ".percentage" ).each( function() {
+        		if (j$(this).val() == 100)
+        		{
+        			var completedDate = j$( this ).closest( "table" ).find( ".completedDate" ).val();
+        			var name = j$( this ).closest( "table" ).find( ".nameStr" ).text();
+
+        			if (completedDate == '' || completedDate == null)
+        			{
+        				errorMsg += name + ' - Completed Date is required.\n';
+        			}
+        		}        	
+        	});
+        	
+        	if (errorMsg.length > 0)
+        	{
+        		alert( errorMsg );
+        		return false;
+        	}
+        	
+        	return true;
+        }
+    </script>
+
+    <apex:form id="myForm">
+        <apex:pageMessages id="errMessages" />
+        <apex:pageBlock id="pageBlock" title="CMS Weekly Status Report ({!timePeriod}) Edit" mode="view">
+            <apex:pageBlockButtons >
+                <apex:commandButton action="{!save}" value="Save" onclick="return validateCompletedDate();" />
+                <apex:commandButton action="{!cancel}" value="Cancel" />
+            </apex:pageBlockButtons>
+            
+            <apex:pageBlockSection id="requestorInfo" showHeader="true" title="Details" columns="2">
+                <apex:outputField value="{!CMS_Weekly_Status_Report__c.Report_Start_Date__c}" />
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="Project Manager" />
+                    <apex:outputPanel styleClass="requiredInput" layout="block">
+                        <apex:outputPanel styleClass="requiredBlock" layout="block"/>
+                        <select id="projectManager" onchange="j$( '.projMang' ).val( j$(this).find(':selected').text() );"><option>None</option></select>
+                    </apex:outputPanel>
+                </apex:pageBlockSectionItem>
+                <apex:outputField value="{!CMS_Weekly_Status_Report__c.Report_End_Date__c}"  />
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="Supervisor" />
+                    <apex:outputPanel styleClass="requiredInput" layout="block">
+                        <apex:outputPanel styleClass="requiredBlock" layout="block"/>
+                        <select id="supervisor"  onchange="j$( '.supervisor' ).val( j$(this).find(':selected').text() );"><option>None</option></select>
+                    </apex:outputPanel>
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="Contract Number" />
+                    <select id="contractNumber" onchange="j$( '.contractNum' ).val( j$(this).find(':selected').text() );"><option>None</option></select>
+                </apex:pageBlockSectionItem>
+                <apex:outputField value="{!CMS_Weekly_Status_Report__c.OwnerId}"  />
+                <apex:inputField value="{!CMS_Weekly_Status_Report__c.Status__c}" rendered="{!myPermissionset != 'CMS Basic'}" />
+                
+                <apex:inputField styleClass="projMang"    label="" value="{!CMS_Weekly_Status_Report__c.Project_Manager__c}" style="visibility:hidden;height:0px;;width:0px" />
+                <apex:inputField styleClass="supervisor"  label="" value="{!CMS_Weekly_Status_Report__c.Supervisor__c}"      style="visibility:hidden;height:0px;;width:0px" />
+                <apex:inputField styleClass="contractNum" label="" value="{!CMS_Weekly_Status_Report__c.Contract_ID__c}"     style="visibility:hidden;height:0px;;width:0px" />
+            </apex:pageBlockSection>
+            <script>colorPageBlock(document.getElementById("{!$Component.requestorInfo}"), "#006699");</script>
+            <a class="expandAll" href="#">Expand All</a> 
+            
+            <apex:pageBlockSection id="ongoingTasks" showHeader="true" title="O&M Tasks" columns="1">
+                <script>colorPageBlock(document.getElementById("{!$Component.ongoingTasks}"), "#400020");</script>
+                <apex:outputPanel id="ongoingLists">
+               		<apex:variable value="{!0}" var="rowNumForOngoingTask" />
+                    <apex:repeat value="{!onGoingTaskList}" var="task" >
+                        <apex:variable var="rowNumForOngoingTask" value="{!rowNumForOngoingTask + 1}"/>
+                        <apex:pageBlockSection id="project" columns="2"  title="Project Task - {!task.Name}" collapsible="true">
+                            <apex:outputText Label="Task" value="{!task.name}" styleClass="nameStr" />
+                            <apex:outputField value="{!task.Start_Date__c}" />
+                            <apex:outputField Label="Project Name" value="{!task.Project_Numbers__c}" />
+                            <apex:outputField value="{!task.Due_Date__c}" />
+                            <apex:outputField label="Functional Roles" value="{!task.Functional_Roles__c}" />
+                            <apex:inputField value="{!task.Percentage_Complete__c}" styleClass="percentage" />
+                            <apex:inputField value="{!task.Hours__c}" required="true" />
+                            <apex:inputField value="{!task.Completed_Date__c}" styleClass="completedDate" />
+                            <apex:inputField value="{!task.Comments__c}" />
+                            <script>colorPageBlock(document.getElementById("{!$Component.project}"), "#400000");</script>
+                         </apex:pageBlockSection>
+                    </apex:repeat>
+                </apex:outputPanel>
+            </apex:pageBlockSection>
+            
+            <apex:pageBlockSection id="projectTasks" showHeader="true" title="Project Tasks" columns="1">
+                <script>colorPageBlock(document.getElementById("{!$Component.projectTasks}"), "#400000");</script>
+                <apex:outputPanel id="projectLists">
+               		<apex:variable value="{!0}" var="rowNumForProjTasks" />
+                    <apex:repeat value="{!projectTaskList}" var="task" >
+                        <apex:variable var="rowNumForProjTasks" value="{!rowNumForProjTasks + 1}"/>
+                        <apex:pageBlockSection id="project" columns="2"  title="Project Task - {!task.Name}" collapsible="true">
+                            <apex:outputText Label="Task" value="{!task.name}" styleClass="nameStr" />
+                            <apex:outputField value="{!task.Start_Date__c}" />
+                            <apex:outputField Label="Project Name" value="{!task.Project_Numbers__c}" />
+                            <apex:outputField value="{!task.Due_Date__c}" />
+                            <apex:outputField value="{!task.Functional_Roles__c}" />
+                            <apex:inputField value="{!task.Percentage_Complete__c}" styleClass="percentage" />
+                            <apex:inputField value="{!task.Hours__c}" required="true" />
+                            <apex:inputField value="{!task.Completed_Date__c}" styleClass="completedDate" />
+                            <apex:inputField value="{!task.Comments__c}" />
+                            <script>colorPageBlock(document.getElementById("{!$Component.project}"), "#400000");</script>
+                         </apex:pageBlockSection>
+                    </apex:repeat>
+                </apex:outputPanel>
+            </apex:pageBlockSection>
+            
+            <apex:pageBlockSection id="upcomingLeaves" showHeader="true" title="Upcoming Leave" columns="1">
+                <script>colorPageBlock(document.getElementById("{!$Component.upcomingLeaves}"), "#282828");</script>
+                <apex:commandButton action="{!newUpComingLeave}" value="New Upcoming Leave" />
+                <apex:outputPanel id="upcomingLeaveList">
+                <apex:variable value="{!0}" var="rowNumUpcomingLeaves" />
+                    <apex:repeat value="{!upcomingLeavesList}" var="task" >
+                        <apex:variable var="rowNumUpcomingLeaves" value="{!rowNumUpcomingLeaves + 1}"/>
+                        <apex:pageBlockSection id="key" columns="2"  title="Upcoming Leave" collapsible="true">
+                            <apex:inputField value="{!task.Start_Date__c}" />
+                            <apex:inputField value="{!task.End_Date__c}" />
+                            <apex:inputField value="{!task.Types_of_Leave__c}" />
+                            <apex:outputText value="" />
+                            <apex:commandLink value="delete" action="{!deleteUpcomingLeave}" immediate="true" onclick="return confirm('Are you sure?');">
+                                <apex:param name="picNumber" value="{!rowNumUpcomingLeaves}" assignTo="{!upcomingNumber}" />
+                            </apex:commandLink>
+                            <script>colorPageBlock(document.getElementById("{!$Component.key}"), "#282828 ");</script>
+                         </apex:pageBlockSection>
+                    </apex:repeat>
+                </apex:outputPanel>
+            </apex:pageBlockSection>
+        </apex:pageBlock>
+    </apex:form>
+</apex:page>

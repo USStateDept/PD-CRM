@@ -1,0 +1,11 @@
+<apex:page controller="AmericanSpacesReport" cache="true" contentType="text/csv#stats.csv" language="en-US" >
+"Region","","Information Resource Center","American Center","Binational Center","American Corner","Grand Total"
+<apex:repeat value="{!americanSpacesStatistics}" var="asRecord" >
+"{!asRecord.region}","Total Programs","{!asRecord.infoResourceCenterProgram}","{!asRecord.americanCenterProgram}","{!asRecord.binationalCenterProgram}","{!asRecord.americanCornorProgram}","{!asRecord.totalPrograms}"
+"","Total Program Attendees","{!asRecord.infoResourceCenterAttendee}","{!asRecord.americanCenterAttendee}","{!asRecord.binationalCenterAttendee}","{!asRecord.americanCornorAttendee}","{!asRecord.totalAttendee}"
+"","Total Visitors","{!asRecord.infoResourceCenterVisitor}","{!asRecord.americanCenterVisitor}","{!asRecord.binationalCenterVisitor}","{!asRecord.americanCornorVisitor}","{!asRecord.totalVisitor}"
+</apex:repeat>
+"Grand Total","Total Programs","{!grandTotal.infoResourceCenterProgram}","{!grandTotal.americanCenterProgram}","{!grandTotal.binationalCenterProgram}","{!grandTotal.americanCornorProgram}","{!grandTotal.totalPrograms}"
+"","Total Program Attendees","{!grandTotal.infoResourceCenterAttendee}","{!grandTotal.americanCenterAttendee}","{!grandTotal.binationalCenterAttendee}","{!grandTotal.americanCornorAttendee}","{!grandTotal.totalAttendee}"
+"","Total Visitors","{!grandTotal.infoResourceCenterVisitor}","{!grandTotal.americanCenterVisitor}","{!grandTotal.binationalCenterVisitor}","{!grandTotal.americanCornorVisitor}","{!grandTotal.totalVisitor}"
+</apex:page>

@@ -1,0 +1,12 @@
+<apex:page standardController="EmailMessage">
+    <apex:pageBlock >
+    <apex:form >
+        <!--<apex:commandButton action="" />-->
+        <apex:pageBlockSection >
+            <apex:inputField value="{!EmailMessage.ToAddress}" />
+            <apex:inputField value="{!EmailMessage.Subject}" />
+            <apex:inputTextarea value="{!EmailMessage.HtmlBody}" />
+        </apex:pageBlockSection>
+    </apex:form>
+    </apex:pageBlock>
+</apex:page>

@@ -1,0 +1,12 @@
+<apex:page Controller="DA_WordOutput" contenttype="text/html" sidebar="false" showHeader="false" standardstylesheets="false">
+<style>
+*{font-family:Verdana; font-size: 10px;}
+</style>
+<html>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<body>
+   <!-- <apex:OutputText value="{!Language}" escape="false"  /> -->
+   <apex:OutputText value="{!TextOutput}" escape="false" dir="{!IF(Language=='Arabic' || Language=='Urdu' || Language=='Persian' || Language=='Non English RTL','RTL','LTR')}"  />
+</body>
+</html>
+</apex:page>

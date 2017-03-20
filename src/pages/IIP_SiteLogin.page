@@ -1,0 +1,17 @@
+<apex:page id="loginPage" showHeader="false" title="{!$Label.site.site_login}">
+<style type="text/css">
+    body { background: url({!URLFOR($Resource.publishing_system_resources, 'publishing_system_resources/pd360_login.png')}) center top no-repeat; margin-right:auto; margin-left:auto; width:980px;
+
+</style>
+    <apex:define name="body">  
+    <apex:outputPanel layout="block" >
+        <apex:panelGrid width="300px" style="position:relative; top:180px; color:white; font-family:verdana; font-size:12px; font-weight: bold; margin-right:auto; margin-left:auto;">
+            <br/>
+                <apex:outputText value="{!$Label.site.login}" style="color:white" />
+                <c:SiteLogin id="siteLogin" />
+            <br/>
+            This computer is a Department of State computer system. It should be used for official U.S. Government work only. Use by unauthorized persons, or for personal business, is prohibited and constitutes a violation of 18 U.S.C. 1030 and other Federal laws. You have NO REASONABLE EXPECTATION OF PRIVACY while using this computer. All data contained herein may be monitored, intercepted, recorded, read, copied, or captured in any manner by authorized personnel. System personnel or supervisors may give law enforcement officials any potential evidence of crime, fraud, or employee misconduct found on this and all connected computer systems. Furthermore, law enforcement officials may be authorized to access and collect evidence from this system. USE OF THIS SYSTEM BY ANY USER, AUTHORIZED OR UNAUTHORIZED, CONSTITUTES EXPRESS CONSENT TO THIS MONITORING. IF YOU DO NOT CONSENT, PLEASE CLOSE YOUR BROWSER WINDOW NOW. ENTER YOUR USERNAME AND PASSWORD AND PRESS LOGIN TO AGREE TO ALL THE CONDITIONS STATED ABOVE.
+        </apex:panelGrid>
+    </apex:outputPanel> 
+    </apex:define>
+</apex:page>

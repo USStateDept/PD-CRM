@@ -1,0 +1,155 @@
+<apex:page id="myPage" standardController="CMS_Projects__c" extensions="CMS_ProjectController" sidebar="false" tabStyle="CMS_Projects__tab">
+    <apex:includeScript value="{!URLFOR($Resource.jQueryLibrary, 'jquery-1.8.3.js')}"/>
+    <apex:includeScript value="{!URLFOR($Resource.jQueryLibrary, 'jquery-ui-1.9.2.custom.js')}"/>
+    <apex:includeScript value="{!URLFOR($Resource.jQueryLibrary, 'jquery.ui.autocomplete.js')}"/>
+    <apex:stylesheet value="{!URLFOR($Resource.jQueryLibrary, 'jquery-ui.css')}"/>
+    <script type="text/javascript">
+        j$ = $.noConflict();
+        
+        j$(document).ready(function()
+        {
+       		if (!{!isEditable} && '{!CMS_Projects__c.Project_Lead__c}' != '{!$User.id}')
+        	{
+        		j$( '[id="myPage:myForm"]'  + " :input").attr( "disabled", true );
+				j$( '.pbButtonb' ).text( "" );
+				j$( '.pbButton' ).text( "" );
+        		alert( "You do not have access to modify this record!" );
+			    history.back();
+        	}
+        
+            j$( ".contentLoading1" ).hide();
+            
+            if ({!displayTasks})
+            {
+                j$( ".upperButton" ).hide();
+            }
+            else
+            
+            {
+                j$( ".bottomButton" ).hide();
+            }
+            j$( '.project' ).closest('td').hide();
+
+            config();
+        });
+        
+        function loading( val, classStr )
+        {
+            if (val)
+            {
+                j$( "." + classStr ).show();
+            }
+            else
+            {
+                j$( "." + classStr ).hide();
+            }
+        }
+        
+        function config()
+        {
+            var list= '{!listOfLeads}'.split(";");
+            var list2= '{!projectManager}'.split(";");
+            
+            j$( '.leads' ).autocomplete({
+                source: list
+            });
+            
+            j$( '.mangs' ).autocomplete({
+                source: list2
+            });
+
+            if ('{!CMS_Projects__c.Project_Type__c}' != 'Service Request')
+            {
+            	j$( '.serviceRequest' ).closest('tr').hide();
+            } 
+        }
+        
+        function hideProject()
+        {
+            j$( ".contentLoading2" ).hide();
+            j$( ".upperButton" ).hide();
+            j$( ".bottomButton" ).show();
+        }
+        
+        function displayServiceFields( dropDown )
+        {
+        	if (j$( dropDown ).val() == 'Service Request')
+        	{
+        		j$( '.serviceRequest' ).closest('tr').show();
+        	}
+        	else
+        	{
+        		j$( '.serviceRequest' ).closest('tr').hide();
+        	}
+        }        
+    </script>
+    <apex:form id="myForm">
+        <apex:pageMessages id="errMessages" />
+        <apex:pageBlock id="pageBlock" title="CMS Project Edit" mode="view">
+            <apex:pageBlockButtons >
+                <apex:commandButton action="{!save}"    value="Save" styleClass="upperButton" reRender="tasks,errMessages" status="save" />
+                <apex:commandButton action="{!saveAll}" value="Save" styleClass="bottomButton" />
+                <apex:commandButton action="{!cancel}"  value="Cancel" />
+                <apex:actionStatus id="save" onstart="loading(true, 'contentLoading1')" onstop="loading(false, 'contentLoading1');hideProject();" />
+            </apex:pageBlockButtons>
+            
+            <apex:pageBlockSection id="project" showHeader="true" title="Project Details" columns="1">
+                <apex:inputField value="{!CMS_Projects__c.Name}"                 required="true" />
+                <apex:inputField value="{!CMS_Projects__c.Project_Number__c}"    required="true" />
+                <apex:inputField value="{!CMS_Projects__c.Project_Type__c}"      required="true" onchange="displayServiceFields( this );" />
+                <apex:inputField value="{!CMS_Projects__c.Application_Affected__c}"  styleClass="serviceRequest" />
+                <apex:inputField value="{!CMS_Projects__c.Requestor__c}"             styleClass="serviceRequest" />
+                <apex:inputField value="{!CMS_Projects__c.Start_Date__c}"        />
+                <apex:inputField value="{!CMS_Projects__c.Due_Date__c}"          />
+                <apex:inputField value="{!CMS_Projects__c.Priority__c}"          required="true" />
+                <apex:inputField value="{!CMS_Projects__c.Project_Manager__c}"   required="true" />
+                <apex:inputField value="{!CMS_Projects__c.Anticipated_Hours__c}" />
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="Contractor Manager" />
+                    <apex:outputPanel styleClass="requiredInput" layout="block">
+                        <apex:outputPanel styleClass="requiredBlock" layout="block"/>
+            				<apex:inputText value="{!projectLead}" required="true" styleClass="mangs"  disabled="{!NOT( isEditable )}" />
+            			</apex:outputPanel>
+                </apex:pageBlockSectionItem>
+                <apex:inputField label="" value="{!CMS_Projects__c.Project_Lead__r.name}" styleClass="project" />
+                <apex:inputField value="{!CMS_Projects__c.Status__c}"          />
+            </apex:pageBlockSection>
+        
+            <div class="contentLoading1">
+                <div style="text-align: center;">
+                    <img src="/img/loading.gif" alt="Loading graphic" />
+                </div>
+            </div>
+            
+            <apex:outputPanel id="tasks">
+                <apex:pageBlockSection showHeader="true" title="Milestones Details" columns="1" rendered="{!displayTasks}">
+                    <apex:commandButton action="{!newMilestone}" value="New Milestone" reRender="projectLists,errMessages" status="add" />
+                    <apex:actionStatus id="add" onstop="config();" />
+                    <apex:outputPanel id="projectLists">
+                        <apex:variable value="{!0}" var="rowNum" />
+                        <apex:repeat value="{!mileStones}" var="ms">
+                        	<apex:variable var="rowNum" value="{!rowNum + 1}"/>
+                            <apex:pageBlockSection id="project" columns="1"  title="Milestone - {!ms.milestone.Name}" collapsible="true">
+                                <apex:inputField value="{!ms.milestone.Name}"          required="true" />
+                                <apex:inputField value="{!ms.milestone.Start_Date__c}" required="true" />
+                                <apex:inputField value="{!ms.milestone.Due_Date__c}"   required="true" />
+                                <apex:inputField value="{!ms.milestone.Anticipated_Hours__c}"   required="true" />
+                                <apex:pageBlockSectionItem >
+				                    <apex:outputLabel value="Lead" />
+				                    <apex:outputPanel styleClass="requiredInput" layout="block">
+				                        <apex:outputPanel styleClass="requiredBlock" layout="block"/>
+                               			<apex:inputText value="{!ms.lead}" styleClass="leads"  required="true" />
+                               		</apex:outputPanel>
+                               	</apex:pageBlockSectionItem>                               	
+                                <apex:commandLink value="Delete Milestone" action="{!deleteMilestone}" onclick="return confirm('Are you sure?');" immediate="true">
+									<apex:param name="picNumber" value="{!rowNum}" assignTo="{!milestoneNumber}" />
+								</apex:commandLink>
+                            </apex:pageBlockSection>
+                        </apex:repeat>
+                        <apex:commandButton action="{!newMilestone}" value="New Milestone" reRender="projectLists,errMessages" status="add" rendered="{!mileStones.size > 0}" />
+                    </apex:outputPanel>
+                </apex:pageBlockSection>
+            </apex:outputPanel>
+        </apex:pageBlock>
+    </apex:form>
+</apex:page>

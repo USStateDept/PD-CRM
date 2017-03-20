@@ -1,0 +1,107 @@
+<apex:page id="myPage" showHeader="true" sidebar="false" controller="AmericanSpacesIROContacts">
+    <apex:includeScript value="{!URLFOR($Resource.jQueryLibrary, 'jquery-1.8.3.js')}"/>
+
+    <style>
+        .asc {
+            font-style:italic;
+        }
+    </style>
+    
+    <script type="text/javascript">  
+        j$ = $.noConflict();
+        
+        j$(document).ready(function ()
+        {
+        	var sortBy = j$( '[id="myPage:pageBlock:myForm:sortBy" ]' ).val();
+            var ascOrDesc = j$( '[id="myPage:pageBlock:myForm:ascOrDesc" ]' ).val();
+
+            if (sortBy != null && sortBy.length > 0)
+            {
+                applySortArrow( j$( "." + sortBy ), ascOrDesc );
+            }
+        
+            j$( 'th.headerRow' ).click( function() {
+                var sortBy = j$( this ).attr( "class" );
+                var sortBy = sortBy.replace( "headerRow ", "" ); 
+                var sortBy = j$.trim( sortBy );
+                
+                if (sortBy != "")
+                {
+                    var orderInfo = j$( '[id="myPage:pageBlock:myForm:ascOrDesc" ]' ).val();
+                    
+                    j$( '[id="myPage:pageBlock:myForm:ascOrDesc" ]' ).val( orderOption( orderInfo ));    
+                    j$( '[id="myPage:pageBlock:myForm:sortBy" ]' ).val( sortBy );
+                
+                    j$( '[id="myPage:pageBlock:myForm:filterBtn" ]' ).click();
+                }
+            });
+        });
+        
+
+        function orderOption( ascOrDesc )
+        {
+            if (ascOrDesc == ' asc')
+                return ' desc';
+            else
+                return ' asc';
+        }
+        
+        
+        function applySortArrow( element, sort )
+        {
+            j$( element ).children().addClass( "asc" );
+                    
+            if (sort == ' asc')
+            {
+                j$( element ).children().append( " ↑" ); 
+            }
+            else
+            {
+                j$( element ).children().append( " ↓" );
+            }
+        }
+    </script>
+    
+<apex:pageBlock title="" id="pageBlock">
+    <apex:form id="myForm">
+    <apex:inputText value="{!columnName}" style="visibility:hidden;height:0px;;width:0px" id="sortBy" />
+    <apex:inputText value="{!ascOrDesc}" style="visibility:hidden;height:0px;;width:0px" id="ascOrDesc" />
+    <apex:commandButton action="{!refresh}" value="Filter" id="filterBtn" style="visibility:hidden;height:0px;;width:0px" />
+    <br/>
+    <apex:commandButton action="{!createNewAction}" value="New IRO Contact" />
+    </apex:form>
+    <br/>
+    <apex:pageBlockTable id="iroContacts" value="{!iroContacts}" var="iroContact" rowClasses="odd,even" styleClass="tableClass">
+        <apex:column width="10%">
+            <apex:facet name="header">Action</apex:facet>
+            <a href="/{!iroContact.id}" target="_self" alt="view">view</a>
+            <a href="../apex/AmericanSpace_IRO_Edit?id={!iroContact.id}" target="_self" alt="view">edit</a>
+        </apex:column>
+        
+        <apex:column width="25%" headerClass="Last_Name__c">
+            <apex:facet name="header">Last Name</apex:facet>
+            <apex:outputText value="{!iroContact.Last_Name__c}"/>
+        </apex:column>
+        
+        <apex:column width="25%" headerClass="Middle_Name__c">
+            <apex:facet name="header">Middle Name</apex:facet>
+            <apex:outputText value="{!iroContact.Middle_Name__c}"/>
+        </apex:column>
+        
+        <apex:column width="25%" headerClass="First_Name__c">
+            <apex:facet name="header">First Name</apex:facet>
+            <apex:outputText value="{!iroContact.First_Name__c}"/>
+        </apex:column>
+        
+        <apex:column width="10%" headerClass="Region__c">
+            <apex:facet name="header">Region</apex:facet>
+            <apex:outputText escape="false" value="{!iroContact.Region__c}"/>
+        </apex:column>
+        
+        <apex:column width="30%" headerClass="Home_Post__r.name">
+            <apex:facet name="header">Home Post</apex:facet>
+            <a href="../apex/AmericanSpace_AmSpacePostContactView?postID={!iroContact.Home_Post__r.id}" target="_self" alt="view"><apex:outputText value="{!iroContact.Home_Post__r.name}"/></a>
+        </apex:column>
+    </apex:pageBlockTable>
+</apex:pageBlock>
+</apex:page>

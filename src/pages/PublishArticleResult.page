@@ -1,0 +1,10 @@
+<apex:page standardController="Digital_Asset__c">
+    <apex:pageBlock >
+        Posting to IIP Digital, the server responded: <p/>
+        <apex:messages /><br/>
+        Headline: {!Digital_Asset__c.Name}<br/>
+        URL: {!Digital_Asset__c.Published_URL__c}<br/>
+        Facebook: {!Digital_Asset__c.Social_Media_Blurb__c}<br/>
+        Twitter: {!Digital_Asset__c.Microblog__c}<br/>
+    </apex:pageBlock>
+</apex:page>

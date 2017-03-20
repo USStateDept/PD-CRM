@@ -1,0 +1,44 @@
+<apex:page standardController="American_Spaces_Mission_Contact__c" id="myPage" showHeader="true" sidebar="false">
+    <apex:form id="myForm">
+        <apex:pageBlock id="myPageBlockPage" title="Post Contact - {!American_Spaces_Mission_Contact__c.First_Name__c} {!American_Spaces_Mission_Contact__c.Middle_Name__c} {!American_Spaces_Mission_Contact__c.Last_Name__c}">
+            <apex:pageBlockButtons >
+                <apex:commandButton action="{!Edit}"   value="Edit"   />
+                <apex:commandButton action="{!Delete}" value="Delete" onclick="return confirm( 'Are you Sure You Want to Delete?' );"/>
+            </apex:pageBlockButtons>
+            
+            <apex:pageBlockSection id="Mission" showHeader="true"  >
+                <apex:outputField value="{!American_Spaces_Mission_Contact__c.Managing_Post_City__c}"/>
+                &nbsp;
+                
+                <apex:outputField value="{!American_Spaces_Mission_Contact__c.First_Name__c}"/>
+                <apex:outputField value="{!American_Spaces_Mission_Contact__c.Email_1__c}"/>
+                
+                <apex:outputField value="{!American_Spaces_Mission_Contact__c.Middle_Name__c}"/>
+                <apex:outputField value="{!American_Spaces_Mission_Contact__c.Email_2__c}"/>  
+                
+                <apex:outputField value="{!American_Spaces_Mission_Contact__c.Last_Name__c}"/>               
+                <apex:outputField value="{!American_Spaces_Mission_Contact__c.Phone_1__c}"/>
+                
+                <apex:outputField value="{!American_Spaces_Mission_Contact__c.Salutation__c}"/>
+                <apex:outputField value="{!American_Spaces_Mission_Contact__c.Phone_2__c}"/>
+                
+                <apex:outputField value="{!American_Spaces_Mission_Contact__c.LES_or_FSO__c}"/>
+                &nbsp;                             
+                 
+                <apex:outputField Label="Job Title" value="{!American_Spaces_Mission_Contact__c.Job_Tite__c}"/> 
+                &nbsp;
+                
+                <apex:outputField value="{!American_Spaces_Mission_Contact__c.Notes__c}"/>
+                &nbsp;
+                
+                <apex:outputField value="{!American_Spaces_Mission_Contact__c.Region__c}"/>
+                &nbsp;
+                
+                <apex:outputField value="{!American_Spaces_Mission_Contact__c.Country__c}"/>
+                &nbsp;
+                <apex:outputField value="{!American_Spaces_Mission_Contact__c.Return_to_Post__c}"/>
+
+            </apex:pageBlockSection>
+            </apex:pageBlock>
+        </apex:form>
+</apex:page>

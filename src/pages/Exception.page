@@ -1,0 +1,56 @@
+<apex:page showHeader="false" title="{!$Label.site.error2}" cache="false">
+  <apex:composition template="{!$Site.Template}">
+    <apex:define name="body">
+      <center>
+        <apex:panelGrid bgcolor="white" columns="1" style="align: center;">
+          <br/>
+          <br/>
+          <apex:panelGrid width="758" cellpadding="0" cellspacing="0" bgcolor="white" columns="1" styleClass="topPanelContainer">
+            <br/>
+            <apex:outputPanel layout="block" styleClass="topPanel">
+              <apex:panelGrid width="758" cellpadding="0" cellspacing="0" bgcolor="white" columns="3">
+                <apex:image url="{!URLFOR($Resource.SiteSamples, 'img/clock.png')}"/>
+                <apex:image url="{!URLFOR($Resource.SiteSamples, 'img/warning.gif')}"/>
+                <apex:panelGroup >
+                  <!--<apex:outputText styleClass="title" value="{!$Label.site.error}">-->
+                  <apex:outputText styleClass="title" value="You have reached this page in error.">
+                   <!--<apex:param value="{!$Site.ErrorMessage}"/>-->
+                   <!-- this parameter needs to be italic in the site.error label -->
+                  </apex:outputText>
+                  <br/>
+                  <br/>
+                  <apex:outputText value="Please make sure you have entered the URL correctly.">
+                   <!--<apex:param value="{!$Site.ErrorMessage}"/>-->
+                   <!-- this parameter needs to be italic in the site.error label -->
+                  </apex:outputText>
+                  <br/>
+                  <!--<apex:outputText escape="false" value=" {!$Label.site.get_in_touch}">-->
+                  <apex:outputText escape="false" value="For guidance, contact the help desk at "/>
+                  <apex:outputLink value="mailto:embassy-help@getusinfo.com">embassy-help@getusinfo.com</apex:outputLink>
+                  <apex:outputText escape="false" value=". "/>
+                  <br/><br/>
+                  <apex:outputText escape="false" value="Thank you!"/>
+                  
+                   <!--<apex:param value="mailto:embassy-help@getusinfo.com"/>-->
+                   <!--<apex:param value="embassy-help@getusinfo.com"/>-->
+                   
+                   
+                  <!--<apex:param value="mailto:{!$Site.AdminEmailAddress}"/>-->
+                  <!--<apex:param value="{!$Label.site.email_us}"/>-->
+                   
+                  
+                  
+                  <!--</apex:outputText>-->
+                </apex:panelGroup>
+              </apex:panelGrid>
+             </apex:outputPanel>
+            <c:SitePoweredBy />
+          </apex:panelGrid>
+          <br/>
+          <apex:messages />
+          <br/>
+        </apex:panelGrid>
+      </center>
+    </apex:define>
+  </apex:composition>
+</apex:page>

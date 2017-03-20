@@ -1,0 +1,20 @@
+<apex:page Controller="DA_WordOutput" 
+			 contenttype="application/msword#{!SUBSTITUTE(SUBSTITUTE(assetName, "+", ""), ",","")}.doc;charset=UTF-8"
+			sidebar="false" showHeader="false" standardstylesheets="false">
+<!--! * ' ( ) ; : @ & = + $ , / ? % # [ ]  -->
+<!-- the assetName attribute is being encoded to display multibyte languages like persian, arabic, chinese to display the filename properly -->
+<!--   contenttype="application/msword#{!SUBSTITUTE(SUBSTITUTE(assetName, "+", ""), ",","")};charset=UTF-8"  -->
+<html xmlns:v="urn:schemas-microsoft-com:vml"
+xmlns:o="urn:schemas-microsoft-com:office:office"
+xmlns:w="urn:schemas-microsoft-com:office:word">
+
+<!-- MDRISCOLL 29-March-2013: the following line is required for Word 2007 to display special chars -->
+<!-- em dash, en dash, ellipses, bullets (alt-0149) etc correctly  -->
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+<body>
+   <apex:OutputText value="{!WordOutput}" escape="false" />
+</body>
+</html>
+</apex:page>

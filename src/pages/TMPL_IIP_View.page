@@ -1,0 +1,5 @@
+<apex:page >
+    <c:IIP_Resources />
+    <apex:insert name="list">
+    </apex:insert>
+</apex:page>

@@ -1,0 +1,51 @@
+<apex:page id="myPage" controller="AmericanSpacesReport" showHeader="false">
+<apex:includeScript value="{!URLFOR($Resource.jQueryLibrary, 'jquery-1.8.3.js')}" />
+<script type="text/javascript">
+	document.onclick= function( event ) {
+		if ('{!$CurrentPage.parameters.drawData}' == 'true')
+		{
+			// No need to do anything...
+		}
+		else
+		{
+			window.open( "/apex/AmericanSpaces_Report?reportName=proportionOfSpacesType", "_top" );
+		}
+	};
+	
+	{!IF('$CurrentPage.parameters.drawData' == 'false', "", "j$ = $.noConflict();" )}
+	
+	j$( document ).ready(function ()
+	{
+		if ('{!$CurrentPage.parameters.drawData}' == 'true')
+		{
+			j$( '[id="myPage:pageBlock"]' ).css( "width", "490px" );
+		}
+	});
+</script>
+	<apex:pageBlock id="pageBlock">
+	    <apex:chart name="aspsr" height="400" width="400" data="{!proportionOfAmericanSpaces}" id="asrProp">
+	        <apex:pieSeries id="propAmericanSpaces" dataField="percentage" labelField="typeStr" tips="true">
+			</apex:pieSeries>
+	        <apex:legend position="right"/>
+	    </apex:chart>
+		<apex:outputPanel rendered="{!$CurrentPage.parameters.drawData}">
+	    	<div style="text-align:right;width:470px"><a apexClass="AmericanSpaces_PropAmericanSpacesEXCEL" onclick="exportToExcel( this );"><img src="/img/icon/console24.png" />Export to Excel</a></div>
+	    </apex:outputPanel>
+	   	<apex:pageBlockTable id="postCont" value="{!proportionOfAmericanSpaces}" var="pas" rowClasses="odd,even" styleClass="tableClass" rendered="{!$CurrentPage.parameters.drawData}">
+			<apex:column >
+				<apex:facet name="header">Region</apex:facet>
+				<apex:outputText value="{!pas.typeStr}" />
+			</apex:column>
+		
+			<apex:column >
+				<apex:facet name="header">Detail Information</apex:facet>
+				{!pas.percentage}% ({!pas.total})
+			</apex:column>
+		</apex:pageBlockTable>
+		<div>
+			<apex:repeat value="{!proportionOfAmericanSpaces}" var="pass" rendered="{!IF($CurrentPage.parameters.drawData == 'false', true, false )}">
+				{!pass.typeStr}-{!pass.percentage}% ({!pass.total})&nbsp;&nbsp;
+			</apex:repeat>
+		</div>
+	</apex:pageBlock>
+</apex:page>

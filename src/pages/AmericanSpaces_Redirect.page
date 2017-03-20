@@ -1,0 +1,5 @@
+<apex:page >
+<script type="text/javascript">
+    window.location = "https://iipstate.my.salesforce.com/secur/login_portal.jsp?orgId=00Dr00000000o81&portalId=060a0000000Ekbb";
+</script>
+</apex:page>

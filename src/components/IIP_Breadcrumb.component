@@ -1,0 +1,11 @@
+<apex:component >
+  <ul class="asset-breadcrumb">
+      <li>Information</li>
+      <li>Content</li>
+      <li>Social Networking</li>
+      <li>Meta Data</li>
+      <li>Links</li>
+      <li>Photos</li>
+      <div style="clear:both"></div>
+  </ul>
+</apex:component>

@@ -1,0 +1,134 @@
+<apex:page id="myPage" standardController="CMS_Milestone__c" extensions="CMS_MilestoneController" sidebar="false" tabStyle="CMS_Projects__tab">
+	<apex:includeScript value="{!URLFOR($Resource.jQueryLibrary, 'jquery-1.8.3.js')}"/>
+    <script src="/soap/ajax/9.0/connection.js" type="text/javascript"></script>
+    <script language="JavaScript1.2" src="/js/functions.js"></script>
+    
+    <script type="text/javascript">
+        j$ = $.noConflict();
+        
+        j$(document).ready(function ()
+        {   
+            j$( '.ptBody' ).append( '<div style="float:right;margin-top:30px;margin-right:10px;"><a href="/{!CMS_Milestone__c.CMS_Projects__r.id}">back to {!CMS_Milestone__c.CMS_Projects__r.name}</a></div>' );
+            
+            twistSection( document.getElementById( 'myPage:myForm:pageBlock:archived' ).childNodes[0].childNodes[0] );
+        });
+    </script>
+    
+	<apex:sectionHeader title="Project - {!CMS_Milestone__c.CMS_Projects__r.name}" />
+    <apex:form id="myForm">
+        <apex:pageMessages id="errMessages" />
+        <apex:pageBlock id="pageBlock" title="CMS Milestone View" mode="view">
+            <apex:pageblockButtons >
+                <apex:commandButton action="{!edit}"   value="Edit" rendered="{!isEditable || !IF(CMS_Milestone__c.Lead__c == $User.Id,false,true)}" />
+                <apex:commandButton action="{!delete}" value="Delete" onclick="return confirm('Are you sure?');" rendered="{!isEditable || !IF(CMS_Milestone__c.Lead__c == $User.Id,false,true)}" />
+            </apex:pageblockButtons>
+            <apex:pageBlockSection id="project" showHeader="true" title="Milestone Details" columns="1">
+                <apex:outputField value="{!CMS_Milestone__c.Name}" />
+                <apex:outputField value="{!CMS_Milestone__c.Start_Date__c}" />
+                <apex:outputField value="{!CMS_Milestone__c.Due_Date__c}" />
+                <apex:outputField Label="Lead" value="{!CMS_Milestone__c.Lead__r.name}" />
+                <apex:outputField value="{!CMS_Milestone__c.Anticipated_Hours__c}" />
+                <apex:inputHidden value="{!CMS_Milestone__c.CMS_Projects__r.Project_Type__c}" />
+            </apex:pageBlockSection>
+            
+            <apex:pageBlockSection showHeader="true" title="Milestones Details" columns="1">
+				<apex:pageBlockTable value="{!tasks}" var="taskObj" rowClasses="odd,even" styleClass="tableClass" >
+					<apex:column rendered="{!om}">
+		                <apex:facet name="header">Action</apex:facet>
+		                <apex:commandLink value="Archive" action="{!archiveTask}">
+							<apex:param name="picNumber" value="{!taskObj.task.id}" assignTo="{!taskID}" />
+						</apex:commandLink>
+		            </apex:column>
+	    			<apex:column >
+		                <apex:facet name="header">Name</apex:facet>
+		                <apex:outputField value="{!taskObj.task.Name}" />
+		            </apex:column>
+		            <apex:column >
+		                <apex:facet name="header">Functional Role</apex:facet>
+		                <apex:outputField value="{!taskObj.task.Functional_Roles__c}" />
+		            </apex:column>
+	    			<apex:column >
+		                <apex:facet name="header">Start Date</apex:facet>
+		                <apex:outputField value="{!taskObj.task.Start_Date__c}" />
+		            </apex:column>
+		            <apex:column >
+		                <apex:facet name="header">Due Date</apex:facet>
+		                <apex:outputField value="{!taskObj.task.Due_Date__c}" />
+		            </apex:column>
+		            <apex:column >
+		                <apex:facet name="header">Assigned Users</apex:facet>
+		                <apex:outputField value="{!taskObj.task.Assigned_Users__c}" />
+		            </apex:column>
+		            <apex:column >
+		                <apex:facet name="header">Anticipated Hours</apex:facet>
+		                <apex:outputField value="{!taskObj.task.Anticipated_Hours__c}" />
+		            </apex:column>
+		            <apex:column >
+		                <apex:facet name="header">Hours Spent</apex:facet>
+		                <apex:outputField value="{!taskObj.task.Hours_Spent__c}" />
+		            </apex:column>
+		            <apex:column >
+		                <apex:facet name="header">Percentage</apex:facet>
+		                <apex:outputField value="{!taskObj.task.Percentage__c}" rendered="{!taskObj.task.Override_Percentage__c == null}" />
+		                <apex:outputField value="{!taskObj.task.Override_Percentage__c}" rendered="{!taskObj.task.Override_Percentage__c != null}" />
+		            </apex:column>
+		            <apex:column >
+		                <apex:facet name="header">Completed Date</apex:facet>
+		                <apex:outputField value="{!taskObj.task.Completed_Date__c}" rendered="{!taskObj.task.Override_Completed_Date__c == null}" />
+		                <apex:outputField value="{!taskObj.task.Override_Completed_Date__c}" rendered="{!taskObj.task.Override_Completed_Date__c != null}" />
+		            </apex:column>
+	    		</apex:pageBlockTable>
+			</apex:pageBlockSection>
+			
+			<apex:pageBlockSection id="archived" showHeader="true" title="Archived Milestones Details" columns="1" rendered="{!om}">
+				<apex:pageBlockTable value="{!archivedTasks}" var="taskObj" rowClasses="odd,even" styleClass="tableClass" >
+					<apex:column >
+		                <apex:facet name="header">Action</apex:facet>
+		                <apex:commandLink value="Unarchive" action="{!unarchiveTask}">
+							<apex:param name="picNumber" value="{!taskObj.task.id}" assignTo="{!taskID}" />
+						</apex:commandLink>
+		            </apex:column>
+	    			<apex:column >
+		                <apex:facet name="header">Name</apex:facet>
+		                <apex:outputField value="{!taskObj.task.Name}" />
+		            </apex:column>
+		            <apex:column >
+		                <apex:facet name="header">Functional Role</apex:facet>
+		                <apex:outputField value="{!taskObj.task.Functional_Roles__c}" />
+		            </apex:column>
+	    			<apex:column >
+		                <apex:facet name="header">Start Date</apex:facet>
+		                <apex:outputField value="{!taskObj.task.Start_Date__c}" />
+		            </apex:column>
+		            <apex:column >
+		                <apex:facet name="header">Due Date</apex:facet>
+		                <apex:outputField value="{!taskObj.task.Due_Date__c}" />
+		            </apex:column>
+		            <apex:column >
+		                <apex:facet name="header">Assigned Users</apex:facet>
+		                <apex:outputField value="{!taskObj.task.Assigned_Users__c}" />
+		            </apex:column>
+		            <apex:column >
+		                <apex:facet name="header">Anticipated Hours</apex:facet>
+		                <apex:outputField value="{!taskObj.task.Anticipated_Hours__c}" />
+		            </apex:column>
+		            <apex:column >
+		                <apex:facet name="header">Hours Spent</apex:facet>
+		                <apex:outputField value="{!taskObj.task.Hours_Spent__c}" />
+		            </apex:column>
+		            <apex:column >
+		                <apex:facet name="header">Percentage</apex:facet>
+		                <apex:outputField value="{!taskObj.task.Percentage__c}" rendered="{!taskObj.task.Override_Percentage__c == null}" />
+		                <apex:outputField value="{!taskObj.task.Override_Percentage__c}" rendered="{!taskObj.task.Override_Percentage__c != null}" />
+		            </apex:column>
+		            <apex:column >
+		                <apex:facet name="header">Completed Date</apex:facet>
+		                <apex:outputField value="{!taskObj.task.Completed_Date__c}" rendered="{!taskObj.task.Override_Completed_Date__c == null}" />
+		                <apex:outputField value="{!taskObj.task.Override_Completed_Date__c}" rendered="{!taskObj.task.Override_Completed_Date__c != null}" />
+		            </apex:column>
+	    		</apex:pageBlockTable>
+			</apex:pageBlockSection>
+			
+        </apex:pageBlock>
+    </apex:form>
+</apex:page>

@@ -1,0 +1,11 @@
+<apex:page standardController="Digital_Asset__c" extensions="DA_PublishArticle">
+  <apex:messages />
+  <apex:form >
+        <apex:pageBlock title="Hello {!$User.FirstName}!">
+            You are about to publish {!Digital_Asset__c.Name} <br/>
+            Slug ID: {!Digital_Asset__c.name} to the live site. <p/>
+            Are you sure?: <p/> 
+            <apex:commandButton action="{!publish}" value="YES, PUBLISH!"/>
+        </apex:pageBlock>
+   </apex:form>
+</apex:page>

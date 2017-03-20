@@ -1,0 +1,156 @@
+<apex:page showHeader="false">
+  <script src="../../soap/ajax/23.0/connection.js" type="text/javascript"></script>
+  <apex:includeScript value="{!URLFOR($Resource.publishing_system_resources, 'publishing_system_resources/jquery.js')}"/>
+  <apex:includeScript value="{!URLFOR($Resource.tablesorter, 'jquery.tablesorter.min.js')}"/>
+  <apex:stylesheet value="{!URLFOR($Resource.tablesorter, 'themes/blue/style.css')}"/>
+
+  <script type="text/javascript">
+      var j = jQuery.noConflict();
+      
+    
+      
+      j(document).ready(function () {
+          
+          
+          
+          var hiddenValue = j(opener.document).find("textarea.tocHidden").val();
+          var headline = j(opener.document).find("input.headlineField").val();
+          var assetRecordId = j(opener.document).find("[id$=assetRecordId]").val();
+          /* commented out and replaced with search on id
+	          headline = headline.replace(/'/g, "\\'");
+	          headline = headline.replace(/\"/g, '\\"');
+	
+	          sforce.connection.sessionId = "{!$Api.Session_ID}";          
+	          var result = sforce.connection.query("SELECT d.Id FROM Digital_Asset__c d WHERE d.Name = '" + headline + "'");
+	          var records = result.getArray("records");
+	          var headlineId;
+	          for(i=0; i < records.length; i++){
+	              headlineId = records[i].Id;
+	          }
+          */
+          //var slugIdArray = hiddenValue.split("##");
+          
+          sforce.connection.sessionId = "{!$Api.Session_ID}";
+          //var result = sforce.connection.query("SELECT d.Name, d.ToC_Blurb__c, d.Slug_ID__c, d.ToC_SubHeading__c FROM Digital_Asset__c d WHERE d.Publication_Title__c = '" + headlineId + "'");
+          var result = sforce.connection.query("SELECT d.Name, d.ToC_Blurb__c, d.Slug_ID__c, d.ToC_SubHeading__c FROM Digital_Asset__c d WHERE d.Publication_Title__c = '" + assetRecordId + "'");
+          var records = result.getArray("records");
+          
+          //added 25-Oct-2013 for preserving sorting of fetched chapters
+          var TOCresult = sforce.connection.query("SELECT d.Id, d.Name, d.ToC_Hidden__c FROM Digital_Asset__c d WHERE d.Id = '" + assetRecordId + "'");
+          var TOCrecords = TOCresult.getArray("records");
+          //console.log('the tocrecord...' + TOCrecords);
+          var TOCHiddenString = "";
+          for(i=0; i< TOCrecords.length; i++)
+          {
+          	//console.log('the tochidden field is... ' + TOCrecords[i].ToC_Hidden__c);
+          	TOCHiddenString = TOCrecords[i].ToC_Hidden__c;
+          }
+          //console.log('the tochidden string...' + TOCHiddenString);
+          
+          
+          var TOCHiddenArray = TOCHiddenString.split("##");
+          //console.log('the tochidden array...' + TOCHiddenArray);
+        
+		  
+          for(x=0; x < TOCHiddenArray.length; x++)
+          {
+	          for(i=0; i < records.length; i++){
+	              if( TOCHiddenArray[x] == records[i].Slug_ID__c)
+	              {
+		              var order = x+1;
+		              //var order = TOCHiddenArray.indexOf(records[i].Slug_ID__c)+1;
+		              var toAppend = '<tr>' + 
+		                                  '<td class="order dataRow" ><input type="text" value="' + order + '" /></td>' +
+		                                  '<td class="subhead dataRow" WIDTH="10%">' + records[i].ToC_SubHeading__c + '</td>' + 
+		                                  '<td class="name dataRow">' + records[i].Name + '</td>' + 
+		                                  '<td class="blurb dataRow" WIDTH="10%">' + records[i].ToC_Blurb__c + '</td>' + 
+		                                  '<td class="slugid dataRow" WIDTH="10%">' + records[i].Slug_ID__c + '</td>' + 
+		                             '</tr>';
+		              
+		              j('#resultsBody').append(toAppend);
+	              }
+	          }
+          }
+          
+          
+          
+          j(".commitChanges").click(function(){
+              //modified 25-Oct-2013 to handle user entering same order number more than once
+              var newOrderArray = [];
+              var tempOrderArray =[];
+              var tempOrder = "";
+              j("#resultsBody tr").each(function(){
+              	  //console.log('the array each...' + j(this).find("td.slugid").text());
+              	  tempOrder = j(this).find("td.order input").val();
+              	  if( j.inArray(tempOrder, tempOrderArray) == -1 )
+              	  {
+              	  	tempOrderArray.push( j(this).find("td.order input").val() );
+              	  	//console.log('the temp array...' + tempOrderArray);
+                    newOrderArray[j(this).find("td.order input").val() - 1] = j(this).find("td.slugid").text();
+              	  }
+              	  else //someone put in the same number twice or more so put it at the end
+              	  {
+              	    newOrderArray[newOrderArray.length+1] = j(this).find("td.slugid").text();
+              	  }
+              	  
+              });
+			  //console.log('the array...' + newOrderArray);
+              var newOrder = "";
+              for(i = 0; i < newOrderArray.length; i++) {
+                  if (newOrderArray[i] != undefined) {
+                      newOrder = newOrder + newOrderArray[i] + "##";
+                  }
+              }
+              //console.log('before slice...' + newOrder);
+              newOrder = newOrder.slice(0, -2);
+			  //console.log('after slice...' + newOrder);
+              j(opener.document).find("textarea.tocHidden").val(newOrder);
+              alert("Please wait for the page to refresh to view changes.");
+              j(opener.document).find("input.applyButton").click();
+
+              self.close();
+          });
+          
+        //custom sorter for input field
+		j.tablesorter.addParser({
+                                id: 'hello',
+                                is: function(s) {
+                                    return false;
+                                },
+                                format: function(s, table, cell) {
+                                	//j("[id$=results]").trigger('update');
+                                    return j('input', cell).val();
+                                },
+                                type: 'text'
+                            });
+                            
+		//need this to clear tablesorter cache when input changes
+		j(".order").change(function() {
+		j("[id$=results]").trigger("update"); 
+		});
+
+		//tablesorter initialization needs to use custom sorter for input field
+        j("[id$=results]").tablesorter({
+                  theme: 'blue',
+                  headers: {
+		            0: {
+		                sorter: 'hello'
+		            }
+		        }
+              });
+
+      });
+      
+  </script>
+
+    <button class="commitChanges">Commit Changes</button>
+<br/><br/>
+  <table id="results" border="1" class="tablesorter">
+  	<thead class="rich-table-thead">
+  	<tr class="headerRow">
+      <th class="header" colspan="1" scope="col" >Order</th><th class="header" colspan="1" scope="col">Subhead</th><th class="header" colspan="1" scope="col">Title</th><th colspan="1" scope="col">TOC Blurb</th><th class="header" colspan="1" scope="col">Slug ID</th></tr></thead>
+      <tbody id="resultsBody"></tbody>
+  </table>
+  
+  
+</apex:page>

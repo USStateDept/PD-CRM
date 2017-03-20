@@ -1,0 +1,182 @@
+<apex:page id="myPage" title="Help Request List View" showHeader="true" sidebar="false" controller="CONX_HelpController" tabStyle="CONX_Help_Requests__tab">
+    <apex:includeScript value="{!URLFOR($Resource.jQueryLibrary, 'jquery-1.8.3.js')}"/>
+    <apex:includeScript value="{!URLFOR($Resource.jQueryLibrary, 'jquery-ui-1.9.2.custom.js')}"/>
+    <apex:includeScript value="{!URLFOR($Resource.jQueryLibrary, 'jquery.ui.autocomplete.js')}"/>
+    <apex:includeScript value="{!URLFOR($Resource.jQueryLibrary, 'jquery.timePicker.js')}" />
+    <apex:stylesheet value="{!URLFOR($Resource.jQueryLibrary, 'timePicker.css')}" />
+    <apex:stylesheet value="{!URLFOR($Resource.jQueryLibrary, 'jquery-ui.css')}"/>
+    <script src="/soap/ajax/9.0/connection.js" type="text/javascript"></script>
+    <script language="JavaScript1.2" src="/js/functions.js"></script>
+    
+    <script type="text/javascript">  
+        j$ = $.noConflict();
+        
+        j$(document).ready(function ()
+        {
+        	config();
+        	
+            var list= '{!conxUsers}'.split(";");
+            
+            j$( '.user' ).autocomplete({
+                source: list
+            });
+    
+    		var select = document.getElementById( "status" );
+    		var options = '{!listOfStatus}'.split( ";" );
+    		
+			for (var i = 0; i < options.length; i++)
+			{
+			    var opt = options[i];
+			    
+			    if (opt.length > 0)
+			    {
+				    var el = document.createElement("option");
+				    el.value     = opt;
+ 					el.innerHTML = opt;
+				    select.appendChild(el);
+			    }
+			}
+			    
+    		j$( '#status' ).val( '{!status}' );
+        });
+        
+        function config()
+        {
+            var sortBy = j$( '[id="myPage:pageBlock:myForm:filter:sortBy" ]' ).val();
+            var ascOrDesc = j$( '[id="myPage:pageBlock:myForm:filter:ascOrDesc" ]' ).val();
+
+            if (sortBy != null && sortBy.length > 0)
+            {
+                applySortArrow( j$( "." + sortBy ), ascOrDesc );
+            }
+            //twistSection( document.getElementById( 'myPage:pageBlock:myForm:filter' ).childNodes[0].childNodes[0] );
+            
+            j$( '[id="myPage:pageBlock:myForm:filter"]' ).css( "width", "720px" );
+            
+            j$( 'th.headerRow' ).click( function() {
+                var sortBy = j$( this ).attr( "class" );
+                var sortBy = sortBy.replace( "headerRow ", "" ); 
+                var sortBy = j$.trim( sortBy );
+                
+                if (sortBy != "")
+                {
+                    var orderInfo = j$( '[id="myPage:pageBlock:myForm:filter:ascOrDesc" ]' ).val();
+                    
+                    j$( '[id="myPage:pageBlock:myForm:filter:ascOrDesc" ]' ).val( orderOption( orderInfo ));    
+                    j$( '[id="myPage:pageBlock:myForm:filter:sortBy" ]' ).val( sortBy );
+                
+                    j$( '[id="myPage:pageBlock:myForm:filter:filterBtn" ]' ).click();
+                }
+            });
+        }
+        
+        
+        function setFocusOnLoad() {} 
+        
+        
+        function orderOption( ascOrDesc )
+        {
+            if (ascOrDesc == ' asc')
+                return ' desc';
+            else
+                return ' asc';
+        }
+        
+        
+        function applySortArrow( element, sort )
+        {
+            j$( element ).children().addClass( "asc" );
+                    
+            if (sort == ' asc')
+            {
+                j$( element ).children().append( " ↑" ); 
+            }
+            else
+            {
+                j$( element ).children().append( " ↓" );
+            }
+        }
+    </script>
+    
+    <apex:pageBlock title="" id="pageBlock">
+    	<apex:messages />
+        <apex:form id="myForm">
+        	<apex:pageBlockSection id="filter" showHeader="true" title="Filter" columns="2" collapsible="true">
+        		<apex:inputText label="Ticket Number" value="{!ticketNumber}" />
+	            <apex:inputField value="{!filter.Priority__c}" />
+	            <apex:inputField value="{!filter.Status__c}" />
+	            <apex:inputText style="user" label="Owner Name" value="{!owner}" />
+	            <apex:inputField value="{!filter.Requestor_Last_Name__c}" />
+	            <apex:inputField value="{!filter.Requestor_First_Name__c}" />
+	            <apex:inputField value="{!filter.Subject__c}" />
+	            <apex:inputField label="Date/Time Opened" value="{!filter.Date_of_Help_Request__c}" />
+            	
+	            <apex:commandButton action="{!refresh}" value="Filter" id="filterBtn" style="margin-left:200px;"/>
+	            <apex:inputText value="{!columnName}" style="visibility:hidden;height:0px;;width:0px" id="sortBy" />
+            	<apex:inputText value="{!ascOrDesc}" style="visibility:hidden;height:0px;;width:0px" id="ascOrDesc" />
+        	</apex:pageBlockSection>
+        	
+            <apex:commandButton action="{!create}" value="New Ticket" style="margin-right:10px" />
+            <br/><br/>
+            <apex:commandButton action="{!close}" value="Close" style="margin-right:10px" />
+            <apex:inputText styleClass="user" value="{!assignedTo}" /> <apex:commandButton action="{!changeOwner}" value="Change Owner" style="margin-right:10px" />
+            <select id="status" onchange="j$( '.status' ).val( j$(this).val() );"><option value=""></option></select> <apex:commandButton action="{!changeStatus}" value="Change Status" style="margin-right:10px" />
+            <apex:inputText styleClass="status" value="{!status}" style="visibility:hidden" />
+            
+        <apex:pageBlockTable id="helpInfo" value="{!HelpRequest}" var="help" rowClasses="odd,even" styleClass="tableClass">
+            <apex:column id="checkBox">
+                <apex:facet name="header"><input type="checkbox" onclick="if ( this.checked ){ j$('.checkBox' ).prop('checked', true);}else{ j$('.checkBox' ).prop('checked', false); }" /></apex:facet>
+                <apex:inputCheckbox styleClass="checkBox" value="{!help.checked}"/>
+            </apex:column>
+  			
+  			<apex:column headerClass="Name" >
+                <apex:facet name="header">Action</apex:facet>
+                 <apex:outputLink value="../apex/CONX_HelpView?id={!help.helpRequest.id}">View</apex:outputLink>&nbsp;
+                 <apex:outputLink value="../apex/CONX_HelpEdit?id={!help.helpRequest.id}&prevPage=listView">Edit</apex:outputLink>
+            </apex:column>
+  			
+            <apex:column headerClass="Name" >
+                <apex:facet name="header">Ticket Number</apex:facet>
+                 <apex:outputText value="{!help.helpRequest.name}"/>
+            </apex:column>
+            
+            <apex:column headerClass="Priority__c" >
+                <apex:facet name="header">Priority</apex:facet>
+                <apex:outputText value="{!help.helpRequest.Priority__c}"/>
+            </apex:column>
+            
+            <apex:column headerClass="Status__c" >
+                <apex:facet name="header">Status</apex:facet>
+                <apex:outputText value="{!help.helpRequest.Status__c}"/>
+            </apex:column>
+            
+            <apex:column headerClass="ownerID" >
+                <apex:facet name="header">Owner Name</apex:facet>
+                <apex:outputField value="{!help.helpRequest.owner.Name}"/>
+            </apex:column>
+            
+            <apex:column headerClass="Requestor_Last_Name__c" >
+                <apex:facet name="header">Requestor Last Name</apex:facet>
+                <apex:outputText value="{!help.helpRequest.Requestor_Last_Name__c}"/>
+            </apex:column>
+            
+            <apex:column headerClass="Requestor_First_Name__c" >
+                <apex:facet name="header">Requestor First Name</apex:facet>
+                <apex:outputText value="{!help.helpRequest.Requestor_First_Name__c}"/>
+            </apex:column>
+            
+            <apex:column headerClass="Subject__c" >
+                <apex:facet name="header">Subject</apex:facet>
+                <apex:outputText value="{!help.helpRequest.Subject__c}"/>
+            </apex:column>
+            
+            <apex:column headerClass="Date_of_Help_Request__c" >
+                <apex:facet name="header">Date/Time Opened</apex:facet>
+                <apex:outputText value="{0,date,MM'/'dd'/'yyyy}">
+                    <apex:param value="{!help.helpRequest.Date_of_Help_Request__c}" /> 
+                </apex:outputText>
+            </apex:column>
+        </apex:pageBlockTable>
+        </apex:form>
+    </apex:pageBlock>
+</apex:page>

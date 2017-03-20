@@ -1,0 +1,238 @@
+<apex:page id="page" title="Edit IRO Contact" showHeader="true" sidebar="false" standardController="IRO_Contacts__c" extensions="AmericanSpacesIROContacts">
+<apex:sectionHeader title="{!$ObjectType.IRO_Contacts__c.label}" subtitle="{!IRO_Contacts__c.Name}" />
+ <apex:form id="myForm">
+    <apex:messages style="padding:5px;margin-top:55px" />
+    <apex:includeScript value="{!URLFOR($Resource.jQueryLibrary, 'jquery-1.8.3.js')}"/>
+    <apex:includeScript value="{!URLFOR($Resource.jQueryLibrary, 'jquery-ui-1.9.2.custom.js')}"/>
+    <apex:includeScript value="{!URLFOR($Resource.jQueryLibrary, 'jquery.ui.autocomplete.js')}"/>
+    <apex:stylesheet value="{!URLFOR($Resource.jQueryLibrary, 'jquery-ui.css')}"/>
+    <script src="/soap/ajax/26.0/connection.js"></script>
+    <script language="JavaScript1.2" src="/js/functions.js"></script>
+    <script type="text/javascript">
+        j$ = $.noConflict(); 
+
+        j$(document).ready(function ()
+        {
+            if (!{!isModifiable})
+            {
+                j$( '[id="page:myForm"]'  + " :input").attr( "disabled", true );
+                j$( '.pbButtonb' ).text( "" );
+                j$( '.pbButton' ).text( "" );
+                alert( "Users can only modify Spaces that are part of their portfolio. This Space isn't part of your assigned portfolio." );
+               
+                history.back();
+            }
+            
+            var details = [];
+            sforce.connection.sessionId = "{!$Api.Session_ID}";
+            result = sforce.connection.query( "SELECT id, Region__c, name, Country__c FROM American_Spaces_Post_Contacts__c" );
+            records = result.getArray( "records" );
+            
+            for (var i=0; i< records.length; i++)
+            {
+                var info = {};
+                
+                var label = records[i].Name + " (" + records[i].Region__c + " - " +  records[i].Country__c + ")";
+                
+                info.label = label;
+                info.value = records[i].Id;
+                details[i] = info;
+            }
+
+            j$( '[id="page:myForm:pageBlock:IRO:postCityBlock:homePost"]' ).autocomplete({
+                source: details,
+                select: function( event, ui ) {
+                    var postName = ui.item.label;
+                    
+                    j$( '[id="page:myForm:pageBlock:IRO:postCityID"]' ).val( ui.item.value );
+                    
+                    postName = postName.substring( 0, postName.indexOf(' ('));
+                    j$( '[id="page:myForm:pageBlock:IRO:postCityBlock:homePost"]' ).val( postName );
+                    
+                    changeCountry( ui.item.value );
+                    return false;
+                }
+            });
+            
+            if ( j$( '[id="page:myForm:pageBlock:IRO:postCityID"]' ) != null)
+            {
+                changeCountry( j$( '[id="page:myForm:pageBlock:IRO:postCityID"]' ).val() );
+            }
+            
+            if ( j$( '[id="page:myForm:pageBlock:IRO:portfolioVal"]' ) != null)
+            {
+                putPortfolio( j$( '[id="page:myForm:pageBlock:IRO:portfolioVal"]' ) );
+            }
+            
+            //j$( '[id="page:myForm:pageBlock:IRO:portfolioVal"]' ).closest('td').prev('td').find('span').hide();
+        });
+        
+        function changeCountry( id )
+        {   
+            if (id != undefined && id.length > 0)
+            {
+                sforce.connection.sessionId = "{!$Api.Session_ID}";
+                var result = sforce.connection.query( "SELECT Country__c, Region__c FROM American_Spaces_Post_Contacts__c WHERE id = '" + id + "' limit 1" );
+                var records = result.getArray( "records" );
+                
+                if (records.length > 0)
+                {
+                    var region = records[0].Region__c;
+                    
+                    j$( '[id="page:myForm:pageBlock:IRO:country"]' ).text( records[0].Country__c );
+                    j$( '[id="page:myForm:pageBlock:IRO:region"]' ).text( records[0].Region__c );
+                    
+                    var s= document.getElementById( 'portfolio' );
+        
+                    while( s.length > 0)
+                    {
+                        s.remove( 0 );
+                    }
+                    
+                    if (region == 'IIP')
+                    {
+                        var result = sforce.connection.queryAll( "SELECT Country__c FROM American_Spaces_Post_Contacts__c ORDER BY Country__c" );   
+                    }
+                    else
+                    {
+                        var result = sforce.connection.queryAll( "SELECT Country__c FROM American_Spaces_Post_Contacts__c WHERE Region__c = '" + region + "' ORDER BY Country__c" );    
+                    }
+                    
+                    var records = result.getArray( "records" );
+                    
+                    var countries =[];
+                    
+                    for (var i=0; i< records.length; i++)
+                    {
+                        var country = records[i].Country__c;
+                        countries.push( country );
+                    }
+                    
+                    if (region == 'IIP') 
+                    {
+                        countries.push( 'FSI' );
+                        countries.sort();
+                    }
+                    
+                    for (var i=0; i< countries.length; i++)
+                    {
+                        if (j$( '#portfolio option[value="' + countries[i] +'"]' ).length == 0)
+                        {
+                            s.options[s.options.length] = new Option( countries[i], countries[i] );
+                        }
+                    }
+                }
+            }
+        }
+        
+        function capturePortfolio( select )
+        {
+            var selectedItems = "";
+            
+            for (var i = 0; i < select.options.length; i++)
+            {
+                if (select.options[i].selected)
+                {
+                    selectedItems = selectedItems + select.options[i].value + ",";
+                }
+            }
+            
+            selectedItems = selectedItems.substring(0, selectedItems.length - 1);
+            j$( '[id="page:myForm:pageBlock:IRO:portfolioVal"]' ).val( selectedItems );
+        }
+        
+        function putPortfolio( list )
+        {
+            if (j$( list ).val() != undefined && j$( list ).val().length > 0)
+            {
+                var select = document.getElementById( 'portfolio' );
+                
+                j$( '#portfolio > option' ).each( function() {
+                    if (list.val().indexOf( j$( this ).val() ) != -1)
+                    {
+                        j$( this ).attr("selected", "selected");
+                    }
+                });
+            }
+        }
+    </script>
+    
+    <apex:pageBlock id="pageBlock" title="{!$ObjectType.IRO_Contacts__c.label} Edit" mode="edit">
+        <apex:pageBlockButtons id="buttons">
+            <apex:commandButton action="{!save}" value="Save"/>
+            <apex:commandButton action="{!cancel}" value="Cancel"/>
+        </apex:pageBlockButtons>
+        
+        <apex:pageBlockSection id="IRO" showHeader="true" title="IRO Information" columns="2">
+            <apex:inputField value="{!IRO_Contacts__c.First_Name__c}" id="firstName" />
+            <apex:inputField value="{!IRO_Contacts__c.Status__c}" />
+            <apex:inputField value="{!IRO_Contacts__c.Middle_Name__c}" />
+            <apex:inputField value="{!IRO_Contacts__c.Email_1__c}" />
+            <apex:inputField value="{!IRO_Contacts__c.Last_Name__c}" id="lastName" />
+            <apex:inputField value="{!IRO_Contacts__c.Email_2__c}" />
+            <apex:inputField value="{!IRO_Contacts__c.Salutation__c}" />
+            <apex:inputField value="{!IRO_Contacts__c.Email_3__c}" />
+            <apex:outputField id="region" value="{!IRO_Contacts__c.Region__c}" />
+            <apex:inputField value="{!IRO_Contacts__c.Phone_1__c}" />
+            <apex:pageBlockSectionItem id="postCityBlock">
+                <apex:outputLabel value="Home Post" for="homePost"/>
+                <apex:outputPanel styleClass="requiredInput" layout="block">
+                    <apex:outputPanel styleClass="requiredBlock" layout="block"/>
+                    <apex:inputText label="American Spaces" id="homePost" value="{!postName}" required="true" onchange="changeCountry( this )"  />
+                </apex:outputPanel>
+            </apex:pageBlockSectionItem>
+            <apex:inputField value="{!IRO_Contacts__c.Phone_2__c}" />
+            <apex:pageBlockSectionItem >
+                <table width="100%">
+                    <tr>
+                        <td class="labelCol" width="40%"><label>Portfolio</label></td>
+                        <td class="dataCol ">
+                            <select id="portfolio" multiple="multiple" size="5" onChange="capturePortfolio( this );">
+                            </select>
+                        </td>
+                    </tr>
+                </table>
+            </apex:pageBlockSectionItem>    
+            <apex:inputField value="{!IRO_Contacts__c.Phone_3__c}" />
+            <apex:outputField id="country" value="{!IRO_Contacts__c.Country__c}" />
+            <apex:inputField id="portfolioVal" label="" value="{!IRO_Contacts__c.Portfolio__c}" style="visibility:hidden;" />
+            &nbsp;
+            <apex:inputText id="postCityID" value="{!postId}" style="visibility:hidden" />
+        </apex:pageBlockSection>
+        
+        <apex:pageBlockSection id="attachment" showHeader="true" title="Notes & Attachments" columns="1">
+                    <apex:pageBlockSectionItem helpText="Upload Up to 3 images (JPG, PNG, GIF). Size limit of 300 KB per image. Click on the image thumbnail to see the full sized photo.">
+                        <apex:commandButton action="{!newAttachment}" value="New Attachment" />
+                        <span>&nbsp;</span>
+                    </apex:pageBlockSectionItem>
+                    <apex:outputPanel id="attachmentList">
+                    <apex:variable value="{!0}" var="rowNum" />
+                        <apex:repeat value="{!attachments}" var="attachment" >
+                            <apex:variable var="rowNum" value="{!rowNum + 1}"/>
+                            <apex:pageBlockSection columns="2"  title="Attachment {!attachment.attachment.Name}" collapsible="true">
+                                <apex:outputField value="{!attachment.information.Type_of_Document__c}" />
+                                <apex:outputPanel >
+                                <apex:outputPanel rendered="{!attachment.information.id != '' && (attachment.information.extension__c == 'jpg' || attachment.information.extension__c == 'png' || attachment.information.extension__c == 'gif')}">
+                                    <a href="../servlet/servlet.FileDownload?file={!attachment.attachment.id}" target="_blank"><img src="../servlet/servlet.FileDownload?file={!attachment.attachment.id}" width="50px" height="50px" /></a>
+                                </apex:outputPanel>
+                                <apex:outputPanel rendered="{!attachment.information.id != '' && attachment.information.extension__c != 'jpg' && attachment.information.extension__c != 'png' && attachment.information.extension__c != 'gif'}">
+                                    <a href="../servlet/servlet.FileDownload?file={!attachment.attachment.id}" target="_blank">Download the file</a>
+                                </apex:outputPanel>
+                                <apex:inputFile value="{!attachment.attachmentDetail}" filename="{!attachment.attachment.name}" id="file" rendered="{!attachment.attachment.id == ''}" />
+                                </apex:outputPanel>
+                                <apex:inputField value="{!attachment.information.Description__c}" />
+                                &nbsp;
+                                <apex:inputField value="{!attachment.information.Comments__c}" />
+                                &nbsp;
+                                <apex:inputField value="{!attachment.information.Date__c}" />
+                                &nbsp;
+                                <apex:commandLink value="Delete Attachment" action="{!deleteAttachment}" onclick="return confirm('Are you sure you want to delete?');">
+                                <apex:param name="picNumber" value="{!rowNum}" assignTo="{!attachmentNumber}" />
+                                </apex:commandLink>
+                             </apex:pageBlockSection>
+                        </apex:repeat>
+                    </apex:outputPanel>
+                </apex:pageBlockSection>
+    </apex:pageBlock>
+</apex:form> 
+</apex:page>

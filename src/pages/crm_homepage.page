@@ -1,0 +1,22 @@
+<apex:page >      
+    <script src="/soap/ajax/15.0/connection.js"></script>
+    <script>
+        function contacts_summary()
+        {
+            parent.document.location.href = "https://na1.salesforce.com/a0P?fcf=00B300000085FuF";
+        }
+        function addNew_contact()
+        {
+            parent.document.location.href = "https://na1.salesforce.com/a0P/e?retURL=%2Fa0P%3Ffcf%3D00B300000085FuF%26rolodexIndex%3D-1%26page%3D1"; 
+        }
+    </script>
+   <div style="padding-top:20px;">     
+        <a href="javascript:contacts_summary();">Contacts CRM Summary</a>
+        <br />
+        <br />
+        <a href="javascript:addNew_contact();">Add New CRM Contact</a>
+        <br />
+        <br />
+        <a href="javascript:alert('Coming Soon!');">CRM Contacts Reports</a>     
+   </div>     
+</apex:page>

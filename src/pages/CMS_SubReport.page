@@ -1,0 +1,222 @@
+<apex:page controller="CMS_ReportController" sidebar="false"  tabStyle="CMS_Projects_Report__tab">
+    <apex:sectionHeader title="CMS Project Report" subtitle="{!projectName}"/>
+    <apex:includeScript value="{!URLFOR($Resource.jQueryLibrary, 'jquery-1.8.3.js')}"/>
+    <script src="/soap/ajax/9.0/connection.js" type="text/javascript"></script>
+    <script language="JavaScript1.2" src="/js/functions.js"></script>
+    
+    <script type="text/javascript">
+        j$ = $.noConflict();
+        
+        j$(document).ready(function ()
+        {   
+            j$( '.projectTable' ).css( "width", "500px" );
+            j$( '.projectTable2' ).css( "width", "800px" );
+            
+            j$( '.ptBody' ).append( '<div style="float:right;margin-top:30px;margin-right:10px;"><a href="/apex/CMS_Resource_Report">back to the CMS Projects Report</a></div>' );
+        });
+    </script>
+    <style type="text/css">
+        .box
+        {
+            height: 11px; 
+            width:  11px;
+            text-align:center;
+            float:left;
+            margin-right:5px;
+        }
+        .circleBase2
+        {
+            border: 1px solid;
+            height: 10px;
+            width: 10px;
+            border-radius: 120px;
+            float:left;
+        }
+        .circleBase 
+        {
+            border: 1px solid;
+            height: 10px;
+            width: 10px;
+            border-radius: 120px;
+            float:right;
+        }
+
+    </style>
+    <apex:form >
+        <apex:pageBlock id="pageBlock" title="Functional Role and Milestones">
+            <apex:outPutPanel id="report" styleClass="data" style="width:400px;">
+                <apex:outPutPanel style="float:left;margin-right:20px">           
+                    <apex:chart name="hoursByProject3" height="400" width="600" data="{!resourcesByProject}" id="hoursByProject3" >
+                        <apex:axis type="Numeric" position="bottom" fields="percentage" title="Percentage of Resources" maximum="100" minimum="0" />
+                        <apex:axis type="Category" position="left" fields="objStr" title="Functional Roles"/>
+                        <apex:barSeries orientation="horizontal" axis="left" xField="percentage" yField="objStr"/>
+                    </apex:chart>
+                    
+                    <apex:pageBlockTable id="postCont" value="{!resourcesByProject}" var="pas" rowClasses="odd,even" styleClass="projectTable tableClass">
+                        <apex:column >
+                            <apex:facet name="header">
+                                <apex:commandLink action="{!sortResourceList}" value="Functional Role{!IF(sortExpressionRes=='name',IF(sortDirectionRes='asc','▼','▲'),'')}"> 
+                                    <apex:param value="name" name="column" assignTo="{!sortExpressionRes}" ></apex:param>
+                                </apex:commandLink>
+                            </apex:facet>
+                            <apex:outputText value="{!pas.objStr}" />
+                        </apex:column>
+                    
+                    <apex:column >
+                        <apex:facet name="header">
+                            <apex:commandLink action="{!sortResourceList}" value="Percent of Labor{!IF(sortExpressionRes=='Percentage',IF(sortDirectionRes='asc','▼','▲'),'')}"> 
+                                <apex:param value="Percentage" name="column" assignTo="{!sortExpressionRes}" ></apex:param>
+                            </apex:commandLink>
+                        </apex:facet>
+                        <apex:outputText value="{!pas.percentage}%" />
+                    </apex:column>
+                    
+                    <apex:column >
+                        <apex:facet name="header">
+                            <apex:commandLink action="{!sortResourceList}" value="Projected Hours{!IF(sortExpressionRes=='ProjectedHour',IF(sortDirectionRes='asc','▼','▲'),'')}"> 
+                                <apex:param value="ProjectedHour" name="column" assignTo="{!sortExpressionRes}" ></apex:param>
+                            </apex:commandLink>
+                        </apex:facet>
+                        <apex:outputText value="{!pas.anticipatedHours}" rendered="{!IF( pas.anticipatedHours != 0, true, false)}" />
+                        <apex:outputText value="N/A" rendered="{!IF( pas.anticipatedHours == 0, true, false)}" />
+                    </apex:column>
+                    
+                    <apex:column >
+                        <apex:facet name="header">
+                            <apex:commandLink action="{!sortResourceList}" value="Actual Hours{!IF(sortExpressionRes=='ActualHours',IF(sortDirectionRes='asc','▼','▲'),'')}"> 
+                                <apex:param value="ActualHours" name="column" assignTo="{!sortExpressionRes}" ></apex:param>
+                            </apex:commandLink>
+                        </apex:facet>
+                        <apex:facet name="header"></apex:facet>
+                        <apex:outputText value="{!pas.hours}" />
+                    </apex:column>
+                    
+                    <apex:column >
+                        <apex:facet name="header">
+                            <apex:commandLink action="{!sortResourceList}" value="Resources{!IF(sortExpressionRes=='Resources',IF(sortDirectionRes='asc','▼','▲'),'')}"> 
+                                <apex:param value="Resources" name="column" assignTo="{!sortExpressionRes}" ></apex:param>
+                            </apex:commandLink>
+                        </apex:facet>
+                        <apex:outputText value="{!pas.involvedPersonnel}" />
+                    </apex:column>
+                    
+                    <apex:column >
+                        <apex:facet name="header">
+                            <apex:commandLink action="{!sortResourceList}" value="Start Date{!IF(sortExpressionRes=='StartDate',IF(sortDirectionRes='asc','▼','▲'),'')}"> 
+                            <apex:param value="StartDate" name="column" assignTo="{!sortExpressionRes}" ></apex:param>
+                            </apex:commandLink>
+                        </apex:facet>
+                        <apex:outputText value="{0,date, MM'/'dd'/'yyyy}">
+                            <apex:param value="{!pas.startDate}" />
+                        </apex:outputText>
+                        
+                    </apex:column>
+                    
+                    <apex:column >
+                        <apex:facet name="header">
+                            <apex:commandLink action="{!sortResourceList}" value="Due Date{!IF(sortExpressionRes=='DueDate',IF(sortDirectionRes='asc','▼','▲'),'')}"> 
+                            <apex:param value="DueDate" name="column" assignTo="{!sortExpressionRes}" ></apex:param>
+                            </apex:commandLink>
+                        </apex:facet>
+                        <apex:outputText value="{0,date, MM'/'dd'/'yyyy}">
+                            <apex:param value="{!pas.dueDate}" />
+                        </apex:outputText>
+                    </apex:column>
+                    </apex:pageBlockTable>
+                </apex:outPutPanel>
+                
+                <apex:outPutPanel >
+                    <apex:chart height="400" width="800" data="{!data}">
+                        <apex:legend position="right"/>
+                        <apex:axis type="Category" position="left" fields="type"
+                            title="Milestone" grid="true"/>
+                        <apex:axis type="Category" position="right" fields="dueDate"
+                            title="Due Date"/>
+                        <apex:axis type="Numeric" position="bottom" fields="percentage" minimum="0" maximum="100"
+                            title="Percentage of Resources">
+                
+                        </apex:axis>
+                        <apex:barSeries orientation="horizontal" axis="bottom" yField="type" xField="percentage" showInLegend="false"  tips="false" 
+                                        colorSet="#787878" colorsProgressWithinSeries="true">
+                            <!--yField="type" xField="goalPercentage,percentage" title="Scheduled Percentage, Actual Percentage" -->
+                            <!--apex:chartTips height="20" width="120"/-->
+                        </apex:barSeries>
+                    </apex:chart>
+
+                    <apex:outputPanel layout="block">
+                        <div style="float:left; margin-right:12px;"><span style="font-weight:bold;">Key:</span></div>
+                        <div style="float:left; margin-right:12px;"><div class="circleBase2" style="background-color:#00FF00;"></div><span>On Schedule</span></div>
+                        <div style="float:left;margin-right:12px;"><div class="circleBase2" style="background-color: #FFFF00;float:left;"></div><span>Warning</span></div>
+                        <div style="margin-right:15px;"><div class="circleBase2" style="background-color: #FF0000;float:left;"></div><span>Past Due</span></div>
+                    </apex:outputPanel>
+                    <apex:pageBlockTable id="postCont2" value="{!data}" var="record" rowClasses="odd,even" styleClass="projectTable2 tableClass" style="float:left;">
+                        <apex:column >
+                            <apex:facet name="header">
+                                <apex:commandLink action="{!sortResourceList}" value="Milestone{!IF(sortExpressionMile=='name',IF(sortDirectionMile='asc','▼','▲'),'')}" > 
+                                    <apex:param value="name" name="column" assignTo="{!sortExpressionMile}" ></apex:param>
+                                </apex:commandLink>
+                            </apex:facet>
+                            <apex:outputText value="{!record.type}" />
+                            <div class="circleBase" style="{!record.style}" title="{!record.alt}"></div>
+                        </apex:column>
+                        
+                        <apex:column >
+                            <apex:facet name="header">
+                                <apex:commandLink action="{!sortResourceList}" value="Progress Percentage{!IF(sortExpressionMile=='Percentage',IF(sortDirectionMile='asc','▼','▲'),'')}" > 
+                                    <apex:param value="Percentage" name="column" assignTo="{!sortExpressionMile}" ></apex:param>
+                                </apex:commandLink>
+                            </apex:facet>
+                            <apex:outputText value="{!record.percentage}%" />
+                        </apex:column>
+                        
+                        <apex:column >
+                            <apex:facet name="header">
+                                <apex:commandLink action="{!sortResourceList}" value="Status{!IF(sortExpressionMile=='status',IF(sortDirectionMile='asc','▼','▲'),'')}" > 
+                                    <apex:param value="status" name="column" assignTo="{!sortExpressionMile}" ></apex:param>
+                                </apex:commandLink>
+                            </apex:facet>
+                            <apex:outputText value="{!record.status}" />
+                        </apex:column>
+                        
+                        <apex:column >
+                            <apex:facet name="header">
+                                <apex:commandLink action="{!sortResourceList}" value="Resources{!IF(sortExpressionMile=='Resources',IF(sortDirectionMile='asc','▼','▲'),'')}" > 
+                                    <apex:param value="Resources" name="column" assignTo="{!sortExpressionMile}" ></apex:param>
+                                </apex:commandLink>
+                            </apex:facet>
+                            <apex:outputText value="{!record.countOfRecords}" />
+                        </apex:column>
+                        
+                        <apex:column >
+                            <apex:facet name="header">
+                                <apex:commandLink action="{!sortResourceList}" value="Start Date{!IF(sortExpressionMile=='Start Date',IF(sortDirectionMile='asc','▼','▲'),'')}" id="assetSort3"> 
+                                <apex:param value="Start Date" name="column" assignTo="{!sortExpressionMile}" ></apex:param>
+                                </apex:commandLink>
+                            </apex:facet>
+                            <apex:outputText value="{!record.startDate}" />
+                        </apex:column>
+                        
+                        <apex:column >
+                            <apex:facet name="header">
+                                <apex:commandLink action="{!sortResourceList}" value="Due Date{!IF(sortExpressionMile=='Due Date',IF(sortDirectionMile='asc','▼','▲'),'')}" id="assetSort4"> 
+                                <apex:param value="Due Date" name="column" assignTo="{!sortExpressionMile}" ></apex:param>
+                                </apex:commandLink>
+                            </apex:facet>
+                            <apex:outputText value="{!record.dueDate}" />
+                        </apex:column>
+                        
+                        <apex:column >
+                            <apex:facet name="header">
+                                <apex:commandLink action="{!sortResourceList}" value="Completed Date{!IF(sortExpressionMile=='Completed Date',IF(sortDirectionMile='asc','▼','▲'),'')}" id="assetSort5"> 
+                                <apex:param value="Completed Date" name="column" assignTo="{!sortExpressionMile}" ></apex:param>
+                                </apex:commandLink>
+                            </apex:facet>
+                            <apex:outputText value="{!record.completedDate}" rendered="{!IF( record.completedDate != null, true, false)}" />
+                            <apex:outputText value="N/A" rendered="{!IF( record.completedDate == null, true, false)}" />
+                        </apex:column>
+                    </apex:pageBlockTable>
+                </apex:outPutPanel>  
+            </apex:outPutPanel>
+        </apex:pageBlock>
+    </apex:form>
+</apex:page>

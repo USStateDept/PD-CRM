@@ -1,0 +1,76 @@
+<apex:page id="myPage" controller="AmericanSpacesReport" showHeader="false">
+<script type="text/javascript">
+    document.onclick= function( event ) {
+        if ('{!$CurrentPage.parameters.drawData}' == 'true')
+        {
+            // No need to do anything...
+        }
+        else
+        {
+            window.open( "/apex/AmericanSpaces_Report?reportName=adminRegionType", "_top" );
+        }
+    };
+
+    j$(document).ready(function ()
+    {
+        j$( ".grandTotal" ).css( "background-color", "#E3E3D7" );
+        j$( ".grandTotal" ).css( "font-weight", "bold" );
+        j$( '[id="myPage:pageBlockForAdminRegionType:postInfo:GrandTotalheader"]' ).css( "background-color", "#E3E3D7" );
+        j$( '[id="myPage:pageBlockForAdminRegionType"]' ).css( "width", "800px" );
+    });
+</script>
+    <apex:pageBlock id="pageBlockForAdminRegionType">
+        <apex:chart data="{!adminRegionTypes}" width="500" height="400" id="adminRegionType">
+            <apex:legend position="right"/>
+            <apex:axis id="region" type="Category" position="bottom" fields="region" title="Region" />
+            <apex:axis id="regionRecordCount" type="Numeric" position="left" fields="infoResourceCenter,americanCenter,binationalCenter,americanCornor" title="Record Count" />
+            <apex:barSeries id="adminRegionTypeBar" title="Information Resource Center,American Center,Binational Center,American Corners" orientation="vertical" axis="bottom" yField="infoResourceCenter,americanCenter,binationalCenter,americanCornor" xField="region" />
+        </apex:chart>
+        <apex:outputPanel rendered="{!$CurrentPage.parameters.drawData}">
+            <div style="text-align:right;"><a apexClass="AmericanSpaces_AdminRegionTypeEXCEL" onclick="exportToExcel( this );"><img src="/img/icon/console24.png" />Export to Excel</a></div>
+        </apex:outputPanel>
+        <apex:pageBlockTable id="postInfo" value="{!adminRegionTypes}" var="record" rowClasses="odd,even" styleClass="tableClass" width="30%" rendered="{!$CurrentPage.parameters.drawData}">
+            <apex:column id="region">
+                <apex:facet name="header">Region</apex:facet>
+                <apex:outputText value="{!record.region}"/>
+                <apex:facet name="footer">Grand Total</apex:facet>
+            </apex:column> 
+            
+            <apex:column id="IRC">
+                <apex:facet name="header">Information Resource Center</apex:facet>
+                <apex:outputText value="{!record.InfoResourceCenter}"/>
+                <apex:facet name="footer"><apex:outputText value="{!totalAdminREgionType.InfoResourceCenter}" /></apex:facet>
+            </apex:column>
+            
+            <apex:column id="AmCenter">
+                <apex:facet name="header">American Center</apex:facet>
+                <apex:outputText value="{!record.AmericanCenter}"/>
+                <apex:facet name="footer"><apex:outputText value="{!totalAdminREgionType.AmericanCenter}" /></apex:facet>
+            </apex:column>
+            
+            <apex:column id="BC">
+                <apex:facet name="header">Binational Center</apex:facet>
+                <apex:outputText value="{!record.binationalCenter}"/>
+                <apex:facet name="footer"><apex:outputText value="{!totalAdminREgionType.binationalCenter}" /></apex:facet>
+            </apex:column>
+            <!--
+            <apex:column id="SC">
+                <apex:facet name="header">Science Center</apex:facet>
+                <apex:outputText value="{!record.scienceCenter}"/>
+                <apex:facet name="footer"><apex:outputText value="{!totalAdminREgionType.scienceCenter}" /></apex:facet>
+            </apex:column>
+            -->
+            <apex:column id="AmCorner">
+                <apex:facet name="header">American Corner</apex:facet>
+                <apex:outputText value="{!record.americanCornor}"/>
+                <apex:facet name="footer"><apex:outputText value="{!totalAdminREgionType.americanCornor}" /></apex:facet>
+            </apex:column>
+            
+            <apex:column id="GrandTotal" styleClass="grandTotal">
+                <apex:facet name="header">Grand Total</apex:facet>
+                <apex:outputText value="{!record.total}"/>
+                <apex:facet name="footer"><apex:outputText value="{!totalAdminREgionType.total}" /></apex:facet>
+            </apex:column>
+        </apex:pageBlockTable>
+    </apex:pageBlock>
+</apex:page>

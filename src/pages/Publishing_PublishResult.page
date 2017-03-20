@@ -1,0 +1,6 @@
+<apex:page standardController="Digital_Asset__c">
+    <apex:pageBlock >
+        Posting to IIP Digital, the server responded: <p/>
+        <apex:messages />
+    </apex:pageBlock>
+</apex:page>

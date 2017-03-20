@@ -1,0 +1,16 @@
+<apex:page id="page" title="Edit American Spaces Contact" showHeader="false" sidebar="false" standardController="American_Space_Branch__c" extensions="AmericanSpacesBranch">
+<apex:form >
+	<apex:actionFunction name="deleteRecord" action="{!deleteTheRecord}" />
+</apex:form>
+<script type="text/javascript">
+	if ({!isDeletable})
+	{
+		deleteRecord();
+	}
+	else
+	{
+		alert( "You do not have access to delete this record. Contact americanspaces@state.gov to request the removal of this record." );   
+		history.back();
+	}
+</script>
+</apex:page>

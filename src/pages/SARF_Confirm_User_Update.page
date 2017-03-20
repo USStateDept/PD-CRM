@@ -1,0 +1,16 @@
+<apex:page standardController="CMS_SARF__c" extensions="SARF_Controller" tabStyle="SARF_Management__tab" >
+    <apex:form >
+    <apex:pageBlock id="updateUser" mode="edit">
+            <p style="font-size:14px;text-align:center;">
+            You have successfully updated the User with the appropriate changes indicated on the SARF.
+            </p>
+            <br/><br/>
+            <div style="font-weight:bold;font-size:14px;text-align:center;color:red;">
+                <apex:outputText rendered="TRUE">
+                Click FINISH to complete the process.<br/><br/>
+            </apex:outputText>
+            <apex:commandButton value="FINISH" action="{!confirmUser}" rendered="{!userUpdated == false}" />
+            </div>
+        </apex:pageBlock>
+        </apex:form>
+</apex:page>

@@ -1,0 +1,328 @@
+<apex:page standardController="Event__c" sidebar="true" showHeader="false" extensions="DOS_Event_Extension" cache="false">
+  <!-- Begin Default Content REMOVE THIS -->
+  <head> 
+  <apex:stylesheet value="{!URLFOR($Resource.SLDS, 'assets/styles/salesforce-lightning-design-system-vf.css')}"/>  
+  <apex:stylesheet value="{!URLFOR($Resource.RSVP, 'default-styles.css')}"/>  
+  <apex:stylesheet value="{!URLFOR($Resource.RSVP, 'font-awesome.min.css')}"/>  
+  <apex:stylesheet value="{!URLFOR($Resource.RSVP, 'googleapi.css')}"/>  
+  <apex:stylesheet value="{!URLFOR($Resource.RSVP, 'output.css')}"/> 
+  <apex:stylesheet value="{!URLFOR($Resource.RSVP, 'styles.css')}"/>    
+  <apex:stylesheet value="{!URLFOR($Resource.RSVP, 'main.css')}"/>  
+
+  <!--   
+  <apex:stylesheet value="https://uk.usembassy.gov/wp-content/plugins/bwp-minify/min/?f=wp-content/plugins/contact-form-7/includes/css/styles.css,wp-content/plugins/ubermenu3/pro/assets/css/ubermenu.min.css,wp-content/plugins/ubermenu3/pro/assets/css/skins/white.css,wp-content/plugins/ubermenu3/assets/css/fontawesome/css/font-awesome.min.css,wp-content/themes/cms3/dist/styles/main-10e6f94f.css"/>
+  <apex:stylesheet value="https://uk.usembassy.gov/wp-content/plugins/bwp-minify/min/?f=wp-content/themes/cms3/dist/styles/main-d57c89f8.css"/> -->
+  <apex:stylesheet value="https://fonts.googleapis.com/css?family=Roboto+Condensed%3A%2C300%2C400%2C700&ver=4.6.1"/>
+  <apex:stylesheet value="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css" />  
+  <apex:includeScript value="https://code.jquery.com/jquery-2.2.2.js"/>
+  <apex:includeScript value="//code.jquery.com/ui/1.11.4/jquery-ui.js"/>
+  <script type="text/javascript" src="https://maps.google.com/maps/api/js?sensor=false"></script>
+  <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>   
+  
+  <script type="text/javascript"> 
+      $(document).ready(function() {
+    
+      var myOptions = {
+        zoom: 15,
+        mapTypeId: google.maps.MapTypeId.ROADMAP,
+        mapTypeControl: false
+      }
+    
+      var map;
+      var marker;
+    
+      var geocoder = new google.maps.Geocoder();
+      var address = "{!sStreetAddress} {!sCity} {!sState} {!sPostalCode}";
+      var infowindow = new google.maps.InfoWindow({
+      content: "<b>{!sEventName}</b><br>" + address + " "
+      });
+    
+      geocoder.geocode( { address: address}, function(results, status) {
+        if (status == google.maps.GeocoderStatus.OK && results.length) {
+          if (status != google.maps.GeocoderStatus.ZERO_RESULTS) {
+    
+            //create map
+            map = new google.maps.Map(document.getElementById("map"), myOptions);
+    
+            //center map
+            map.setCenter(results[0].geometry.location);
+    
+            //create marker
+            marker = new google.maps.Marker({
+                position: results[0].geometry.location,
+                map: map,
+                title: "{!sEventName}"
+            });
+    
+            //add listeners
+            google.maps.event.addListener(marker, 'click', function() {
+              //infowindow.open(map,marker);
+              //window.location.href = "{!Event__c.Map__c}";
+              window.open("{!sMap}");
+            });
+            google.maps.event.addListener(infowindow, 'closeclick', function() {
+              map.setCenter(marker.getPosition()); 
+            });
+    
+          }
+    
+        } else {
+          $('#map').css({'height' : '15px'});      
+          resizeIframe();
+        }
+      });
+    
+      function resizeIframe() {
+        var me = window.name;
+        if (me) {
+          var iframes = parent.document.getElementsByName(me);
+          if (iframes && iframes.length == 1) {
+            height = document.body.offsetHeight;
+            iframes[0].style.height = height + "px";
+          }
+        }
+      }   
+    
+    });
+</script>
+  
+  <style type="text/css">
+       #FormColumns{
+       width:500px;
+       //border:1px solid;
+       }
+       #FormColumns label{
+       //border:1px solid;
+           width:100px;
+           float: left;
+       }
+        #FormColumns input{
+       //border:1px solid;
+           width:300px;
+           margin-left: 9px;
+       }
+       #map {
+      font-family: Arial;
+      font-size:12px;
+      line-height:normal !important;
+      height:175px;
+      //min-width:300px;
+      background:transparent;
+    }    
+
+    .button{
+//    padding-left: 1rem;
+//    padding-right: 1rem;
+//    text-align: center;
+//    vertical-align: middle;
+    background-color: #0070d2 !important;
+//    border: 1px solid #0070d2;
+    color: white;
+//    margin:0px auto;
+     }
+    
+  </style>
+
+
+  </head>  
+  <apex:form id="landing">
+  <!-- HEADER START -->      
+  <div class="mo-header">
+    <div class="container">
+      <div class="mo-language">
+        <ul class="head-disclaimer">
+          <li class="throw-away">&nbsp;</li>
+          <li class="disclaimer">
+           <span>             </span>
+        </li>
+          <li class="language">  </li>
+        </ul>
+      </div>
+      <div class="mo-header-wrap">
+        <div class="mo-logo">
+            <a><img alt="United States of America, Department of State" src="https://uk.usembassy.gov/wp-content/themes/cms3/dist/images/dos-logo-light.png"/></a><a style="text-decoration:none; cursor:default;" onMouseOver="this.style.color='#FFF'">U.S. Embassy<br/> {!sEmbassyCountry}</a>
+        </div>        
+      </div>  
+      </div>  
+   </div>
+   <div class="widthalert" style="background-color: #ef0707; float: none; margin: auto; padding: 3px;"><div class="container"><div class="threefourth"></div></div></div><br/>
+
+  <!-- HEADER END --> 
+  
+  <div id="main-page" style="margin:0px auto;width:50%;text-align: center; display:{!if(showMainPage,"block","none")};">          
+          <b><div style="margin:0px auto;width:100%;text-align:left; font-size: 150%;">
+                 
+                {!sEventName} <br/>
+                <div style="text-align: center; display:{!if(objER.Status__c == "Accepted","block","none")};"><apex:outputText value="{!objER.QR_Code__c}" escape="false"/></div> 
+            </div></b>
+            <div style="margin:0px auto;width:100%;text-align:left; font-size: 100%;">
+                {!sEventDesc}
+            </div>
+        <br/>
+  <div class="panel-heading" style="width:96%;text-align:left; font-size: 115%;">Event Information</div>
+  <div style="border:visible; width: 700px;">
+  <div style="float: left; width: 400px;text-align:left;">
+  <br/>
+           <b>Where:</b> 
+            <br/>{!sStreetAddress}{!sStreetAddress2} <br/>{!sCity} {!sState} {!sPostalCode} 
+            <br/><br/>
+            <b>When:</b>
+            <!--<br/><c:locale_formatted_datetime date_time_value="{!Event__c.Event_Start_Date__c}" user_Id="{!Event__c.OwnerId}"></c:locale_formatted_datetime> to <c:locale_formatted_datetime date_time_value="{!Event__c.Event_End_Date__c}" user_Id="{!Event__c.OwnerId}"></c:locale_formatted_datetime> -->
+            <br/>{!startDate} to {!endDate}
+            <br/><br/><br/>
+            <!-- CONTACT INFORMATION BLOCK -->
+            <div style="margin:0px auto;width:225%;text-align: left;display:{!if(showContactPage,"block","none")};">                   
+                       <apex:outputPanel >
+                          <div> 
+                          {!$Component.msg} 
+                          <apex:pagemessages ></apex:pagemessages>                         
+                          <b><p>Enter your information below and submit</p></b><br></br>    
+                          <div id="Checkoutform">
+                                   <div style="margin:0px auto;width:50%;text-align: left;">                
+                                        <div id="FormColumns">
+                                            <label>First Name</label>   
+                                            <div id="input"><apeX:inputtext value="{!FirstName}" id="FirstName" onkeydown="return disableKeys(event);" html-placeholder="Enter First Name"/></div>
+                                         </div>
+                                         <div id="FormColumns">
+                                            <label>Last Name <span style="color:red"  >*</span></label>   
+                                            <div id="input"><apeX:inputtext value="{!LastName}" id="LastName" onkeydown="return disableKeys(event);"  html-placeholder="Enter Last Name"/></div>
+                                         </div>
+                                         <div id="FormColumns">
+                                            <label>Email <span style="color:red"  >*</span></label>   
+                                            <div id="input"><apeX:inputtext value="{!Email}" id="Email" onkeydown="return disableKeys(event);"  html-placeholder="Enter Email"/></div>
+                                         </div>   
+                                         <div id="FormColumns">
+                                            <label>Phone</label>   
+                                            <div id="input"><apeX:inputtext value="{!Mobile}" id="Mobile" onkeydown="return disableKeys(event);"  html-placeholder="Enter Mobile"/></div>
+                                         </div><br/>                                           
+                                   </div>                                      
+                           </div>
+                          </div>
+                       </apex:outputPanel>              
+               </div>
+               <!-- CONTACT INFORMATION BLOCK -->
+               <!-- GUEST INFORMATION BLOCK -->
+               <div style="margin:0px auto;width:225%;text-align: left;display:{!if(showGuestsTable == false,"none","block")};">                    
+                       <apex:outputPanel id="guestBlock">
+                          <div> 
+                          {!$Component.msg} 
+                          <apex:pagemessages ></apex:pagemessages>                         
+                          <b><p>Enter guest information below</p></b>(You can add up to {!iGuestCount} guests)<br></br>                          
+                          <apex:pageBlock id="pbGuest" mode="edit">
+                              <apex:pageBlockTable value="{!guests}" var="g" > 
+                                 <apex:column style="width:10%">
+                                    <apex:facet name="header">
+                                       <apex:outputText value="First Name" />
+                                    </apex:facet>
+                                    <apex:inputText value="{!g.firstName}"/>
+                                 </apex:column>
+                                 <apex:column style="width:10%">
+                                    <apex:facet name="header">
+                                      <apex:outputText value=" Last Name"> <span style="color:red"  >*</span></apex:outputText>
+                                    </apex:facet>
+                                    <apex:inputText value="{!g.lastName}"/>
+                                 </apex:column>
+                                 <apex:column style="width:10%">
+                                    <apex:facet name="header">
+                                      <apex:outputText value=" Email"/>
+                                    </apex:facet>
+                                    <apex:inputText value="{!g.email}"/>
+                                 </apex:column>
+                                 <apex:column style="width:10%">
+                                    <apex:facet name="header">
+                                      <apex:outputText value="Phone" />
+                                    </apex:facet>
+                                    <apex:inputText value="{!g.mobile}"/>
+                                 </apex:column>                                 
+                                 <!--<apex:column style="width:10%"> 
+                                    <apex:facet name="header">
+                                        <apex:outputText value="Remove" /> 
+                                     </apex:facet>                                      
+                                    <div class = "slds" style="margin:0px auto;text-align: center;"><apex:commandButton action="{!removeGuest}" value="X" styleClass="slds-button slds-button--neutral" immediate="true">
+                                    <apex:param value="{!g.recCount}" name="rowToRemove" assignTo="{!rowToRemove}"/>
+                                    </apex:commandButton>
+                                    </div>
+                                 </apex:column> -->
+                              </apex:pageBlockTable>
+                          </apex:pageBlock>  
+                          </div>                
+                          </apex:outputPanel>                                             
+                         </div> 
+               <!-- GUEST INFORMATION BLOCK -->                  
+               <div class = "slds" style="margin:0px auto;text-align: center;"> <apex:commandButton action="{!onAccept}" value="I'm going" styleClass="slds-button slds-button--neutral" rendered="{!objER.Status__c != "Accepted"}"/>   
+                <apex:commandButton action="{!onDecline}" value="Not this time" styleClass="slds-button slds-button--neutral" rendered="{!objER.Status__c != "Accepted"}"/>
+                <apex:commandButton action="{!addGuest}" value="Add Guests" styleClass="slds-button slds-button--neutral" rendered="{!addGuests == true && objER.Status__c != "Accepted"}"/></div>
+ </div><br/>
+ <div id = "map" style="float: left; width: 200px;text-align:left;display:{!if(showMap == true,"block","none")};"><br/></div>
+ <!--<div style="float: left; display:{!if(objER.Status__c == "Accepted","block","none")};"><apex:outputText value="{!objER.QR_Code__c}" escape="false"/></div> -->
+ </div> 
+
+ <br style="clear: left;" />
+</div>
+
+<div style="margin:0px auto;width:50%;text-align: center;display:{!if(showSection2,"block","none")};">
+  <apex:outputPanel >
+     <b><div style="margin:0px auto;width:100%;text-align:left; font-size: 125%;">
+      <p>This event is not currently available for registration. </p>     
+     </div></b>
+  </apex:outputPanel>
+</div>
+<div style="margin:0px auto;width:50%;text-align: center;display:{!if(showSection3,"block","none")};">  
+  <apex:outputPanel >
+      <b><div style="margin:0px auto;width:100%;text-align:left; font-size: 125%;">
+     <p> This event is not currently available for registration. </p>  
+  </div></b>
+  </apex:outputPanel>
+</div>  
+<div id = "Thankyou" style="margin:0px auto;width:50%;text-align: center;display:{!if(showThankYouPage,"block","none")};">
+      <apex:outputPanel id="thankYou">
+              <!--<h1>Thank you for your submission. Please close this window.</h1> -->
+              <b><div style="margin:0px auto;width:100%;text-align:left; font-size: 150%;">
+                <p>Thank you for your submission.</p>
+            </div></b>
+            <div style="margin:0px auto;width:100%;text-align:left; font-size: 100%;">
+                <p>We will see you at the event!</p>
+            </div>
+      </apex:outputPanel> 
+</div>
+<div style="margin:0px auto;width:50%;text-align: center;display:{!if(showSorryPage,"block","none")};">
+      <apex:outputPanel >
+              <!--<h1>Thank you for your submission. Please close this window.</h1> -->
+              <b><div style="margin:0px auto;width:100%;text-align:left; font-size: 150%;">
+                <p>Thank you for your submission.</p>
+            </div></b>
+            <div style="margin:0px auto;width:100%;text-align:left; font-size: 100%;">
+                <p>We are sorry you won't be able to join us. Please close this window</p>
+            </div>
+      </apex:outputPanel>    
+</div>
+  <!-- Footer Start -->
+
+    <div class="mo-footer">
+        <footer class="content-info">
+            <div class="container">
+                <center>                            
+                        <div>U.S. Embassy {!sEmbassyCountry}<br/>                            
+                            {!sEmbassyAddress}<br/>                                                        
+                            Phone: {!sEmbassyPhone}<br/>                            
+                            <apex:outputLink value="{!sEmbassyWebsite}" id="theLink">{!sEmbassyWebsite}</apex:outputLink>
+                        </div>
+                   
+                </center>
+            </div>          
+        </footer>   
+    </div>    
+
+    <div class="mo-copyright">   
+        <div class="container">
+            <center>
+                <p><span class="sr-only">Disclaimer &#8211; Footer</span>           
+                    <div class="textwidget">This is the official website of the U.S. Embassy {!sEmbassyCountry}. External links to other Internet sites should not be construed as an endorsement of the views or privacy policies contained therein.</div>
+                </p>
+                <img src="https://uk.usembassy.gov/wp-content/themes/cms3/dist/images/us-flag-logo.png" alt="American Flag"/>
+            </center>
+        </div>
+    </div> 
+  <!-- Footer End -->
+  </apex:form>  
+</apex:page>

@@ -1,0 +1,151 @@
+<apex:page showHeader="false" controller="SARF_External_User_Controller" standardStylesheets="false">
+    <apex:stylesheet value="URLFOR($Resource.ExternalSarfForm_resources)"/>
+    <style type="text/css">
+        body {
+            //background: #2D3954;
+            background: #EDEDED;
+            -webkit-background-size: cover;
+            -moz-background-size: cover;
+            -o-background-size: cover;
+            background-size: cover;
+        }
+        h1 {
+            //color: #F0F5F7; 
+            color: #424242;
+            font-family: verdana; 
+            //text-shadow: 2px 2px #2E393D; 
+            opacity: .95;
+        }
+        #titleDiv {
+            width: auto;
+            margin-top:100px;
+            //margin-bottom:50px;
+        }
+        #container {
+            border: 1px solid #C2C4C4;
+            background-color:white;
+            border-radius:6px;
+            max-width:480px;
+            padding-top:20px;
+            padding-bottom:20px;
+            opacity:0.90;
+            
+        }
+        .label {
+            font-size:13px;
+            color: #424242;
+            //color: #233459;
+            font-family: verdana;
+            font-weight: 600;
+            margin-left:10px;           
+        }
+        .button {
+            font-family: verdana;
+            text-transform: uppercase;
+            padding: 5px;
+            font-size:12px;
+            font-weight: bold;
+            background-color: #EDEDED;
+            color: #424242;
+            border-radius:4px;
+            border:1px solid #919191;
+            //text-shadow: 1px 1px #424142; 
+            //box-shadow: 1px 1px 1px #2E393D;
+        }
+        .textField{
+            border: 1px solid #C2C4C4;
+            height:20px;
+            width:220px;
+            border-radius:4px;
+            font-size:14px;
+        }
+       
+    </style>
+    <br/> <br/>
+    <body>
+        <center>
+          
+            <div id="titleDiv">
+                <h1>
+                    User Login Request Form    
+                </h1>
+            </div>
+           
+           
+            <br/>
+            <apex:form >
+                <!--Save Initial SARF (first SARF for a user)-->     
+                <div id="container">
+                
+                    <table columns="2">
+                        <tr>
+                            
+                            <td>
+                                <apex:outputLabel value="First Name" styleClass="label"/>                        
+                            </td>
+                            <td>
+                                <apex:inputText styleClass="textField" value="{!firstName}"/>
+                            </td>
+                        </tr>
+                        <tr height="10px"/>                    
+                        <tr>
+                            
+                            <td>
+                                <apex:outputLabel value="Last Name" styleClass="label"/>                        
+                            </td>
+                            <td>
+                                <apex:inputText styleClass="textField" value="{!lastName}"/>
+                            </td>
+                        </tr>
+                        <tr height="10px"/>                    
+                        <tr>
+                            
+                            <td>
+                                <apex:outputLabel value="Work Email" styleClass="label"/>                        
+                            </td>
+                            <td>
+                                <apex:inputText styleClass="textField" value="{!email}"/>
+                            </td>
+                        </tr>  
+                        <tr height="10px"/>                    
+                        <tr> 
+                            
+                            <td>
+                                <apex:outputLabel value="Work Phone" styleClass="label"/>                        
+                            </td>
+                            <td>
+                                <apex:inputText styleClass="textField" value="{!phone}"/>
+                            </td>
+                        </tr>   
+                        <tr height="10px"/>                    
+                        <tr>
+                            
+                            <td>
+                                <apex:outputLabel value="Job Title" styleClass="label"/>                        
+                            </td>
+                            <td>
+                                <apex:inputText styleClass="textField" value="{!jobtitle}"/>
+                            </td>
+                        </tr> 
+                        <tr height="10px"/>                    
+                        <tr>
+                            <td>
+                                <apex:outputLabel value="Bureau/Department" styleClass="label"/>                        
+                            </td>
+                            <td>
+                                <apex:selectList id="office" value="{!bureau}" required="true" size="1">
+                                	<apex:selectOptions value="{!departments}"/>
+                            	</apex:selectList>
+                            </td>
+                        </tr>                  
+                    </table>
+                   
+                    <br/>
+                    <apex:commandButton value="Submit" action="{!save}" styleClass="button"/><br/>
+                   
+                </div>
+                 <apex:pageMessages />
+            </apex:form>
+        </center> 
+    </body>
+</apex:page>

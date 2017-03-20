@@ -1,0 +1,330 @@
+<apex:page standardController="Digital_Asset__c" showHeader="false">
+    <c:publishing_system_resources />
+
+    <apex:variable var="rtl" value="{! IF(OR(Digital_Asset__c.Language__c == 'Arabic', Digital_Asset__c.Language__c == 'Urdu', Digital_Asset__c.Language__c == 'Persian'), true, false) }" />
+
+    <apex:variable var="assetTypeEnd" value="{! IF(Digital_Asset__c.Asset_Type__c == 'Publications', '', 's') }"/>
+    <apex:variable var="assetType" value="{!Digital_Asset__c.Asset_Type__c}{!assetTypeEnd}" />
+    <apex:variable var="byLineIntro" value="By" />
+    <apex:variable var="moreCoverageHeader" value="More Coverage" />
+    <apex:variable var="translateSectionHeader" value="Translated:" />
+    <apex:variable var="translateSectionBody" value="English" />
+    <apex:variable var="keywordsSectionHeader" value="Keywords:" />
+
+    <style>
+        body {
+            background: #F0F0F0;
+            font-family: Verdana, Helvetica, sans-serif;
+            font-size: 9pt;
+            line-height: 14pt;
+            text-align: center;
+            margin: 0 auto;
+            padding: 0;
+            <apex:outputText rendered="{!rtl}" value="direction: rtl;"/>
+        }
+        a {
+            text-decoration: none;
+            color: #037;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        parent_container {
+            text-align: center;
+            margin: 0 auto;
+            padding: 0;
+        }
+        .header {
+            background: url({!URLFOR($Resource.publishing_system_resources, 'publishing_system_resources/urdu_header.jpg')});
+            width: 980px;
+            height: 124px;
+            margin-bottom: 30px;
+        }
+        .footer {
+            background: url({!URLFOR($Resource.publishing_system_resources, 'publishing_system_resources/urdu_footer.jpg')});
+            width: 980px;
+            height: 130px;
+            margin-top: 30px;
+            margin-bottom: 30px;
+        }
+        .container {
+            background-color: white;
+            border: 20px solid white;
+            width: 940px;
+            <apex:outputText rendered="{!rtl}" value="text-align: right;"/>
+            <apex:outputText rendered="{! NOT(rtl)}" value="text-align: left;"/>
+        }
+        .grid_large {
+            width: 600px;
+            <apex:outputText rendered="{!rtl}" value="float: right;"/>
+            <apex:outputText rendered="{! NOT(rtl)}" value="float: left;"/>
+        }
+        .grid_small {
+            width: 300px;
+            <apex:outputText rendered="{!rtl}" value="float: left;"/>
+            <apex:outputText rendered="{! NOT(rtl)}" value="float: right;"/>
+        }
+        .page_title {
+            font-size: 9pt;
+            text-transform: uppercase;
+            font-weight: bold;
+            color: #999;
+            padding: 5px 0 5px;
+            letter-spacing: 1px;
+            margin-right: 0;
+            margin-left: 0;
+        }
+        .subhead {
+            color: #000066;
+            font-size: 9pt;
+            font-weight: bold;
+            line-height: 11px;
+            line-family: Verdana, Arial, Helvetica, sans-serif;
+            font-style: normal;
+        }
+        
+        .heading {
+            color: #900;
+            font-size: 10pt;
+            padding-top: 10px;
+            margin-bottom: 20px;
+            font-family: Verdana, Arial, Helvetica, sans-serif;
+            font-weight: bold;
+            line-height: normal;
+            text-decoration: none;
+            display: block;
+        }
+        .dateblock {
+            color: #999;
+            font-family: Verdana, Arial, Helvetica, sans-serif;
+            font-weight: bold;
+            font-size: 10px;
+            display: block;
+            margin-bottom: 5px;
+        }
+        .image-enlarge {
+            background: #FEFEFE;
+            color: #666;
+            font-size: 8.5pt;
+            line-height: 12pt;
+            margin-bottom: 16px;
+            width: 200px;
+            border: 1px solid #DDD;
+            padding: 10px;
+        }
+        .left2 {
+            <apex:outputText rendered="{!rtl}" value="float: right;"/>
+            <apex:outputText rendered="{! NOT(rtl)}" value="float: left;"/>
+            <apex:outputText rendered="{!rtl}" value="margin: 0 0 6px 20px;"/>
+            <apex:outputText rendered="{! NOT(rtl)}" value="margin: 0 20px 6px 0;"/>
+        }
+        .right2 {
+            <apex:outputText rendered="{!rtl}" value="float: left;"/>
+            <apex:outputText rendered="{! NOT(rtl)}" value="float: right;"/>
+            <apex:outputText rendered="{!rtl}" value="margin: 0 20px 6px 0;"/>
+            <apex:outputText rendered="{! NOT(rtl)}" value="margin: 0 0 6px 20px;"/>
+        }
+        .image {
+            width: 200px;
+            height: auto;
+            background: #0F0;
+        }
+        .clear {
+            clear: both;
+        }
+        .box {
+            background: #EEE;
+            margin-bottom: 20px;
+            clear: both;
+            border: 1px solid #CCC;
+        }
+        .box h4 {
+            line-height: 30px;
+            margin: 0;
+            <apex:outputText rendered="{!rtl}" value="padding: 5px 10px 0 0;"/>
+            <apex:outputText rendered="{! NOT(rtl)}" value="padding: 5px 0 0 10px;"/>
+            text-transform: uppercase;
+            color: #900;
+            font-size: 11px;
+        }
+        .box_body {
+            background: #FFF;
+            border-top: 1px solid #CCC;
+            overflow: hidden;
+            padding: 5px;
+            border-image: initial;
+        }
+        .box_body ul {
+            border: 0;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            border-image: initial;
+        }
+        .box_body ul li a {
+            font-weight: normal;
+            font-size: 9pt;
+        }
+        .red_middot {
+            color: #900;
+            <apex:outputText rendered="{!rtl}" value="margin-left: 5px;"/>
+            <apex:outputText rendered="{! NOT(rtl)}" value="margin-right: 5px;"/>
+        }
+        .translate_section {
+            width: 100%;
+            border-top: 1px solid #CCC;
+            border-bottom: 1px solid #CCC;
+            font-size: 10px;
+            padding-top: 5px;
+            padding-bottom: 5px;
+            margin-top: 5px;
+        }
+        .translate_section h4 {
+            text-transform: uppercase;
+            <apex:outputText rendered="{!rtl}" value="margin-left: 15px;"/>
+            <apex:outputText rendered="{! NOT(rtl)}" value="margin-right: 15px;"/>
+            font-weight: normal;
+        }
+        .translate_section span {
+            color: #037;
+        }
+        .keywords_section {
+            width: 100%;
+            font-size: 10px;
+            padding-top: 5px;
+            padding-bottom: 5px;
+            margin-top: 5px;
+            margin-bottom: -5px;
+            clear: both;
+        }
+        .keywords_section h4 {
+            text-transform: uppercase;
+            <apex:outputText rendered="{!rtl}" value="margin-left: 15px;"/>
+            <apex:outputText rendered="{! NOT(rtl)}" value="margin-right: 15px;"/>
+            font-weight: normal;
+        }
+    </style>
+
+    <apex:outputText rendered="{! AND(Digital_Asset__c.Photo_2_URL__c != '', Digital_Asset__c.Asset_Type__c != 'In Brief') }">
+        <apex:includeScript value="{!URLFOR($Resource.publishing_system_resources, 'publishing_system_resources/jquery.js')}"/>
+        <script type="text/javascript">
+            var j = jQuery.noConflict();
+            j(document).ready(function () {
+               var kids = j("div.article_body p").size();
+               if(kids%2)kids++;
+               var mf = Math.floor(kids / 2);
+               j("div.photo2").prependTo('div.article_body p:eq(' + mf + ')');
+            });
+        </script>
+    </apex:outputText>
+
+    <div class="parent_container" align="center">
+        <div class="header"></div>
+        <div class="container">
+            <div class="grid_large">
+                <h1 class="page_title">{!assetType}</h1>
+                <div class="translate_section"><h4>{!translateSectionHeader}</h4> <span>{!translateSectionBody}</span></div>
+
+                <h1 class="heading">{!Digital_Asset__c.Headline_long__c}</h1>
+                <apex:outputPanel rendered="{!IF(Digital_Asset__c.subheadline__c !=null,true,false)}">
+                <h2 class="subhead">{!Digital_Asset__c.subheadline__c}</h2><br/><br/></apex:outputPanel>
+                <h2 class="dateblock">
+                    <apex:outputText value="{!byLineIntro} {!Digital_Asset__c.Author__c} | {!Digital_Asset__c.Author_Job_Title__c}" rendered="{! IF(Digital_Asset__c.Include_Byline__c, true, false) }"/>
+                    <apex:outputText value=" | " rendered="{! IF(AND(Digital_Asset__c.Include_Byline__c == true, Digital_Asset__c.Asset_Type__c != 'In Brief'), true, false) }"/>
+                    <apex:outputText value="{0,date, dd MMMM yyyy}" rendered="{!Digital_Asset__c.Asset_Type__c != 'In Brief'}"><apex:param value="{!Digital_Asset__c.Asset_Date_Time__c}" /></apex:outputText>
+                </h2>
+
+                <apex:outputText rendered="{! AND(Digital_Asset__c.Photo_1_URL__c != '', Digital_Asset__c.Asset_Type__c != 'In Brief') }">
+                    <div class="image-enlarge left2">
+                        <apex:image alt="{!Digital_Asset__c.Photo_1_Alt_Text__c}" value="{!Digital_Asset__c.Photo_1_URL__c}" styleClass="image"/>
+                        <br/><br/>
+                        <apex:outputText value="{!Digital_Asset__c.Photo_1_Caption__c}" escape="false"/>
+                    </div>
+                </apex:outputText>
+                <apex:outputText rendered="{! AND(Digital_Asset__c.Multimedia_URL__c != '', Digital_Asset__c.Asset_Type__c == 'In Brief') }">
+                    <div>
+                        <apex:image value="{!Digital_Asset__c.Multimedia_URL__c}" />
+                    </div>
+                </apex:outputText>
+                
+                <apex:outputText rendered="{! AND(Digital_Asset__c.Photo_2_URL__c != '', Digital_Asset__c.Asset_Type__c != 'In Brief') }">
+                    <div class="photo2 image-enlarge right2">
+                        <apex:image alt="{!Digital_Asset__c.Photo_2_Alt_Text__c}" value="{!Digital_Asset__c.Photo_2_URL__c}" styleClass="image"/>
+                        <br/><br/>
+                        <apex:outputText value="{!Digital_Asset__c.Photo_2_Caption__c}" escape="false"/>
+                    </div>
+                </apex:outputText>
+
+                <div class="article_body">
+                    <apex:outputPanel rendered="{!IF(Digital_Asset__c.Top__c !=null,true,false)}">
+                    <apex:outputText value="{!Digital_Asset__c.Top__c}" escape="false" />
+                    </apex:outputPanel>
+                    <apex:outputText value="{!Digital_Asset__c.Article_Body__c}" escape="false"/>
+                </div>
+                <!-- Spring 2013: ph 2, commenting out this line break -->
+                <!-- <br/> -->
+                <div class="keywords_section"><h4>{!keywordsSectionHeader}</h4>{!Digital_Asset__c.Search_Keywords__c}</div>
+                <div class="translate_section"><h4>{!translateSectionHeader}</h4> <span>{!translateSectionBody}</span></div>
+
+                <br class="clear"/> 
+            </div>
+            <div class="grid_small">
+                <apex:outputText rendered="{! OR(Digital_Asset__c.Display_MC_1__c == true, Digital_Asset__c.Display_MC_2__c == true, Digital_Asset__c.Display_MC_3__c == true, Digital_Asset__c.Display_MC_4__c == true, Digital_Asset__c.Display_MC_5__c == true) }">                
+                    <div class="box listing-box">
+                        <h4>{!moreCoverageHeader}</h4>
+                        <div class="box_body">
+                            <ul>
+                                <apex:outputText escape="false" value='<li><span class="red_middot">&middot;</span><a href="{!Digital_Asset__c.MC_URL_1__c}" target="_blank">{!Digital_Asset__c.MC_Headline_1__c}</a></li>' rendered="{! AND(Digital_Asset__c.MC_Headline_1__c != '', Digital_Asset__c.MC_URL_1__c != '', Digital_Asset__c.Display_MC_1__c == true) }" />
+                                <apex:outputText escape="false" value='<li><span class="red_middot">&middot;</span><a href="{!Digital_Asset__c.MC_URL_2__c}" target="_blank">{!Digital_Asset__c.MC_Headline_2__c}</a></li>' rendered="{! AND(Digital_Asset__c.MC_Headline_2__c != '', Digital_Asset__c.MC_URL_2__c != '', Digital_Asset__c.Display_MC_2__c == true) }" />
+                                <apex:outputText escape="false" value='<li><span class="red_middot">&middot;</span><a href="{!Digital_Asset__c.MC_URL_3__c}" target="_blank">{!Digital_Asset__c.MC_Headline_3__c}</a></li>' rendered="{! AND(Digital_Asset__c.MC_Headline_3__c != '', Digital_Asset__c.MC_URL_3__c != '', Digital_Asset__c.Display_MC_3__c == true) }" />
+                                <apex:outputText escape="false" value='<li><span class="red_middot">&middot;</span><a href="{!Digital_Asset__c.MC_URL_4__c}" target="_blank">{!Digital_Asset__c.MC_Headline_4__c}</a></li>' rendered="{! AND(Digital_Asset__c.MC_Headline_4__c != '', Digital_Asset__c.MC_URL_4__c != '', Digital_Asset__c.Display_MC_4__c == true) }" />
+                                <apex:outputText escape="false" value='<li><span class="red_middot">&middot;</span><a href="{!Digital_Asset__c.MC_URL_5__c}" target="_blank">{!Digital_Asset__c.MC_Headline_5__c}</a></li>' rendered="{! AND(Digital_Asset__c.MC_Headline_5__c != '', Digital_Asset__c.MC_URL_5__c != '', Digital_Asset__c.Display_MC_5__c == true) }" />
+                            </ul>
+                        </div>
+                    </div>
+                </apex:outputText>
+            </div>
+            <br class="clear"/>
+        </div>
+        <div class="footer"></div>
+    </div>
+
+<!--
+Language: {!Digital_Asset__c.Language__c}<br/>
+Asset Type: {!Digital_Asset__c.Asset_Type__c}<br/>
+Asset Subtype: {!Digital_Asset__c.Asset_Subtype__c}<br/>
+Asset Date Time: {!Digital_Asset__c.Asset_Date_Time__c}<br/>
+Name: {!Digital_Asset__c.Name}<br/>
+Author: {!Digital_Asset__c.Author__c}<br/>
+Author Job Title: {!Digital_Asset__c.Author_Job_Title__c}<br/>
+Include Byline: {!Digital_Asset__c.Include_Byline__c}<br/>
+Top: {!Digital_Asset__c.Top__c}<br/>
+Article Body: {!Digital_Asset__c.Article_Body__c}<br/>
+MC Headline 1: {!Digital_Asset__c.MC_Headline_1__c}<br/>
+MC URL 1: {!Digital_Asset__c.MC_URL_1__c}<br/>
+MC Headline 2: {!Digital_Asset__c.MC_Headline_2__c}<br/>
+MC URL 2: {!Digital_Asset__c.MC_URL_2__c}<br/>
+MC Headline 3: {!Digital_Asset__c.MC_Headline_3__c}<br/>
+MC URL 3: {!Digital_Asset__c.MC_URL_3__c}<br/>
+MC Headline 4: {!Digital_Asset__c.MC_Headline_4__c}<br/>
+MC URL 4: {!Digital_Asset__c.MC_URL_4__c}<br/>
+MC Headline 5: {!Digital_Asset__c.MC_Headline_5__c}<br/>
+MC URL 5: {!Digital_Asset__c.MC_URL_5__c}<br/>
+Photo 1 Location: {!Digital_Asset__c.Photo_1_Location__c}<br/>
+Photo 1 Caption: {!Digital_Asset__c.Photo_1_Caption__c}<br/>
+Photo 1 Credit: {!Digital_Asset__c.Photo_1_Credit__c}<br/>
+Photo 1 Alt Text: {!Digital_Asset__c.Photo_1_Alt_Text__c}<br/>
+Photo 1 URL: {!Digital_Asset__c.Photo_1_URL__c}<br/>
+Photo 2 Location: {!Digital_Asset__c.Photo_2_Location__c}<br/>
+Photo 2 Caption: {!Digital_Asset__c.Photo_2_Caption__c}<br/>
+Photo 2 Credit: {!Digital_Asset__c.Photo_2_Credit__c}<br/>
+Photo 2 Alt Text: {!Digital_Asset__c.Photo_2_Alt_Text__c}<br/>
+Photo 2 URL: {!Digital_Asset__c.Photo_2_URL__c}<br/>
+Multimedia URL: {!Digital_Asset__c.Multimedia_URL__c}<br/>
+Content Header: {!Digital_Asset__c.Content_Header__c}<br/>
+Content Footer: {!Digital_Asset__c.Content_Footer__c}<br/>
+Proclamation: {!Digital_Asset__c.Proclamation__c}<br/>
+Search Keywords: {!Digital_Asset__c.Search_Keywords__c}
+-->
+
+</apex:page>

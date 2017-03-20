@@ -1,0 +1,4 @@
+<apex:page standardController="Contact" extensions="ContactExt" action="{!redirectView}"
+           tabStyle="Contact"
+           sidebar="true" cache="false">
+</apex:page>

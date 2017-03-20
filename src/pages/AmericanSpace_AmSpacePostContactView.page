@@ -1,0 +1,269 @@
+<apex:page id="page" title="American Spaces Post Contacts" showHeader="true" sidebar="false" standardController="American_Spaces_Post_Contacts__c" extensions="AmericanSpacesPostContactView">
+    <apex:includeScript value="{!URLFOR($Resource.jQueryLibrary, 'jquery-1.8.3.js')}"/>
+     <script src="/soap/ajax/26.0/connection.js"></script>
+    <script language="JavaScript1.2" src="/js/functions.js"></script>
+    <apex:messages style="padding:5px;margin-top:55px" />
+    <script type="text/javascript">     
+        j$ = $.noConflict();
+        
+        j$(document).ready(function ()
+        {
+            if ({!renderPost})
+            {
+                var country = j$( '[id="page:pageBlock:info:country"]' ).text();
+                
+                var encodedCountry = encodeURIComponent( country );
+                
+                j$( '[id="page:pageBlock:info:country"]' ).html( '<a href="apex/AmericanSpace_AmSpacePostContactView?country=' + encodedCountry + '">' + country + '</a>' );
+            }
+            
+            if (j$( "#fy" ).val() == '')
+            {           
+                j$( "#fy" ).val( new Date().getFullYear() );
+            }
+
+            j$( "#fyButton" ).click( function() {
+                j$( ".calculate" ).each( function() {
+                    j$( this ).html( '<img src="/img/loading32.gif" />' );
+                });
+                
+                j$( ".totalVisistor" ).html( '<img src="/img/loading32.gif" />' );
+                j$( ".totalProgram" ).html( '<img src="/img/loading32.gif" />' );
+                j$( ".totalAttendee" ).html( '<img src="/img/loading32.gif" />' );
+                
+                setTimeout(function() {
+                calcStatistics( j$( "#fy" ).val() );
+                }, 3000 );
+            });
+
+            setTimeout(function() {
+                calcStatistics( j$( "#fy" ).val() );
+            }, 3000 );
+        });
+        
+        function calcStatistics( currentYear )
+        {
+            var totals = [];
+            totals[ "Number_of_Visitors__c" ] = 0;
+            totals[ "Number_of_Programs__c" ] = 0;
+            totals[ "Number_of_Program_Attendees__c"] = 0;
+            
+            j$( ".calculate" ).each( function() {
+                var recordInfo = j$( this );
+                
+                setTimeout(function() {
+                    calculateTheValues( currentYear, recordInfo, totals );
+                }, 100 );
+            });
+            
+            setTimeout(function() {
+                j$( ".totalVisistor" ).text( totals[ "Number_of_Visitors__c" ] );
+                j$( ".totalVisistor" ).text( j$( ".totalVisistor" ).text().replace(/(\d)(?=(\d\d\d)+(?!\d))/g, "$1,") );
+                
+                j$( ".totalProgram" ).text( totals[ "Number_of_Programs__c" ] );
+                j$( ".totalProgram" ).text( j$( ".totalProgram" ).text().replace(/(\d)(?=(\d\d\d)+(?!\d))/g, "$1,") );
+                
+                j$( ".totalAttendee" ).text( totals[ "Number_of_Program_Attendees__c" ] );
+                j$( ".totalAttendee" ).text( j$( ".totalAttendee" ).text().replace(/(\d)(?=(\d\d\d)+(?!\d))/g, "$1,") );
+            }, 110 * j$( ".calculate" ).length);
+        }
+        
+        function calculateTheValues( currentYear, theDiv, totals )
+        {
+            var id = j$( theDiv ).attr( "data-id" );
+            var columnName = j$( theDiv ).attr( "data-columnName" );
+    
+            var prevYear = currentYear - 1;
+            
+            sforce.connection.sessionId = "{!$Api.Session_ID}";
+            
+            var queryStr = "SELECT " + columnName + " FROM American_Spaces_Statistic__c";
+            var total = 0;
+            
+            var result = sforce.connection.queryAll( queryStr + " WHERE (Name_of_Space__c = '" + id + "' AND Month__c in ('October', 'November', 'December') AND Year__c = '" + prevYear + "') or (Name_of_Space__c = '" + id + "' AND Month__c not in ('October', 'November', 'December') AND Year__c = '" + currentYear + "')" );
+            var records = result.getArray( "records" );
+            
+            for (var i=0; i< records.length; i++)
+            {
+                if (records[i][ columnName ] == null || isNaN(records[i][ columnName ]))
+                {
+                    total += 0;
+                }
+                else
+                {
+                    total += parseInt( records[i][ columnName ] );
+                }
+            }
+            
+            /*
+            var result = sforce.connection.queryAll( queryStr + " WHERE Name_of_Space__c = '" + id + "' AND Month__c not in ('October', 'November', 'December') AND Year__c = '" + currentYear + "'" );
+            var records = result.getArray( "records" );
+            
+            for (var i=0; i< records.length; i++)
+            {
+                if (records[i][ columnName ] == null || isNaN(records[i][ columnName ]))
+                {
+                    total += 0;
+                }
+                else
+                {
+                    total += parseInt( records[i][ columnName ] );
+                }
+            }
+            */
+            
+            totals[ columnName ] += total;
+            
+            j$( theDiv ).empty();
+            j$( theDiv ).text( total );
+            j$( theDiv ).text( j$(theDiv).text().replace(/(\d)(?=(\d\d\d)+(?!\d))/g, "$1,") );  
+        }
+    </script>
+    <apex:pageBlock title="American Spaces Post Contacts" id="pageBlock">
+        <apex:pageBlockSection id="info" showHeader="true" title="Post Information" columns="1" collapsible="true">
+        	<apex:pageBlockSectionItem >
+            	<apex:outputLabel value="Region" />
+            	<a href="/apex/AmSpaces_Post_Contacts_ListView?region={!aspc.Region__c}" >{!aspc.Region__c}</a>
+            </apex:pageBlockSectionItem>
+            <apex:outputField value="{!aspc.Country__c}" id="country" />
+            <apex:pageBlockSectionItem rendered="{!renderCountry}">
+                Managing Post City
+                <apex:repeat value="{!aspcs}" var="record">
+                    <a href="apex/AmericanSpace_AmSpacePostContactView?postID={!record.id}">{!record.name}</a>
+                </apex:repeat>
+            </apex:pageBlockSectionItem>
+            <apex:outputField value="{!aspc.name}" rendered="{!renderPost}" />
+            <apex:pageBlockSectionItem >
+                IRO Contact
+                <apex:repeat value="{!iroContacts}" var="iro">
+                    <a href="/{!iro.id}">{!iro.First_Name__c}&nbsp;{!iro.Last_Name__c}</a>
+                </apex:repeat>
+            </apex:pageBlockSectionItem>
+            <apex:pageBlockSectionItem >
+                Total number of Visitors
+                <apex:outputPanel styleClass="totalVisistor">
+                    <img src="/img/loading32.gif" />
+                </apex:outputPanel>
+            </apex:pageBlockSectionItem>
+            <apex:pageBlockSectionItem >
+                Total number of Programs
+                <apex:outputPanel styleClass="totalProgram">
+                    <img src="/img/loading32.gif" />
+                </apex:outputPanel>
+            </apex:pageBlockSectionItem>
+            <apex:pageBlockSectionItem >
+                Total number of Program Attendees
+                <apex:outputPanel styleClass="totalAttendee">
+                    <img src="/img/loading32.gif" />
+                </apex:outputPanel>
+            </apex:pageBlockSectionItem>
+            <apex:pageBlockSectionItem >
+                Fiscal Year
+                <apex:outputPanel id="totalAttendee">
+                    <input type="text" id="fy" max="4" size="6" />
+                    <input type="button" id="fyButton" value="Change" />
+                </apex:outputPanel>
+            </apex:pageBlockSectionItem>
+            <apex:pageBlockSectionItem >
+            	<apex:outputLabel value="Return to Directory Listing" />
+            	<a href="/apex/AmSpaces_Post_Contacts_ListView" >Go Back</a>
+            </apex:pageBlockSectionItem>
+        </apex:pageBlockSection>
+        <apex:form >
+        <apex:pageBlockSection id="postContact" showHeader="true" title="Post Contacts" columns="1" collapsible="true">
+            <apex:commandButton action="{!createNewMissionContact}" value="New Post Contact" rendered="{!renderPost && hasCreateAccess}" />
+        
+            <apex:pageBlockTable id="postCont" value="{!americanSpaceMissionContacts}" var="asmc" rowClasses="odd,even" styleClass="tableClass">
+                <apex:column >
+                    <apex:facet name="header">Action</apex:facet>
+                    <a href="/{!asmc.id}">view</a>&nbsp;
+                    <apex:outputLink value="/apex/AmericanSpace_Mission_Edit?country={!aspc.Country__c}&id={!asmc.id}" rendered="{!renderCountry}">edit</apex:outputLink>
+                    <apex:outputLink value="/apex/AmericanSpace_Mission_Edit?postID={!aspc.id}&id={!asmc.id}" rendered="{!renderPost}">edit</apex:outputLink>
+                </apex:column>
+            
+                <apex:column rendered="{!renderCountry}">
+                    <apex:facet name="header">Managing Post City</apex:facet>
+                    <apex:outputText value="{!asmc.Managing_Post_City__r.name}" />
+                </apex:column>
+            
+                <apex:column >
+                    <apex:facet name="header">First Name</apex:facet>
+                    <apex:outputText value="{!asmc.First_Name__c}" />
+                </apex:column>
+                
+                <apex:column >
+                    <apex:facet name="header">Middle Name</apex:facet>
+                    <apex:outputText value="{!asmc.Middle_Name__c}" />
+                </apex:column>
+                
+                <apex:column >
+                    <apex:facet name="header">Last Name</apex:facet>
+                    <apex:outputText value="{!asmc.Last_Name__c}" />
+                </apex:column>
+                
+                <apex:column >
+                    <apex:facet name="header">Job Title</apex:facet>
+                    <apex:outputText value="{!asmc.Job_Tite__c}" />
+                </apex:column>
+            </apex:pageBlockTable>
+        </apex:pageBlockSection>
+        <apex:pageBlockSection id="amSpace" showHeader="true" title="American Spaces" columns="1" collapsible="true">
+            <apex:commandButton action="{!createNewAmericanSpace}" value="New American Space" rendered="{!renderPost && hasCreateAccess}" />
+            
+            <apex:pageBlockTable id="amSpaces" value="{!americanSpaceContacts}" var="ascc" rowClasses="odd,even" styleClass="tableClass">
+                <apex:column >
+                    <apex:facet name="header">Action</apex:facet>
+                    <a href="/{!ascc.id}">view</a>&nbsp;
+                    <apex:outputLink value="/apex/AmericanSpace_Contact_Edit?country={!aspc.Country__c}&id={!ascc.id}" rendered="{!renderCountry}">edit</apex:outputLink>
+                    <apex:outputLink value="/apex/AmericanSpace_Contact_Edit?postID={!aspc.id}&id={!ascc.id}" rendered="{!renderPost}">edit</apex:outputLink>
+                </apex:column>
+            
+                <apex:column rendered="{!renderCountry}">
+                    <apex:facet name="header">Managing Post City</apex:facet>
+                    <apex:outputText value="{!ascc.Managing_Post_City__r.name}" />
+                </apex:column>
+            
+                <apex:column >
+                    <apex:facet name="header">Name of Space</apex:facet>
+                    <apex:outputText value="{!ascc.name}" />
+                </apex:column>
+                
+                <apex:column >
+                    <apex:facet name="header">Type of Space</apex:facet>
+                    <apex:outputText value="{!ascc.Type_of_Space__c}" />
+                </apex:column>
+                
+                <apex:column >
+                    <apex:facet name="header">City</apex:facet>
+                    <apex:outputText value="{!ascc.City__c}" />
+                </apex:column>
+                
+                <apex:column >
+                    <apex:facet name="header">Status</apex:facet>
+                    <apex:outputText value="{!ascc.Status__c}" />
+                </apex:column>
+                
+                <apex:column >
+                    <apex:facet name="header">Open to public</apex:facet>
+                    <apex:outputText value="{!ascc.Open_to_public__c}" />
+                </apex:column>
+                
+                <apex:column >
+                    <apex:facet name="header">Total Number of<br />Visitors</apex:facet>
+                    <div class="calculate" data-id='{!ascc.id}' data-columnName="Number_of_Visitors__c"><img src="/img/loading32.gif" /></div>
+                </apex:column>
+                
+                <apex:column >
+                    <apex:facet name="header">Total number of<br />Programs</apex:facet>
+                    <div class="calculate" data-id='{!ascc.id}' data-columnName="Number_of_Programs__c"><img src="/img/loading32.gif" /></div>
+                </apex:column>
+                
+                <apex:column >
+                    <apex:facet name="header">Total number of<br />Program Attendees</apex:facet>
+                    <div class="calculate" data-id='{!ascc.id}' data-columnName="Number_of_Program_Attendees__c"><img src="/img/loading32.gif" /></div>
+                </apex:column>
+            </apex:pageBlockTable>
+        </apex:pageBlockSection>
+        </apex:form>
+    </apex:pageBlock>
+</apex:page>

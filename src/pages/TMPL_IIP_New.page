@@ -1,0 +1,74 @@
+<apex:page >
+    <c:IIP_Resources />
+    <apex:form >
+    <apex:commandButton action="{!save}" value="Save" />
+    <apex:commandButton action="{!cancel}" value="Cancel" />
+    <apex:commandButton action="{!Notify_Photo_Team}" value="Notify Photo Team" />
+    
+    <div id="information" class="section">
+        <div class="panel">
+            <c:IIP_Breadcrumb />
+            <apex:insert name="information"/>
+        </div>
+        <div class="buttons">
+            <div class="btn-left"><input type="button" value="Hide All Other Steps" class="hide-steps" onclick="hideSteps(this);" /></div>
+            <div class="btn-left"><input type="button" value="Next" class="next-step" onclick="nextStep(this);" /></div>
+        </div>
+        <div class="clear"></div>
+    </div>
+    <div id="content" class="section">
+        <div class="panel">
+            <c:IIP_Breadcrumb />
+            <apex:insert name="content"/>
+        </div>
+        <div class="buttons">
+            <div class="btn-left"><input type="button" value="Hide All Other Steps" class="hide-steps" onclick="hideSteps(this);" /></div>
+            <div class="btn-left"><input type="button" value="Next" class="next-step" onclick="nextStep(this);" /></div>
+        </div>
+        <div class="clear"></div>
+    </div>
+    <div id="social-networking" class="section">
+        <div class="panel">
+            <c:IIP_Breadcrumb />
+            <apex:insert name="social-networking"/>
+        </div>
+        <div class="buttons">
+            <div class="btn-left"><input type="button" value="Hide All Other Steps" class="hide-steps" onclick="hideSteps(this);" /></div>
+            <div class="btn-left"><input type="button" value="Next" class="next-step" onclick="nextStep(this);" /></div>
+        </div>
+        <div class="clear"></div>
+    </div>
+    <div id="meta-data" class="section">
+        <div class="panel">
+            <c:IIP_Breadcrumb />
+            <apex:insert name="metadata"/>
+        </div>
+        <div class="buttons">
+            <div class="btn-left"><input type="button" value="Hide All Other Steps" class="hide-steps" onclick="hideSteps(this);" /></div>
+            <div class="btn-left"><input type="button" value="Next" class="next-step" onclick="nextStep(this);" /></div>
+        </div>
+        <div class="clear"></div>
+    </div>
+    <div id="links" class="section">
+        <div class="panel">
+            <c:IIP_Breadcrumb />
+            <apex:insert name="links"/>
+        </div>
+        <div class="buttons">
+            <div class="btn-left"><input type="button" value="Hide All Other Steps" class="hide-steps" onclick="hideSteps(this);" /></div>
+            <div class="btn-left"><input type="button" value="Next" class="next-step" onclick="nextStep(this);" /></div>
+        </div>
+        <div class="clear"></div>
+    </div>
+    <div id="photos" class="section">
+        <div class="panel">
+            <c:IIP_Breadcrumb />
+            <apex:insert name="photos"/>
+        </div>
+        <div class="buttons">
+            <div class="btn-left"><input type="button" value="Hide All Other Steps" class="hide-steps" onclick="hideSteps(this);" /></div>
+        </div>
+        <div class="clear"></div>
+    </div>
+    </apex:form>
+</apex:page>

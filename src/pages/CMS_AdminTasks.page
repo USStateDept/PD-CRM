@@ -1,0 +1,46 @@
+<apex:page controller="CMS_AdminController"  sidebar="false" tabStyle="CMS_Weekly_Status_Reports__tab">
+	<apex:form id="myForm">
+	    <apex:pageMessages id="errMessages" escape="false" />
+	    <apex:pageBlock id="pageBlock" title="Admin Tasks" mode="view">
+	    	<apex:pageBlockSection showHeader="true" title="Settings" columns="2">
+	    		<apex:pageBlockSection showHeader="true" title="Functional Roles" columns="1">
+	    			<apex:outputPanel style="float:right">
+		    			<apex:inputText value="{!functionalRole}" />
+		    			<apex:commandButton action="{!addFunctionalRole}" value="add" />
+		    		</apex:outputPanel>
+		    		<apex:pageBlockTable value="{!FunctionalRoles}" var="item" rowClasses="odd,even" styleClass="tableClass">
+						<apex:column headerClass="" >
+					        <apex:facet name="header">Action</apex:facet>
+					        <apex:commandLink action="{!deleteAction}" value="delete">
+					        	<apex:param name="idStr" value="{!item.id}" assignTo="{!propertyID}" />
+					        </apex:commandLink>
+					    </apex:column>
+					    <apex:column >
+					        <apex:facet name="header">Value</apex:facet>
+					        <apex:outputField value="{!item.Value__c}" /> 
+					    </apex:column>
+					</apex:pageBlockTable>
+	    		</apex:pageBlockSection>
+	    		<apex:pageBlockSection showHeader="true" title="Project Numbers" columns="1">
+		    		<apex:outputPanel style="float:right">
+		    			<apex:inputText value="{!projectNumber}" />
+		    			<apex:commandButton action="{!addProjectNumber}" value="add" />
+		    		</apex:outputPanel>
+					
+					<apex:pageBlockTable value="{!projectNumbers}" var="item" rowClasses="odd,even" styleClass="tableClass">
+						<apex:column headerClass="" >
+					        <apex:facet name="header">Action</apex:facet>
+					        <apex:commandLink action="{!deleteAction}" value="delete">
+					        	<apex:param name="idStr" value="{!item.id}" assignTo="{!propertyID}" />
+					        </apex:commandLink>
+					    </apex:column>
+					    <apex:column >
+					        <apex:facet name="header">Value</apex:facet>
+					        <apex:outputField value="{!item.Value__c}" /> 
+					    </apex:column>
+					</apex:pageBlockTable>
+	    		</apex:pageBlockSection>
+	    	</apex:pageBlockSection>
+	    </apex:pageBlock>
+	</apex:form>
+</apex:page>

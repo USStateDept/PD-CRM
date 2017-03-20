@@ -1,0 +1,71 @@
+<apex:page standardcontroller="Digital_Asset__c" extensions="DA_Email,DA_NotifyVideoTeam,DA_NotifyPhotoTeam,DA_NotifyGeneric" tabStyle="Digital_Asset__c" >
+<apex:pagemessages id="errors" />
+<c:publishing_system_resources />
+<apex:includeScript value="{!URLFOR($Resource.publishing_system_resources, 'publishing_system_resources/jquery.js')}"/>
+
+<script type="text/javascript">
+// Please Note: Due to a bug with the Saleforce MultiSelect tool, all functions must contain the jQuery.noConflict() definition to prevent errors.
+    var j = jQuery.noConflict();
+    j(document).ready(function(){
+     j('input.emailTo').change(function(){
+            var val = j(this).val();
+            var specialChars = "<>!#$%^&*()+[]{}?:;|\"\\/~`="
+            var usedSpecialChars = '';
+            //if(val.indexOf(';') > 0 || val.indexOf('|') > 0 || val.indexOf('?') > 0) {
+            for(i = 0; i < specialChars.length;i++)
+            {
+	   			if(val.indexOf(specialChars[i]) > -1)
+	   			{    
+	                usedSpecialChars = usedSpecialChars + specialChars[i];
+	            }
+	        }
+	        
+	        if(usedSpecialChars != '')
+	        	alert('Please only use commas to separate multiple recipients');
+	        
+        });
+
+    });
+</script>
+
+
+<apex:form >
+	<apex:pageblock >
+		<apex:outputpanel style="color:green;font-weight:bold;text-align:center" id="statusMailTop" layout="block">
+        	<strong><apex:outputtext value="{!response}"></apex:outputtext></strong>
+        </apex:outputpanel>
+        
+		<apex:pageblockbuttons location="both">
+			<!-- The commandbutton below should be rendered by default unless there is a production issue that requires using the backup method -->
+			<apex:commandbutton rendered="false" value="Send" action="{!sendEmail}" rerender="errors, statusMailTop, statusMailBottom" />
+			<!-- The commandbutton below should NOT be rendered unless there is a production issue that requires using the backup method -->
+			<apex:commandbutton rendered="true" style="color:black;cursor:pointer;inherit:false;background-image:none;background-color:#E0E0E0 " value="Send" action="{!sendEmail2}" rerender="errors, statusMailTop, statusMailBottom"/>				
+		</apex:pageblockbuttons>
+		<apex:pageblocksection columns="1">
+			<apex:pageblocksectionitem helptext="Use commas to separate multiple recipients" >
+				<apex:outputlabel value="To:"/>
+				<apex:inputtext styleClass="emailTo" value="{!emailTo}" style="width: 400px"/>
+			</apex:pageblocksectionitem>
+			<apex:pageblocksectionitem helptext="Use commas to separate multiple recipients" >
+				<apex:outputlabel value="cc:"/>
+				<apex:inputtext styleClass="emailTo" value="{!emailCC}" style="width: 400px"/>
+			</apex:pageblocksectionitem>
+			<apex:pageblocksectionitem >
+				<apex:outputlabel value="Subject:"/>
+				<apex:inputtext value="{!emailSubject}" style="width: 400px"/>
+			</apex:pageblocksectionitem>		
+			<apex:pageblocksectionitem >
+				<apex:outputlabel value="Body:"/>
+				<apex:inputtextarea value="{!emailBody}" style="width: 400px; height: 100px" richtext="true"/>
+			</apex:pageblocksectionitem>
+			<apex:pageblocksectionitem rendered="{!IF(reqType=='photo',true,false)}">
+				<apex:outputlabel value="Additional Comments:"/>
+				<apex:inputtextarea value="{!addComments}" style="width: 400px;"/>
+			</apex:pageblocksectionitem>
+	    </apex:pageblocksection>
+		<apex:outputpanel style="color:green;font-weight:bold;text-align:center"  id="statusMailBottom" layout="block">
+        	<strong><apex:outputtext value="{!response}"></apex:outputtext></strong>
+        </apex:outputpanel>
+	</apex:pageblock>        
+    </apex:form>
+</apex:page>

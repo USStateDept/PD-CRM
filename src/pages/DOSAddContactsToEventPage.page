@@ -1,0 +1,106 @@
+<apex:page standardController="Contact" recordSetvar="unused" extensions="DOSAddEventController" id="page">
+  
+  <!--apex:includeScript value="{!$Resource.UtilJS}" /-->
+  <!-- Begin Default Content REMOVE THIS -->
+  <!--apex:stylesheet value="{!URLFOR($Resource.Background, 'doslogo.css')}"/-->
+  <!--img src="{!URLFOR($Resource.printbannerlogo)}" style="margin:-15px auto;width:50%;text-align: auto;"/-->
+  <apex:stylesheet value="{!URLFOR($Resource.SLDS, 'assets/styles/salesforce-lightning-design-system-vf.css')}"/>
+  <apex:stylesheet value="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css" />
+  <apex:includeScript value="https://code.jquery.com/jquery-2.2.2.js"/>
+  <apex:includeScript value="//code.jquery.com/ui/1.11.4/jquery-ui.js"/>
+  
+  <style>
+   #FormColumns{
+   width:500px;
+   //border:1px solid;
+   }
+   #FormColumns label{
+   //border:1px solid;
+       width:90px;
+       float: left;
+   }
+    #FormColumns input{
+   //border:1px solid;
+       width:225px;
+       margin-left: 9px;
+   }
+    </style>
+    
+  <apex:form id="wizard">
+  <div class="slds" style="margin:10px auto;width:50%;text-align: center;"> 
+    <apex:sectionHeader title="Add Contacts to Event Wizard" subtitle="Step {!step} of 2"/>       
+      <apex:pageBlock id="field" title="Step 1. Select the event(s) to be added" mode="edit" rendered="{!step='1'}">
+          <apex:outputPanel id="companys_navigation_panel"      
+              style="margin:5px auto;width:25%;text-align: center;">
+        
+               <apex:commandButton value="<<"  disabled="{!DisablePreviousEvent}" 
+                    action="{!previousFirstEvent}" 
+                    Rerender="wizard" styleClass="slds-button slds-button--brand">  
+               </apex:commandButton>
+            
+               <apex:commandButton value="<" disabled="{!DisablePreviousEvent}" 
+                     action="{!previousEvent}" 
+                     Rerender="wizard" styleClass="slds-button slds-button--brand">
+               </apex:commandButton>
+            
+               <apex:commandButton value=">" disabled="{!DisableNextEvent}" 
+                     action="{!nextEvent}" 
+                     Rerender="wizard" styleClass="slds-button slds-button--brand">
+               </apex:commandButton>
+            
+               <apex:commandButton value=">>" disabled="{!DisableNextEvent}" 
+                     action="{!nextLastEvent}"
+                     Rerender="wizard" styleClass="slds-button slds-button--brand"> 
+               </apex:commandButton>                                                              
+            </apex:outputPanel>
+          <apex:pagemessages escape="false"></apex:pagemessages>
+          <apex:pageBlockTable value="{!openEvents}" var="obj" >
+                <apex:column headerValue="Select">
+                    <apex:inputCheckbox value="{!obj.cSelect}"/>
+                </apex:column> 
+                <apex:column value="{!obj.event.Name}" headerValue="Name"/> 
+                <apex:column value="{!obj.event.Event_Start_Date__c}" headerValue="Start Date"/> 
+                <apex:column value="{!obj.event.Event_End_Date__c}" headerValue="End Date"/>
+                <apex:column value="{!obj.event.Status__c}" headerValue="Status"/>  
+            </apex:pageBlockTable> 
+            <apex:outputPanel id="companys_navigation_panel1"      
+              style="margin:5px auto;width:25%;text-align: center;">
+        
+               <apex:commandButton value="<<"  disabled="{!DisablePreviousEvent}" 
+                    action="{!previousFirstEvent}" 
+                    Rerender="wizard" styleClass="slds-button slds-button--brand">  
+               </apex:commandButton>
+            
+               <apex:commandButton value="<" disabled="{!DisablePreviousEvent}" 
+                     action="{!previousEvent}" 
+                     Rerender="wizard" styleClass="slds-button slds-button--brand">
+               </apex:commandButton>
+            
+               <apex:commandButton value=">" disabled="{!DisableNextEvent}" 
+                     action="{!nextEvent}" 
+                     Rerender="wizard" styleClass="slds-button slds-button--brand">
+               </apex:commandButton>
+            
+               <apex:commandButton value=">>" disabled="{!DisableNextEvent}" 
+                     action="{!nextLastEvent}"
+                     Rerender="wizard" styleClass="slds-button slds-button--brand"> 
+               </apex:commandButton>                                                              
+            </apex:outputPanel>        
+          <apex:pageBlockButtons >
+              <apex:commandButton action="{!cancel}" value="Previous" onclick="return confirmCancel()" immediate="true" style="margin-left: 2em" styleClass="slds-button slds-button--brand"/>
+              <apex:commandButton action="{!step4}" value="Next" style="margin-left: 2em" styleClass="slds-button slds-button--brand"/>  
+              <apex:commandButton action="{!cancel}" value="Cancel" onclick="return confirmCancel()" immediate="true" style="margin-left: 2em" styleClass="slds-button slds-button--brand"/>            
+          </apex:pageBlockButtons>
+      </apex:pageBlock>       
+       
+      <apex:pageBlock id="step2" title="Step 2. Contacts are added to the Event successfully" mode="edit" rendered="{!step='2'}">
+         <apex:pagemessages escape="false"></apex:pagemessages>         
+             <apex:pageBlockButtons >
+              <!--<apex:commandButton action="{!step1}" value="Previous" onclick="return confirmCancel()" immediate="true" style="margin-left: 2em" styleClass="slds-button slds-button--brand"/> -->
+              <apex:commandButton action="{!finish}" value="OK" styleClass="slds-button slds-button--brand"/>
+            </apex:pageBlockButtons>
+      </apex:pageBlock>                
+  </div>
+         
+  </apex:form>
+</apex:page>

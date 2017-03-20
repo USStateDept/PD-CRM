@@ -1,0 +1,111 @@
+<apex:page id="page" title="Edit American Spaces Mission Contact" showHeader="true" sidebar="false" standardController="American_Spaces_Mission_Contact__c" extensions="AmericanSpacesMissioncontacts">
+<apex:sectionHeader title="{!$ObjectType.American_Spaces_Mission_Contact__c.label}" subtitle="{!American_Spaces_Mission_Contact__c.Name}" />
+ <apex:form id="myForm">
+ 	<apex:messages style="padding:5px;margin-top:55px" />
+	<apex:includeScript value="{!URLFOR($Resource.jQueryLibrary, 'jquery-1.8.3.js')}"/>
+	<apex:includeScript value="{!URLFOR($Resource.jQueryLibrary, 'jquery-ui-1.9.2.custom.js')}"/>
+	<apex:includeScript value="{!URLFOR($Resource.jQueryLibrary, 'jquery.ui.autocomplete.js')}"/>
+	<apex:stylesheet value="{!URLFOR($Resource.jQueryLibrary, 'jquery-ui.css')}"/>
+ 	<script src="/soap/ajax/9.0/connection.js" type="text/javascript">></script>
+	<script language="JavaScript1.2" src="/js/functions.js"></script>
+	<script type="text/javascript">
+		j$ = $.noConflict();
+		
+		j$(document).ready(function ()
+		{
+			if (!{!isModifiable})
+			{
+				j$( '[id="page:myForm"]'  + " :input").attr( "disabled", true );
+				j$( '.pbButtonb' ).text( "" );
+				j$( '.pbButton' ).text( "" );
+				alert( "Users can only modify Spaces that are part of their portfolio. This Space isn't part of your assigned portfolio." );
+			   
+			    history.back();
+			}
+			
+			var details = [];
+			sforce.connection.sessionId = "{!$Api.Session_ID}";
+			result = sforce.connection.query( "SELECT id, Region__c, name, Country__c FROM American_Spaces_Post_Contacts__c" );
+    		records = result.getArray( "records" );
+    		
+    		for (var i=0; i< records.length; i++)
+    		{
+    			var info = {};
+				
+				var label = records[i].Name + " (" + records[i].Region__c + " - " +  records[i].Country__c + ")";
+				
+				info.label = label;
+				info.value = records[i].Id;
+				details[i] = info;
+			}
+
+    		j$( '[id="page:myForm:pageBlock:mission:postCityBlock:postCity"]' ).autocomplete({
+	            source: details,
+				select: function( event, ui ) {
+					var postName = ui.item.label;
+					
+					j$( '[id="page:myForm:pageBlock:mission:postCityID"]' ).val( ui.item.value );
+					
+					postName = postName.substring( 0, postName.indexOf(' ('));
+					j$( '[id="page:myForm:pageBlock:mission:postCityBlock:postCity"]' ).val( postName );
+					
+					changeCountry( ui.item.value );
+					return false;
+				}
+	        });
+
+			changeCountry( j$( '[id="page:myForm:pageBlock:mission:postCityID"]' ).val() );
+		});
+		
+		function changeCountry( id )
+		{
+			sforce.connection.sessionId = "{!$Api.Session_ID}";
+			var result = sforce.connection.query( "SELECT Country__c, Region__c FROM American_Spaces_Post_Contacts__c WHERE id = '" + id + "' limit 1" );
+    		var records = result.getArray( "records" );
+    		
+    		if (records.length > 0)
+    		{
+	    		j$( '[id="page:myForm:pageBlock:mission:country"]' ).text( records[0].Country__c );
+	    		j$( '[id="page:myForm:pageBlock:mission:region"]' ).text( records[0].Region__c );
+    		}
+		}
+ 	</script>
+ 	<apex:pageBlock id="pageBlock" title="{!$ObjectType.American_Spaces_Mission_Contact__c.label} Edit" mode="edit">
+ 		<apex:pageBlockButtons >
+			<apex:commandButton action="{!save}" value="Save"/>
+			<apex:commandButton action="{!cancel}" value="Cancel"/>
+		</apex:pageBlockButtons>
+        
+        <apex:pageBlockSection id="mission" showHeader="true" title="Mission Contact Information" columns="2">
+        		<apex:pageBlockSectionItem id="postCityBlock">
+            		Managing Post City
+            		<apex:inputText label="Managing Post City" id="postCity" value="{!postName}" required="true" />
+            	</apex:pageBlockSectionItem>
+                &nbsp;
+                <apex:outputField id="region" value="{!American_Spaces_Mission_Contact__c.Region__c}" />
+                &nbsp;
+                <apex:outputField id="country" value="{!American_Spaces_Mission_Contact__c.Country__c}" />
+                
+                <apex:inputField value="{!American_Spaces_Mission_Contact__c.First_Name__c}" />
+                <apex:inputField value="{!American_Spaces_Mission_Contact__c.Email_1__c}" />
+                <apex:inputField value="{!American_Spaces_Mission_Contact__c.Middle_Name__c}" />                
+                <apex:inputField value="{!American_Spaces_Mission_Contact__c.Email_2__c}" />
+                <apex:inputField value="{!American_Spaces_Mission_Contact__c.Last_Name__c}" />
+                <apex:inputField value="{!American_Spaces_Mission_Contact__c.Phone_1__c}" />
+                <apex:inputField value="{!American_Spaces_Mission_Contact__c.Salutation__c}" />
+                <apex:inputField value="{!American_Spaces_Mission_Contact__c.Phone_2__c}" />
+                <apex:inputField value="{!American_Spaces_Mission_Contact__c.LES_or_FSO__c}" />
+                <apex:inputText id="postCityID" value="{!postId}" style="visibility:hidden" />
+                <apex:inputField Label="Job Title" value="{!American_Spaces_Mission_Contact__c.Job_Tite__c}" />
+                
+        <apex:pageBlockSectionItem />
+        
+        </apex:pageBlockSection>
+        
+		<apex:pageBlockSection showHeader="true" title="Notes" columns="1">
+			<apex:inputField value="{!American_Spaces_Mission_Contact__c.Notes__c}" />
+		</apex:pageBlockSection>
+
+	</apex:pageBlock>
+</apex:form> 
+</apex:page>

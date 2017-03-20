@@ -1,0 +1,58 @@
+<apex:page id="myPage" title="Project Status Report" controller="CMS_ReportController" sidebar="false" tabStyle="CMS_Projects_Report__tab">
+    <apex:form id="myForm">
+    			<apex:pageBlock id="pageBlock">
+    				<apex:pageBlockTable id="hoursByProjectTable3" value="{!hoursByHold}" var="pas" rowClasses="odd,even" styleClass="projectTable tableClass">
+	                    <apex:column >
+	                        <apex:facet name="header">Project Name</apex:facet>
+	                        <div class="box" style="{!pas.style}"></div>
+	                        <apex:outputLink value="/apex/CMS_SubReport?projectName={!pas.objStr}"><apex:outputText value="{!pas.objStr}" /></apex:outputLink>
+	                    </apex:column>
+	              
+	                    <apex:column >
+	                    	<apex:facet name="header">Anticipated Hours</apex:facet>
+	                    	<apex:outputText value="{!pas.anticipatedHours}" />
+	                    </apex:column>
+	                    
+	                    <apex:column >
+	                    	<apex:facet name="header">Actual Hours</apex:facet>
+	                    	<apex:outputText value="{!pas.hours}" />
+	                   	</apex:column>
+	                   	
+	                   	<apex:column >
+	                   		<apex:facet name="header">Resources</apex:facet>
+	                   		<apex:outputText value="{!pas.involvedPersonnel}" />
+	                   	</apex:column>
+	                   	
+	                   	<apex:column >
+	                   		<apex:facet name="header">Project Manager</apex:facet>
+	                   		<apex:outputText value="{!pas.ProjectManger}" />
+	                   	</apex:column>
+	                   	
+	                   	<apex:column >
+	                   		<apex:facet name="header">Contract Project Manager</apex:facet>
+	                   		<apex:outputText value="{!pas.contractorPM}" />
+	                   	</apex:column>
+	                   	
+	                   	<apex:column >
+	                   		<apex:facet name="header">
+								<apex:commandLink action="{!sortResourceList}" value="Start Date{!IF(sortExpressionOM=='Start Date',IF(sortDirectionOM='asc','▼','▲'),'')}" id="assetSort31"> 
+								<apex:param value="Start Date" name="column" assignTo="{!sortExpression}" ></apex:param>
+								</apex:commandLink>
+	                   		</apex:facet>
+	                   		<apex:outputText value="{0,date, MM'/'dd'/'yyyy}">
+	                   			<apex:param value="{!pas.startDate}" />
+	                   		</apex:outputText>
+	                   		
+	                   	</apex:column>
+	                   	
+	                   	<apex:column >
+	                   		<apex:facet name="header">Comments</apex:facet>
+	                        <apex:outputText value="{!pas.comments}" />
+	                    </apex:column>
+	                </apex:pageBlockTable>
+	                <apex:outputPanel layout="block" style="margin-left:150px;font-size:13px;" rendered="{!hoursByHold.size == 0}">
+	                    <apex:outputText value="There are no records to display." />
+                    </apex:outputPanel>
+    			</apex:pageBlock>
+	</apex:form>
+</apex:page>

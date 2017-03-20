@@ -1,0 +1,40 @@
+<apex:component id="poweredbyComponent">
+<!--   <apex:panelGrid cellpadding="0" cellspacing="0" width="100%" border="0" style="text-align: right;" columns="1" id="thePoweredByTop">
+    <apex:panelGroup id="poweredBy">
+      <apex:outputText style="font-size: smaller" value="{!$Label.site.powered_by}"/>
+      <apex:outputLink value="http://www.force.com"><apex:image url="{!URLFOR($Resource.SiteSamples, 'img/poweredby.png')}" styleClass="poweredByImage"/></apex:outputLink>
+    </apex:panelGroup>
+   </apex:panelGrid>    -->
+ 
+    <apex:stylesheet value="https://fonts.googleapis.com/css?family=Roboto+Condensed%3A%2C300%2C400%2C700&ver=4.6.1"/> 
+    <apex:stylesheet value="https://uk.usembassy.gov/wp-content/plugins/bwp-minify/min/?f=wp-content/plugins/contact-form-7/includes/css/styles.css,wp-content/plugins/ubermenu3/pro/assets/css/ubermenu.min.css,wp-content/plugins/ubermenu3/pro/assets/css/skins/white.css,wp-content/plugins/ubermenu3/assets/css/fontawesome/css/font-awesome.min.css,wp-content/themes/cms3/dist/styles/main-10e6f94f.css"/>
+
+
+    <div class="mo-footer">
+        <footer class="content-info">
+            <div class="container">
+                <center>
+                            
+                        <div class="textwidget"><a href="/embassy-consulates/embassy/">U.S. Embassy London</a><br/>
+                            24 Grosvenor Square<br/>
+                            London, W1A 2LQ<br/>
+                            United Kingdom<br/>
+                            Phone: [44] (0)20 7499-90
+                        </div>
+                   
+                </center>
+            </div>          
+        </footer>   
+    </div>    
+
+    <div class="mo-copyright">   
+        <div class="container">
+            <center>
+                <p><span class="sr-only">Disclaimer &#8211; Footer</span>           
+                    <div class="textwidget">This is the official website of the U.S. Embassy and Consulates in The United Kingdom. External links to other Internet sites should not be construed as an endorsement of the views or privacy policies contained therein.</div>
+                </p>
+                <img src="https://uk.usembassy.gov/wp-content/themes/cms3/dist/images/us-flag-logo.png" alt="American Flag"/>
+            </center>
+        </div>
+    </div> 
+</apex:component>

@@ -1,0 +1,33 @@
+<apex:page id="myPage" standardController="Contract_CSIR__c" extensions="Contract_CSIR_Controller" sidebar="false" tabStyle="Contract_CSIRs__tab">
+    <apex:form id="myForm">
+        <apex:pageMessages id="errMessages" />
+        <apex:pageBlock id="pageBlock" title="Customer Support Incident Report Edit" mode="view">
+            <apex:pageblockButtons >
+                <apex:commandButton action="{!save}"   value="Save"   />
+                <apex:commandButton action="{!cancel}" value="Cancel" />
+            </apex:pageblockButtons>
+            
+            <apex:pageBlockSection id="genDetails" showHeader="true" title="General Details" columns="1">
+                <!-- added field 'Name' which displays the Salesforce ID while editing record (RR 6/5/14) -->
+                <apex:outputField value="{!Contract_CSIR__c.Name}" />
+                <!-- END OF CHANGE -->
+                <apex:inputField value="{!Contract_CSIR__c.Ticket_Number__c}" />
+                <apex:inputField value="{!Contract_CSIR__c.Event_Description__c}" />
+                <apex:inputField value="{!Contract_CSIR__c.Date_Time_Occurred__c}" />
+                <apex:inputField value="{!Contract_CSIR__c.Action_Taken_by_Support__c}" />
+                <apex:inputField value="{!Contract_CSIR__c.Technical_Rep_Assigned__c}" />
+                <apex:inputField value="{!Contract_CSIR__c.Cause_of_Issue__c}" />
+                <apex:inputField value="{!Contract_CSIR__c.Action_Taken__c}" />
+                <apex:inputField value="{!Contract_CSIR__c.Date_Time_Resolved__c}" />
+                <apex:inputField value="{!Contract_CSIR__c.Notification_Sent__c}" />
+            </apex:pageBlockSection>
+            
+            <apex:pageBlockSection id="pmDetails" showHeader="true" title="PM Details" columns="1" rendered="{!myPermissionset == 'CMS Incident Report Project Manager'}">
+                <apex:inputField id="sysAffected" value="{!Contract_CSIR__c.System_Affected__c}" />
+                <apex:inputField value="{!Contract_CSIR__c.If_other_Describe__c}" />
+                <apex:inputField value="{!Contract_CSIR__c.Responsible_Vendor__c}" />
+                <apex:inputField value="{!Contract_CSIR__c.Justification__c}" />
+            </apex:pageBlockSection>
+        </apex:pageBlock>
+    </apex:form>
+</apex:page>

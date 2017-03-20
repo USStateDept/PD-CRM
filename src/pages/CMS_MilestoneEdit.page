@@ -1,0 +1,165 @@
+<apex:page id="myPage" standardController="CMS_Milestone__c" extensions="CMS_MilestoneController" sidebar="false" tabStyle="CMS_Projects__tab">
+    <apex:includeScript value="{!URLFOR($Resource.jQueryLibrary, 'jquery-1.8.3.js')}"/>
+    <apex:includeScript value="{!URLFOR($Resource.jQueryLibrary, 'jquery-ui-1.9.2.custom.js')}"/>
+    <apex:includeScript value="{!URLFOR($Resource.jQueryLibrary, 'jquery.ui.autocomplete.js')}"/>
+    <apex:stylesheet value="{!URLFOR($Resource.jQueryLibrary, 'jquery-ui.css')}"/>
+    <script type="text/javascript">
+        j$ = $.noConflict();
+        
+        j$(document).ready(function()
+        {
+            config();
+        });
+
+        function config()
+        { 
+            j$('.leads').closest('tr').hide();
+            j$('.leads').attr('disabled', 'disabled');
+            
+            j$( '.overridePercentage' ).parent().parent().hide();
+            j$( '.overrideDate' ).parent().parent().parent().hide();
+            
+            j$( '.leads' ).each( function() {
+            	var users = j$( this ).val().split(",");
+            	var uiLeads = j$( this ).closest( 'table' ).find( '.UI_leads' );
+            	
+            	for (var user in users)
+            	{
+            		if (users[user] != null && users[user].length > 0)
+            		{
+            			j$( uiLeads ).append(  '<span>' + users[user] + '<a href="#" onclick="removeUser( this );"><img src="/img/search_dismiss.gif" /></a></span> ' );
+            		}
+            	}
+            });
+            
+            j$( '.override' ).each( function() {
+            	displayOverrideFields( this );
+            });
+        }
+        
+        function add( obj )
+        {
+            var user = j$( obj ).prev();
+            var users = j$( obj ).closest( 'table' ).find( '.leads' ).val();
+            var uiLeads = j$( obj ).closest( 'table' ).find( '.UI_leads' );
+            
+            j$( user ).children("option").each(function()
+            {
+            	if(this.selected)
+            	{
+            		var userName = j$( this ).text();
+            		
+            		if (users.indexOf( userName ) == -1)
+		            {
+		            	j$( uiLeads ).append(  '<span>' + userName + '<a href="#" onclick="removeUser( this );"><img src="/img/search_dismiss.gif" /></a></span> ' );
+		            	j$( obj ).closest( 'table' ).find( '.leads' ).val( j$( obj ).closest( 'table' ).find( '.leads' ).val() + "," + userName );
+		            }
+		            else
+		            {
+		            	alert( "The user, " + userName + ", is already in the list." );
+		            }
+            	}
+            });
+        }
+        
+        
+        function removeDisableInputs()
+        {
+        	j$('.leads').attr('disabled', false);
+        	
+        	j$( '.leads' ).each( function() {
+        		j$( this ).val( removeComma( j$( this ).val() ));
+        	});
+        }
+        
+        
+        function removeUser( user )
+        {
+        	var user = j$( user ).closest( 'span' );
+        	j$( user ).closest( 'table' ).find( '.leads' ).val( j$( user ).closest( 'table' ).find( '.leads' ).val().replace( j$(user).text(), '' ) );
+        	j$( user ).text( '' );
+        }
+        
+        
+        function removeComma( str )
+        {
+        	return str.replace(/^[,\s]+|[,\s]+$/g, '').replace(/,[,\s]*,/g, ',');
+        }
+        
+        
+        function displayOverrideFields( val )
+        {
+        	if ( j$( val ).is(":checked"))
+        	{
+        		j$( val ).closest( 'table' ).find( '.overridePercentage' ).parent().parent().show();
+        		j$( val ).closest( 'table' ).find( '.overrideDate' ).parent().parent().parent().show();
+        	}
+        	else
+        	{
+        		j$( val ).closest( 'table' ).find( '.overridePercentage' ).parent().parent().hide();
+            	j$( val ).closest( 'table' ).find( '.overrideDate' ).parent().parent().parent().hide();
+        	}
+        }
+    </script>
+    <apex:form id="myForm">
+        <apex:pageMessages id="errMessages" />
+        <apex:pageBlock id="pageBlock" title="CMS Milestone Edit - {!CMS_Milestone__c.CMS_Projects__r.name} ({!CMS_Milestone__c.CMS_Projects__r.Project_Number__c})" mode="view">
+            <apex:pageblockButtons >
+                <apex:commandButton action="{!save}"   value="Save" onclick="removeDisableInputs();"/>
+                <apex:commandButton action="{!cancel}" value="Cancel" />
+            </apex:pageblockButtons>
+            <apex:pageBlockSection id="project" showHeader="true" title="Milestone Details" columns="1">
+                <apex:outputField value="{!CMS_Milestone__c.Name}" />
+                <apex:outputField value="{!CMS_Milestone__c.Start_Date__c}" />
+                <apex:outputField value="{!CMS_Milestone__c.Due_Date__c}" />
+                <apex:outputField Label="Lead" value="{!CMS_Milestone__c.Lead__r.name}" />
+                <apex:outputField value="{!CMS_Milestone__c.Anticipated_Hours__c}" />
+                <apex:inputHidden value="{!CMS_Milestone__c.CMS_Projects__r.Project_Type__c}" />
+            </apex:pageBlockSection>
+            
+            <apex:pageBlockSection showHeader="true" title="Milestone Tasks Details" columns="1">
+                <apex:commandButton action="{!newTask}" value="New Task" reRender="projectLists,errMessages" status="add" />
+                <apex:actionStatus id="add" onstop="config();" />
+                <apex:outputPanel id="projectLists">
+                    <apex:variable value="{!0}" var="rowNum" />
+                    <apex:repeat value="{!tasks}" var="taskObj">
+                    	<apex:variable var="rowNum" value="{!rowNum + 1}"/>
+                        <apex:pageBlockSection id="project" columns="1"  title="Task - {!taskObj.task.Name}" collapsible="true">
+                            <apex:inputField value="{!taskObj.task.Name}"          required="true" />
+                            <apex:inputField Label="Functional Role" value="{!taskObj.task.Functional_Roles__c}"          required="true" />
+                            <apex:inputField value="{!taskObj.task.Start_Date__c}" required="true" />
+                            <apex:inputField value="{!taskObj.task.Due_Date__c}"   required="true" />
+                            <apex:inputField value="{!taskObj.task.Anticipated_Hours__c}"   required="true" />
+                            <apex:outputField value="{!taskObj.task.Hours_Spent__c}" />
+                            <apex:outputField value="{!taskObj.task.Percentage__c}" />
+                            <apex:outputField value="{!taskObj.task.Completed_Date__c}" />
+                            <apex:inputField value="{!taskObj.task.Override__c}" styleClass="override" onclick="displayOverrideFields( this );" />
+                            <apex:inputField value="{!taskObj.task.Override_Percentage__c}"     styleClass="overridePercentage" />
+                            <apex:inputField value="{!taskObj.task.Override_Completed_Date__c}" styleClass="overrideDate" />
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="User Name" />
+                                <apex:outputPanel >
+                                    <select style="users" multiple="multiple">
+                                    	<apex:repeat value="{!listOfUsers}" var="user">
+                                    		<option value="{!user}">{!user}</option>
+                                    	</apex:repeat>
+                                    </select>
+                                    <a href="#" onclick="add( this );">add user</a>
+                                </apex:outputPanel>
+                            </apex:pageBlockSectionItem>
+                            <apex:pageBlockSectionItem >
+                            	<apex:outputLabel value="Assigned User(s)" />
+                            	<apex:outputPanel styleClass="UI_leads"></apex:outputPanel>
+                            </apex:pageBlockSectionItem>
+                            <apex:inputText Label="Assigned User" value="{!taskObj.assignedUsers}" styleClass="leads"  required="true"  />
+                            <apex:commandLink value="Delete Task" action="{!deleteTask}" onclick="return confirm('Are you sure?');" immediate="true">
+								<apex:param name="picNumber" value="{!rowNum}" assignTo="{!taskNumber}" />
+							</apex:commandLink>
+                        </apex:pageBlockSection>
+                    </apex:repeat>
+                    <apex:commandButton action="{!newTask}" value="New Task" reRender="projectLists,errMessages" status="add" rendered="{!tasks.size > 0}" />
+                </apex:outputPanel>
+            </apex:pageBlockSection>
+        </apex:pageBlock>
+    </apex:form>
+</apex:page>

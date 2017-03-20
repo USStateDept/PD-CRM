@@ -1,0 +1,332 @@
+<apex:page id="myPage" controller="CMS_WeeklyStatusReportController"  sidebar="false" tabStyle="CMS_Weekly_Status_Reports__tab">
+<apex:includeScript value="{!URLFOR($Resource.jQueryLibrary, 'jquery-1.8.3.js')}"/>
+    <script src="/soap/ajax/9.0/connection.js" type="text/javascript"></script>
+    <script language="JavaScript1.2" src="/js/functions.js"></script>
+    <script type="text/javascript">
+        j$ = $.noConflict();
+        
+        j$(document).ready(function()
+        {
+            j$( '.projMang' ).closest('td').hide();
+            j$( '.supervisor' ).closest('td').hide();
+            j$( ".contentLoading" ).hide();
+            
+            j$( '[id="myPage:myForm:pageBlock:currentStatus:filter"]' ).css( "width", "400px" );
+			j$( '[id="myPage:myForm:pageBlock2:filter"]' ).css( "width", "400px" );
+			j$( '[id="myPage:myForm:pageBlock3:filter"]' ).css( "width", "400px" );
+			
+            var options = '{!listOfProjectManagers}'.split( ";" );
+            createDropDown( 'projectManager', options );
+            
+            var options = '{!listOfSupervisors}'.split( ";" );
+            createDropDown( 'supervisor', options );
+			
+			var options = '{!listOfUsers}'.split( ";" );
+            createDropDown( 'users', options );
+			
+            j$( '.user' ).val( '' );
+            j$( '.projMang' ).val( '' );
+            j$( '.supervisor' ).val( '' );
+            
+            //twistSection( document.getElementById( 'myPage:myForm:pageBlock:openStatus' ).childNodes[0].childNodes[0] );
+        	//twistSection( document.getElementById( 'myPage:myForm:pageBlock:currentStatus' ).childNodes[0].childNodes[0] );
+        });
+
+        function setFocusOnLoad() {} 
+        
+        function createDropDown( dropDownID, options )
+        {
+            var select = document.getElementById( dropDownID );
+
+            for (var i = 0; i < options.length; i++)
+            {
+                var opt = options[i];
+                
+                if (opt.length > 0)
+                {
+                    var el = document.createElement("option");
+                    el.textContent = opt;
+                    el.value = opt;
+                    select.appendChild(el);
+                }
+            }
+        }
+        
+		function loading( val )
+		{
+			if (val)
+			{
+				j$( ".contentLoading" ).show();
+				j$( ".tableClass" ).hide();
+			}
+			else
+			{
+				j$( ".contentLoading" ).hide();
+				j$( ".tableClass" ).show();
+			}
+		}
+    </script>
+
+<apex:form id="myForm">
+    <apex:pageMessages id="errMessages" escape="false" />
+    <apex:tabPanel switchType="server" selectedTab="Ative" id="theTabPanel">
+        <apex:tab label="Active" name="Active" id="tabOne">
+            <apex:commandButton action="{!submit}" value="Submit to Supervisor" rendered="{!statusReport.Status__c == 'Open' && statusReport != ''}" />
+            <apex:pageBlock id="pageBlock" title="Active Weekly Status Report" mode="view">
+                <apex:pageBlockSection id="requestorInfo" showHeader="true" title="Current Week" columns="1">
+                    <apex:pageBlockSectionItem >
+                        <apex:outputLabel value="Time Period" />
+                        <apex:outputPanel >
+                            <apex:outputLink value="../{!statusReport.id}" rendered="{!statusReport.id != ''}">{!timePeriod}</apex:outputLink>
+                            <apex:outputText value="{!timePeriod}" rendered="{!statusReport.id == ''}"/>
+                            &nbsp;
+                            <apex:outputLink value="./apex/CMS_WeeklyStatusReportEdit?id={!statusReport.id}" rendered="{!statusReport.id != '' && !completed}"><img src="/img/func_icons/util/pencil12.gif" /></apex:outputLink>
+                            <apex:outputLink value="./apex/CMS_WeeklyStatusReportEdit" rendered="{!statusReport.id == '' && !completed}"><img src="/img/func_icons/util/pencil12.gif" /></apex:outputLink>
+                        </apex:outputPanel>
+                    </apex:pageBlockSectionItem>
+                    <apex:outputField value="{!statusReport.Project_Manager__c}" />
+                    <apex:outputField value="{!statusReport.Supervisor__c}" />
+                    <apex:outputField value="{!statusReport.Status__c}" />
+                    <apex:outputField value="{!statusReport.OwnerId}" />
+                    
+                </apex:pageBlockSection>
+                <br/><br/>
+                
+                <apex:pageBlockSection id="openStatus" showHeader="true" title="Open Status Report(s)" columns="1">
+                    <apex:pageBlockTable id="activeReports" value="{!activeReports}" var="status" rowClasses="odd,even" styleClass="tableClass" >
+                        <apex:column headerClass="" >
+                            <apex:facet name="header">Action</apex:facet>
+                            <apex:outputLink value="../{!status.id}">View</apex:outputLink>&nbsp;
+                        <apex:outputLink value="../apex/CMS_WeeklyStatusReportEdit?id={!status.id}">Edit</apex:outputLink>&nbsp;
+                        </apex:column>
+                        <apex:column headerClass="Report_Start_Date__c" rendered="{!myPermissionset != 'CMS Basic'}">
+                            <apex:facet name="header">Name</apex:facet>
+                            <apex:outputField value="{!status.ownerId}" /> 
+                        </apex:column>
+                        <apex:column headerClass="Report_Start_Date__c" >
+                            <apex:facet name="header">Report Start Date</apex:facet>
+                            <apex:outputText value="{0,date,MM'/'dd'/'yyyy}">
+                                <apex:param value="{!status.Report_Start_Date__c}" /> 
+                            </apex:outputText>
+                        </apex:column>
+                        <apex:column headerClass="Report_End_Date__c" >
+                            <apex:facet name="header">Report End Date</apex:facet>
+                            <apex:outputText value="{0,date,MM'/'dd'/'yyyy}">
+                                <apex:param value="{!status.Report_End_Date__c}" /> 
+                            </apex:outputText>
+                        </apex:column>
+                        <apex:column headerClass="Supervisor__c" >
+                            <apex:facet name="header">Supervisor</apex:facet>
+                            <apex:outputText value="{!status.Supervisor__c}" /> 
+                        </apex:column>
+                        <apex:column headerClass="Project_Manager__c" >
+                            <apex:facet name="header">Project Manager</apex:facet>
+                            <apex:outputText value="{!status.Project_Manager__c}" /> 
+                        </apex:column>
+                    </apex:pageBlockTable>
+                </apex:pageBlockSection>
+                
+                <apex:pageBlockSection id="currentStatus" showHeader="true" title="Current Week's Reports" columns="1" rendered="{!myPermissionset != 'CMS Basic'}">
+                    <apex:pageBlockSection id="filter" showHeader="true" title="Filter" columns="1" collapsible="true" rendered="{!myPermissionset != 'CMS Basic'}">
+                        <apex:pageBlockSectionItem >
+                            <apex:outputLabel value="Owner" />
+                            <select id="users" onchange="j$( '.user' ).val( j$(this).find(':selected').text() );"><option value="">None</option></select>
+                        </apex:pageBlockSectionItem>
+                        <apex:pageBlockSectionItem >
+                            <apex:outputLabel value="Project Manager" />
+                            <select id="projectManager" onchange="j$( '.projMang' ).val( j$(this).find(':selected').text() );"><option value="">None</option></select>
+                        </apex:pageBlockSectionItem>
+                        <apex:pageBlockSectionItem >
+                            <apex:outputLabel value="Supervisor" />
+                            <select id="supervisor"  onchange="j$( '.supervisor' ).val( j$(this).find(':selected').text() );"><option value="">None</option></select>
+                        </apex:pageBlockSectionItem>
+    					
+    					<apex:inputText label="" styleClass="user" value="{!owner}" required="false" style="visibility:hidden;height:0px;;width:0px" />
+                        <apex:inputField label="" styleClass="supervisor" value="{!filter.Supervisor__c}" required="false" style="visibility:hidden;height:0px;;width:0px" />
+                        <apex:inputField label="" styleClass="projMang" value="{!filter.Project_Manager__c}" required="false" style="visibility:hidden;height:0px;;width:0px" />
+                                                                        
+                        <apex:commandButton action="{!refresh}" rerender="activeReports" value="Filter" id="filterBtn" style="margin-left:200px;" status="loading1"/>
+                        <apex:actionStatus id="loading1" onstart="loading(true)" onstop="loading(false)" />
+                        
+                        <apex:inputText value="{!columnName}" style="visibility:hidden;height:0px;;width:0px" id="sortBy" />
+                        <apex:inputText value="{!ascOrDesc}" style="visibility:hidden;height:0px;;width:0px" id="ascOrDesc" />
+                    </apex:pageBlockSection>
+                
+                    <apex:pageBlockTable id="activeReports" value="{!currentWeeksReports}" var="status" rowClasses="odd,even" styleClass="tableClass" >
+                        <apex:column headerClass="" >
+                            <apex:facet name="header">Action</apex:facet>
+                            <apex:outputLink value="../{!status.id}">View</apex:outputLink>&nbsp;
+                        <apex:outputLink value="../apex/CMS_WeeklyStatusReportEdit?id={!status.id}">Edit</apex:outputLink>&nbsp;
+                        </apex:column>
+                        <apex:column headerClass="ownerID">
+                            <apex:facet name="header">Name</apex:facet>
+                            <apex:outputField value="{!status.ownerId}" /> 
+                        </apex:column>
+                        <apex:column headerClass="Report_Start_Date__c" >
+                            <apex:facet name="header">Report Start Date</apex:facet>
+                            <apex:outputText value="{0,date,MM'/'dd'/'yyyy}">
+                                <apex:param value="{!status.Report_Start_Date__c}" /> 
+                            </apex:outputText>
+                        </apex:column>
+                        <apex:column headerClass="Report_End_Date__c" >
+                            <apex:facet name="header">Report End Date</apex:facet>
+                            <apex:outputText value="{0,date,MM'/'dd'/'yyyy}">
+                                <apex:param value="{!status.Report_End_Date__c}" /> 
+                            </apex:outputText>
+                        </apex:column>
+                        <apex:column headerClass="Supervisor__c" >
+                            <apex:facet name="header">Supervisor</apex:facet>
+                            <apex:outputText value="{!status.Supervisor__c}" /> 
+                        </apex:column>
+                        <apex:column headerClass="Project_Manager__c" >
+                            <apex:facet name="header">Project Manager</apex:facet>
+                            <apex:outputText value="{!status.Project_Manager__c}" /> 
+                        </apex:column>
+                        <apex:column headerClass="Status__c" >
+                            <apex:facet name="header">Status</apex:facet>
+                            <apex:outputText value="{!status.Status__c}" /> 
+                        </apex:column>
+                    </apex:pageBlockTable>
+                    <div class="contentLoading">
+						<div style="text-align: center;">
+							<img src="/img/loading.gif" alt="Loading graphic" />
+						</div>
+					</div>
+                </apex:pageBlockSection>
+            </apex:pageBlock>
+        </apex:tab>
+        <apex:tab label="Submitted" name="Submitted Weekly Status Report" id="tabTwo" >
+            <apex:pageBlock id="pageBlock2" title="Submitted Weekly Status Report" mode="view">
+                <apex:pageBlockSection id="filter" showHeader="true" title="Filter" columns="1" collapsible="true" rendered="{!myPermissionset != 'CMS Basic'}">
+                    <apex:pageBlockSectionItem >
+                        <apex:outputLabel value="Owner" />
+                        <select id="users" onchange="j$( '.user' ).val( j$(this).find(':selected').text() );"><option value="">None</option></select>
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem >
+                        <apex:outputLabel value="Project Manager" />
+                        <select id="projectManager" onchange="j$( '.projMang' ).val( j$(this).find(':selected').text() );"><option value="">None</option></select>
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem >
+                        <apex:outputLabel value="Supervisor" />
+                        <select id="supervisor"  onchange="j$( '.supervisor' ).val( j$(this).find(':selected').text() );"><option value="">None</option></select>
+                    </apex:pageBlockSectionItem>
+					
+					<apex:inputText styleClass="user" value="{!owner}" required="false" style="visibility:hidden;height:0px;;width:0px" />
+                    <apex:inputField label="" styleClass="supervisor" value="{!filter.Supervisor__c}" required="false" style="visibility:hidden;height:0px;;width:0px" />
+                    <apex:inputField label="" styleClass="projMang" value="{!filter.Project_Manager__c}" required="false" style="visibility:hidden;height:0px;;width:0px" />
+                                                                    
+                    <apex:commandButton action="{!refresh}" rerender="status" value="Filter" id="filterBtn" style="margin-left:200px;" status="loading2" />
+                    <apex:actionStatus id="loading2" onstart="loading(true)" onstop="loading(false)" />
+                        
+                    <apex:inputText value="{!columnName}" style="visibility:hidden;height:0px;;width:0px" id="sortBy" />
+                    <apex:inputText value="{!ascOrDesc}" style="visibility:hidden;height:0px;;width:0px" id="ascOrDesc" />
+                </apex:pageBlockSection>  
+                          
+                <apex:pageBlockTable id="status" value="{!completedReports}" var="status" rowClasses="odd,even" styleClass="tableClass">
+                    <apex:column headerClass="" >
+                        <apex:facet name="header">Action</apex:facet>
+                        <apex:outputLink value="../{!status.id}">View</apex:outputLink>&nbsp;
+                    <apex:outputLink value="../{!status.id}" rendered="{!myPermissionset != 'CMS Basic'}">Edit</apex:outputLink>&nbsp;
+                    </apex:column>
+                    <apex:column headerClass="Report_Start_Date__c" rendered="{!myPermissionset != 'CMS Basic'}">
+                        <apex:facet name="header">Name</apex:facet>
+                        <apex:outputField value="{!status.ownerId}" /> 
+                    </apex:column>
+                    <apex:column headerClass="Report_Start_Date__c" >
+                        <apex:facet name="header">Report Start Date</apex:facet>
+                        <apex:outputText value="{0,date,MM'/'dd'/'yyyy}">
+                            <apex:param value="{!status.Report_Start_Date__c}" /> 
+                        </apex:outputText>
+                    </apex:column>
+                    <apex:column headerClass="Report_End_Date__c" >
+                        <apex:facet name="header">Report End Date</apex:facet>
+                        <apex:outputText value="{0,date,MM'/'dd'/'yyyy}">
+                            <apex:param value="{!status.Report_End_Date__c}" /> 
+                        </apex:outputText>
+                    </apex:column>
+                    <apex:column headerClass="Supervisor__c" >
+                        <apex:facet name="header">Supervisor</apex:facet>
+                        <apex:outputText value="{!status.Supervisor__c}" /> 
+                    </apex:column>
+                    <apex:column headerClass="Project_Manager__c" >
+                        <apex:facet name="header">Project Manager</apex:facet>
+                        <apex:outputText value="{!status.Project_Manager__c}" /> 
+                    </apex:column>
+                </apex:pageBlockTable>
+                
+                <div class="contentLoading">
+					<div style="text-align: center;">
+						<img src="/img/loading.gif" alt="Loading graphic" />
+					</div>
+				</div>
+            </apex:pageBlock>
+        </apex:tab>
+        <apex:tab label="Archived" name="Archived" id="tabThree">
+            <apex:pageBlock id="pageBlock3" title="Archived Weekly Status Report" mode="view">
+                <apex:pageBlockSection id="filter" showHeader="true" title="Filter" columns="1" collapsible="true" rendered="{!myPermissionset != 'CMS Basic'}">
+                    <apex:pageBlockSectionItem >
+                        <apex:outputLabel value="Owner" />
+                        <select id="users" onchange="j$( '.user' ).val( j$(this).find(':selected').text() );"><option value="">None</option></select>
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem >
+                        <apex:outputLabel value="Project Manager" />
+                        <select id="projectManager" onchange="j$( '.projMang' ).val( j$(this).find(':selected').text() );"><option value="">None</option></select>
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem >
+                        <apex:outputLabel value="Supervisor" />
+                        <select id="supervisor"  onchange="j$( '.supervisor' ).val( j$(this).find(':selected').text() );"><option value="">None</option></select>
+                    </apex:pageBlockSectionItem>
+					
+					<apex:inputText label="" styleClass="user" value="{!owner}" required="false" style="visibility:hidden;height:0px;;width:0px" />
+                    <apex:inputField label="" styleClass="supervisor" value="{!filter.Supervisor__c}" required="false" style="visibility:hidden;height:0px;;width:0px" />
+                    <apex:inputField label="" styleClass="projMang" value="{!filter.Project_Manager__c}" required="false" style="visibility:hidden;height:0px;;width:0px" />
+                                                                    
+                    <apex:commandButton action="{!refresh}" rerender="status2"  value="Filter" id="filterBtn" style="margin-left:200px;" status="loading3"/>
+                    <apex:actionStatus id="loading3" onstart="loading(true)" onstop="loading(false)" />
+                        
+                    <apex:inputText value="{!columnName}" style="visibility:hidden;height:0px;;width:0px" id="sortBy" />
+                    <apex:inputText value="{!ascOrDesc}" style="visibility:hidden;height:0px;;width:0px" id="ascOrDesc" />
+                </apex:pageBlockSection>
+                
+                <apex:pageBlockTable id="status2" value="{!archivedReports}" var="status" rowClasses="odd,even" styleClass="tableClass">
+                    <apex:column headerClass="" >
+                        <apex:facet name="header">Action</apex:facet>
+                        <apex:outputLink value="../{!status.id}">View</apex:outputLink>&nbsp;
+                    <apex:outputLink value="../{!status.id}" rendered="{!myPermissionset != 'CMS Basic'}">Edit</apex:outputLink>&nbsp;
+                    </apex:column>
+                    <apex:column headerClass="Report_Start_Date__c" rendered="{!myPermissionset != 'CMS Basic'}">
+                        <apex:facet name="header">Name</apex:facet>
+                        <apex:outputField value="{!status.ownerId}" /> 
+                    </apex:column>
+                    <apex:column headerClass="Report_Start_Date__c" >
+                        <apex:facet name="header">Report Start Date</apex:facet>
+                        <apex:outputText value="{0,date,MM'/'dd'/'yyyy}">
+                            <apex:param value="{!status.Report_Start_Date__c}" /> 
+                        </apex:outputText>
+                    </apex:column>
+                    <apex:column headerClass="Report_End_Date__c" >
+                        <apex:facet name="header">Report End Date</apex:facet>
+                        <apex:outputText value="{0,date,MM'/'dd'/'yyyy}">
+                            <apex:param value="{!status.Report_End_Date__c}" /> 
+                        </apex:outputText>
+                    </apex:column>
+                    <apex:column headerClass="Supervisor__c" >
+                        <apex:facet name="header">Supervisor</apex:facet>
+                        <apex:outputText value="{!status.Supervisor__c}" /> 
+                    </apex:column>
+                    <apex:column headerClass="Project_Manager__c" >
+                        <apex:facet name="header">Project Manager</apex:facet>
+                        <apex:outputText value="{!status.Project_Manager__c}" /> 
+                    </apex:column>
+                </apex:pageBlockTable>
+                
+                <div class="contentLoading">
+					<div style="text-align: center;">
+						<img src="/img/loading.gif" alt="Loading graphic" />
+					</div>
+				</div>
+            </apex:pageBlock>
+        </apex:tab>
+    </apex:tabPanel>
+</apex:form>
+</apex:page>

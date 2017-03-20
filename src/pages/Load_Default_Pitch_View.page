@@ -1,0 +1,35 @@
+<apex:Page >
+<script src="/soap/ajax/15.0/connection.js"></script>
+
+<script>
+     window.onload = function() {
+
+document.body.style.cursor='wait';
+
+     sforce.connection.sessionId = '{!$Api.Session_ID}';
+
+     var describeSObjectResult = sforce.connection.describeSObject("IIP_Pitch__c");
+     var prefix = describeSObjectResult.keyPrefix;
+
+     // Determine the View based on the Role of the User
+     var cView;
+     switch ( "{!$UserRole.Name}" ) {
+     /*case "North America": cView = "00B300000082rTX" ; break ;
+     case "EMEA": cView = "00B30000001Ysw4" ; break ;
+     case "Europe": cView = "00B30000001Ysw5" ; break ;
+     case "SEA": cView = "00B30000001Ysw6" ; break ;
+     case "South East Asia": cView = "00B30000001Ysw7" ; break ;
+     case "Australia": cView = "00B30000001Ysw8" ; break ;*/
+     default: cView = "00B300000082rTX"; break;
+     }
+
+     // Change the whole window to point to this location
+    parent.document.location.href = "/" + prefix + "?fcf=" + cView ;
+ document.body.style.cursor = 'default';
+}
+
+
+
+</script>
+<center><h2>Please Wait ..... Loading...</h2></center>
+</apex:page>

@@ -1,0 +1,167 @@
+<apex:page id="myPage" standardController="CMS_Risk__c" extensions="CMS_Risk_Controller" sidebar="false" docType="html-5.0">
+       <script src="/soap/ajax/15.0/connection.js" type="text/javascript"></script>
+       <script src="/soap/ajax/15.0/apex.js" type="text/javascript"></script>    
+        
+        <script type="text/javascript"> 
+        function setFocusOnLoad() {}
+    	</script>
+    <style type="css/text">
+         .hidden {display:none;}
+         .visible {display:block;}    
+    </style>
+         <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.js"></script>
+         <script type="text/javascript">  
+             //Dev: Tammy & Marc last updated: 7/23/2014
+    function displayHideFields(){
+             //Type of Risk 
+         var typeOfRiskPickList = document.getElementById("myPage:myForm:pageBlock:genDetails:inType");
+         var strTypeOfRiskPickListValue = typeOfRiskPickList.options[typeOfRiskPickList.selectedIndex].text; 
+             //Program PickList
+             var labelProgramPickList =  document.getElementById("01I14000002Hsjp.00N1400000BBNLo-_help");//ok
+         var programPickList = document.getElementById("myPage:myForm:pageBlock:genDetails:inField1");
+         var strProgramPickListValue  = programPickList.options[programPickList.selectedIndex].text; 
+             //Program (Other) 
+             var labelProgramOther = document.getElementById("01I14000002Hsjp.00N1400000BBNLn-_help");//ok
+         var programOther = document.getElementById("myPage:myForm:pageBlock:genDetails:inField2");
+             //Project LookUp
+             var labelprojectLookUp = document.getElementById("01I14000002Hsjp.00N1400000BBNLa-_help");//ok
+             var projectLookUp = document.getElementById("myPage:myForm:pageBlock:genDetails:inProj");
+         var lookupImg =  document.getElementById("myPage:myForm:pageBlock:genDetails:inProj_lkwgt");    
+             
+             if(strTypeOfRiskPickListValue  != 'Project' && strTypeOfRiskPickListValue != 'Program'){
+                 //Hide all program Field
+                labelProgramPickList.className = "hidden helpButton";
+                programPickList.className = "hidden";
+                labelProgramOther.className = "hidden helpButton";  
+                programOther.className = "hidden";
+                 //Hide all Project Fields
+                labelprojectLookUp.className = "hidden helpButton"; 
+                projectLookUp.className = "hidden"; 
+                lookupImg.className = "hidden";
+                 
+                 }
+             if(strTypeOfRiskPickListValue  == 'Project'){ 
+                 //Hide all program Field
+                labelProgramPickList.className = "hidden helpButton";
+                programPickList.className = "hidden";
+                labelProgramOther.className = "hidden helpButton";  
+                programOther.className = "hidden";
+                 
+                 //Show all Project Fields
+               labelprojectLookUp.className = "visible helpButton"; 
+               projectLookUp.className = "visible"; 
+               lookupImg.className = "visible";
+          } 
+            
+             if(strTypeOfRiskPickListValue  == 'Program'){
+                  //Hide all Project Fields
+               labelprojectLookUp.className = "hidden helpButton"; 
+               projectLookUp.className = "hidden"; 
+               lookupImg.className = "hidden";
+                 
+                 //Show all program Field
+                labelProgramPickList.className = "visible helpButton";
+                programPickList.className = "visible";
+                if (strProgramPickListValue == 'Other'){
+                    labelProgramOther.className = "visible helpButton";  
+                    programOther.className = "visible";
+                }else{
+                    labelProgramOther.className = "hidden helpButton";  
+                    programOther.className = "hidden";
+                }
+          }   
+      }     
+    
+        //JQuery event
+            var j$ = jQuery.noConflict();
+
+            j$(document).ready(function(){
+                var inType_val = j$('[id$=inType]').val(); // Risk type picklist item
+                var inField1_val = j$('[id$=inField1]').val(); // Program picklist item
+                
+                if(inType_val != 'Project' && inType_val != 'Program'){
+                    //Hide input objects for project and program fields
+                    j$(".prog").removeClass("visible").addClass("hidden"); 
+                    j$(".prog").val('');
+                    j$(".proj").removeClass("visible").addClass("hidden"); 
+                    j$(".proj").val('');
+                    
+                    //Hide labels for project and program fields
+                    j$("[id$='01I14000002Hsjp.00N1400000BBNLo-_help']").removeClass("visible helpButton").addClass("hidden");//program picklist OK
+                    j$("[id$='01I14000002Hsjp.00N1400000BBNLn-_help']").removeClass("visible helpButton").addClass("hidden");//program other OK
+                    j$("[id$='01I14000002Hsjp.00N1400000BBNLa-_help']").removeClass("visible helpButton").addClass("hidden");//project help OK
+                }
+                
+                if(inType_val == 'Program'){
+                    //Hide project fields
+                    j$(".proj").removeClass("visible").addClass("hidden"); 
+                    j$(".proj").val('') ;
+                    j$("[id$='01I14000002Hsjp.00N1400000BBNLa-_help']").removeClass("visible").addClass("hidden");//OK
+                   
+                    //Show Program picklist and label
+                    j$(".prog").removeClass("hidden").addClass("visible");
+                    j$("[id$='01I14000002Hsjp.00N1400000BBNLo-_help']").removeClass("hidden helpButton").addClass("visible");//program picklist OK
+                    j$("[id$='inField1']").removeClass("hidden").addClass("visible");
+                                       
+                    if(inField1_val == 'Other'){
+                        //Show program Other label and text field
+                        j$(".prog").removeClass("hidden").addClass("visible");
+                        j$("[id$='01I14000002Hsjp.00N1400000BBNLa-_help']").removeClass("hidden").addClass("visible helpButton");//OK
+                        
+                    }else{//if not 'other'
+                        //j$(".prog").removeClass("visible").addClass("hidden");
+                        j$("[id$='inField2']").removeClass("visible").addClass("hidden");
+                        j$("[id$='01I14000002Hsjp.00N1400000BBNLa-_help']").removeClass("visible").addClass("hidden helpButton");//OK
+                    }
+                }
+                
+                
+                if(inType_val == 'Project'){
+                    
+                    //Show project fields
+                    j$(".proj").removeClass("hidden").addClass("visible");
+                    j$("[id$='01I14000002Hsjp.00N1400000BBNLa-_help']").removeClass("hidden helpButton").addClass("visible");//project help OK
+                    
+                    //Hide program fields
+                    j$(".prog").removeClass("visible").addClass("hidden");
+                    j$("[id$='01I14000002Hsjp.00N1400000BBNLo-_help']").removeClass("visible helpButton").addClass("hidden");//program picklist OK
+                    j$("[id$='01I14000002Hsjp.00N1400000BBNLn-_help']").removeClass("visible helpButton").addClass("hidden");//program other OK
+                }
+                
+                
+         });
+         </script>
+    
+     <apex:form id="myForm">
+        <apex:pageMessages id="errMessages" />
+        <apex:outputPanel id="editPanel">
+             
+        <apex:pageBlock id="pageBlock" title="CMS Risk Edit" mode="view">
+            <apex:pageblockButtons >
+                <apex:commandButton action="{!save}"   value="Save"   />
+                <apex:commandButton action="{!cancel}" value="Cancel" immediate="true"
+                    html-formnovalidate="formnovalidate" />
+                <!-- <apex:commandButton action="{!cancel}" value="Cancel" /> -->
+            </apex:pageblockButtons>
+            
+            <apex:pageBlockSection id="genDetails" showHeader="true" title="General Details" columns="1">
+                
+                <apex:outputField value="{!CMS_Risk__c.Name}" />
+                <apex:inputField value="{!CMS_Risk__c.Type_of_Risk__c}" id="inType" onchange="return displayHideFields()" required="true" />
+                <apex:inputField value="{!CMS_Risk__c.Program__c}" id="inField1" styleClass="prog hidden" onchange="return displayHideFields()"/>
+                <apex:inputField value="{!CMS_Risk__c.Program_Other__c}" id="inField2" styleClass="prog hidden" />               
+                <apex:inputField value="{!CMS_Risk__c.CMS_Project__c}" id="inProj" styleClass="proj hidden" />
+                <apex:inputField value="{!CMS_Risk__c.Risk_Condition__c}"  required="true" />
+                <apex:inputField value="{!CMS_Risk__c.Risk_Consequences__c}" required="true" />
+                <!-- <apex:inputField value="{!CMS_Risk__c.CreatedDate}" /> Hidden -->
+                <apex:inputField value="{!CMS_Risk__c.Impact_Date__c}" />
+                <apex:inputField value="{!CMS_Risk__c.Category__c}" required="true" />
+                <apex:inputField value="{!CMS_Risk__c.Probability__c}" required="true" />
+                <apex:inputField value="{!CMS_Risk__c.Impact__c}" required="true" />
+                <apex:inputField value="{!CMS_Risk__c.Recommended_Mitigation_Plan__c}" required="true" />
+                
+            </apex:pageBlockSection>
+        </apex:pageBlock>
+        </apex:outputPanel>
+    </apex:form>
+</apex:page>

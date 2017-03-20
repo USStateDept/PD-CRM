@@ -1,0 +1,22 @@
+<apex:page title="Edit Service History" showHeader="true" sidebar="false" standardController="Update_Services_History__c" extensions="CRM_UpdateService">
+ <apex:sectionHeader title="{!$ObjectType.Update_Services_History__c.label} Edit" subtitle="{!Update_Services_History__c.Service_Type__c}"/>
+ <apex:form >
+       <apex:pageBlock title="{!$ObjectType.Update_Services_History__c.label} Edit" mode="edit">
+                <apex:pageBlockButtons >
+                        <apex:commandButton action="{!save}" value="Save"/>
+                        <apex:commandButton action="{!cancel}" value="Cancel"/>
+                        <apex:commandButton action="{!cancel}" value="Back to the view"/>
+                </apex:pageBlockButtons>
+                <apex:pageBlockSection showHeader="true" title="Information" columns="2">
+                       <apex:inputField value="{!Update_Services_History__c.Service_Type__c}"/>
+                       <apex:pageBlockSectionItem />
+                       <apex:inputField value="{!Update_Services_History__c.City__c}"/>
+                       <apex:pageBlockSectionItem />
+                       <apex:inputField value="{!Update_Services_History__c.From_Date__c}"/>
+                       <apex:pageBlockSectionItem />
+                       <apex:inputField value="{!Update_Services_History__c.To_Date__c}"/>
+                       <apex:pageBlockSectionItem />
+                </apex:pageBlockSection>
+  </apex:pageBlock>
+ </apex:form>
+</apex:page>

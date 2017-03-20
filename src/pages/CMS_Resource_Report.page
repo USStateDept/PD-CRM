@@ -1,0 +1,134 @@
+<apex:page id="myPage" title="Project Status Report" controller="CMS_ReportController" sidebar="false" tabStyle="CMS_Projects_Report__tab">
+	<apex:sectionHeader title="CMS Project Status Report" />
+    <apex:includeScript value="{!URLFOR($Resource.jQueryLibrary, 'jquery-1.8.3.js')}"/>
+    <apex:includeScript value="{!URLFOR($Resource.jQueryLibrary, 'jquery-1.8.3.js')}" />
+    <apex:includeScript value="{!URLFOR($Resource.jQueryLibrary, 'jquery-ui-1.9.2.custom.js')}"/>
+    <apex:includeScript value="{!URLFOR($Resource.jQueryLibrary, 'jquery.ui.autocomplete.js')}"/>
+    <apex:stylesheet value="{!URLFOR($Resource.jQueryLibrary, 'jquery-ui.css')}"/>
+    <script src="/soap/ajax/9.0/connection.js" type="text/javascript"></script>
+    <script language="JavaScript1.2" src="/js/functions.js"></script>
+    
+    <script type="text/javascript">
+        j$ = $.noConflict();
+        
+        j$(document).ready(function ()
+        {
+        	tab = '{!tab}';
+
+         	j$( '.menu' ).each( function() {
+         		if (j$( this ).text() == tab)
+         		{
+         			j$( this ).addClass( 'selected' );
+         		}
+         	});
+        
+            j$( '.projectTable' ).css( "width", "800px" );
+            
+            var total = 0;
+            
+            j$( '.hours' ).each( function() {
+            	total += parseInt( j$( this ).text() );
+            });
+            
+           	j$( '#totalHours' ).text( total );
+           	
+           	
+           	j$('.weekpicker').datepicker({
+				showOtherMonths: false,
+				selectOtherMonths: false,
+				onSelect: function(dateText, inst)
+				{ 
+					var date = j$( this ).datepicker( 'getDate' );
+					//alert( 'date is ' + date );
+					var startDate = new Date( date.getFullYear(), date.getMonth(), date.getDate() - date.getDay() + 1 );
+					//alert( 'start is ' + startDate );
+					var endDate = new Date( date.getFullYear(), date.getMonth(), date.getDate() - date.getDay() + 7 );
+					//alert( 'end is ' + endDate );
+					var dateFormat = 'd MM, yy';
+					j$('.weekpicker').val( 'Monday, ' + j$.datepicker.formatDate( dateFormat, startDate, inst.settings )
+					     + ' - Sunday, ' + j$.datepicker.formatDate( dateFormat, endDate, inst.settings ));
+
+					j$( '.val' ).val( startDate.getFullYear() + '-' + (startDate.getMonth() + 1) + '-' + startDate.getDate() );
+                    //alert( startDate.getFullYear() + '-' + startDate.getMonth() + '-' + startDate.getDate()   );
+                    j$( '.filterAction' ).click();
+					
+        		}
+    		}).datepicker('widget').addClass('ui-weekpicker');
+    		
+    		var myDate = j$( '.val' ).val().split("-");
+            
+            var date = new Date( myDate[0], myDate[1] - 1, myDate[2] );
+            var startDate = new Date( date.getFullYear(), date.getMonth(), date.getDate() );
+            var endDate = new Date( date.getFullYear(), date.getMonth(), date.getDate() + 6);
+
+            var dateFormat = 'd MM, yy';
+            j$('.weekpicker').val( 'Monday, ' + j$.datepicker.formatDate( dateFormat, startDate )
+                 + ' - Sunday, ' + j$.datepicker.formatDate( dateFormat, endDate ));
+
+		    //j$('.ui-weekpicker .ui-datepicker-calendar tr').live('mousemove', function() { j$(this).find('td a').addClass('ui-state-hover'); });
+		    //j$('.ui-weekpicker .ui-datepicker-calendar tr').live('mouseleave', function() { j$(this).find('td a').removeClass('ui-state-hover'); });	
+        });
+        
+        function setFocusOnLoad() {} 
+    </script>
+    <style type="text/css">
+    	.box
+    	{
+			height: 11px; 
+			width:  11px; 
+			text-align:center;
+			float:left;
+			margin-right:5px;
+		}
+		.circleBase 
+		{
+		    border: 1px solid;
+        	height: 10px;
+        	width: 10px;
+        	border-radius: 120px;
+        	float:left;
+		}
+		
+		.calendar
+		{
+			background-image: url( '../img/func_icons/util/datePicker16.gif' );
+			background-repeat: no-repeat;
+			background-position: 5px 4px;
+			padding:4px 4px 4px 22px;
+    		height:18px;
+		}
+		
+		ul#tabs { list-style-type: none; margin: 30px 0 0 0; padding: 0 0 0.3em 0; }
+		ul#tabs li { display: inline; }
+		ul#tabs li a { color: #42454a; background-color: #dedbde; border: 1px solid #c9c3ba; border-bottom: none; padding: 0.3em; text-decoration: none; }
+		ul#tabs li a:hover { background-color: #f1f0ee; }
+		ul#tabs li a.selected { color: #000; background-color: #f1f0ee; font-weight: bold; padding: 0.7em 0.3em 0.38em 0.3em; }
+		div.tabContent { border: 1px solid #c9c3ba; padding: 0.5em; background-color: #f1f0ee; }
+		div.tabContent.hide { display: none; }
+    </style>
+    
+    	<apex:pageMessages id="errMessages" />
+        <apex:pageBlock id="pageBlock">
+			<div >
+				 <ul id="tabs">
+					<li><a class="menu" href="/apex/CMS_Resource_Report?tabOpt={!URLENCODE('Projects')}&weekFilter={!filterVal}">Projects</a></li>
+					<li><a class="menu" href="/apex/CMS_Resource_Report?tabOpt={!URLENCODE('Service Requests')}&weekFilter={!filterVal}">Service Requests</a></li>
+					<li><a class="menu" href="/apex/CMS_Resource_Report?tabOpt={!URLENCODE('O&M')}&weekFilter={!filterVal}"><apex:outputText value="O&M" /></a></li>
+					<li><a class="menu" href="/apex/CMS_Resource_Report?tabOpt={!URLENCODE('Projects on Hold')}&weekFilter={!filterVal}">Projects on Hold</a></li>
+				</ul>
+				<apex:outputPanel styleClass="tabContent" layout="block" rendered="{!tab == 'Projects'}">
+	                <apex:include pageName="CMS_Report_ProjectListView" />
+				</apex:outputPanel>
+				<apex:outputPanel styleClass="tabContent" layout="block" rendered="{!tab == 'Service Requests'}">
+					<apex:include pageName="CMS_Report_SRListView" />
+				</apex:outputPanel>
+				<apex:outputPanel styleClass="tabContent" layout="block" rendered="{!tab == 'O&M'}">
+					<apex:include pageName="CMS_Report_OMListView" />
+				</apex:outputPanel>
+        		<apex:outputPanel styleClass="tabContent" layout="block" rendered="{!tab == 'Projects on Hold'}">
+        			<apex:include pageName="CMS_Report_HoldListView" />
+	    		</apex:outputPanel>
+	    	</div>
+        </apex:pageBlock>
+    
+</apex:page>

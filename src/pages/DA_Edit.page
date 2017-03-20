@@ -1,0 +1,1236 @@
+<apex:page standardController="Digital_Asset__c" extensions="DA_Edit,DA_Tab" >
+        <script type="text/javascript">
+            function setFocusOnLoad() {}
+            //This prevents the date-time box from popping open when the page loads. It must be at the top of this page.
+        </script>
+        <c:publishing_system_resources />
+        <apex:includeScript value="{!URLFOR($Resource.publishing_system_resources, 'publishing_system_resources/jquery.js')}"/>
+ 
+        <!-- TINY MCE -->  
+        <script type="text/javascript">     
+        tinymce.init({
+                mode : "textareas",
+                editor_selector :"mceEditor",
+                theme : "advanced",
+                directionality : "{!IF(Digital_Asset__c.Language__c == 'Urdu' || Digital_Asset__c.Language__c == 'Arabic' || Digital_Asset__c.Language__c == 'Persian' || Digital_Asset__c.Language__c == 'Non English RTL', 'rtl', 'ltr')}",
+                plugins : "spellchecker,inlinepopups,ice,icesearchreplace,pagebreak,style,layer,table,contextmenu,paste,directionality,fullscreen,noneditable,visualchars,nonbreaking,xhtmlxtras,template,visualchars",
+                theme_advanced_buttons1: 'ice_togglechanges,ice_toggleshowchanges,iceacceptall,icerejectall,iceaccept,icereject,|,bold,italic,underline,strikethrough,|,justifyleft,justifycenter,justifyright,tablecontrols,wordcount,ltr,rtl',
+                theme_advanced_buttons2: 'spellchecker,cut,copy,paste,pastetext,pasteword,|,search,replace,|,bullist,numlist,|,outdent,indent,|,undo,redo,|,link,unlink,anchor,cleanup,code,|,forecolor,backcolor,fontsizeselect,|,charmap',
+                theme_advanced_buttons3: "",
+                theme_advanced_buttons4: "",
+                theme_advanced_toolbar_location: "top",
+                theme_advanced_toolbar_align: "left",
+                theme_advanced_toolbar_location : "top",
+                theme_advanced_statusbar_location : "bottom",
+                theme_advanced_resizing : true,
+                //content_css : "https://c.cs15.visual.force.com/resource/1368046160000/tinymce/tinymce/jscripts/tiny_mce/static/content_md.css",
+                content_css: "{!URLFOR($Resource.tinymce, 'tinymce/jscripts/tiny_mce/static/content_md.css')}",
+                ice: {
+                      changeIdAttribute:'id', //until sfdc changes how it sanitizes
+                      isTracking: false,
+                      user: { name: '{!$User.Alias}', id: '{!$User.Alias}'},
+                      preserveOnPaste: 'p,a[href],i,em,strong'
+                    },
+                width: "100%",
+                inline_styles : false,
+                formats : {
+                    underline: {inline : 'u', exact: true},
+                    //underline : {inline : 'span', 'classes' : 'underline', exact : true},
+                    //strikethrough : {inline : 'span', 'classes' : 'line-through',exact : false},
+                    strikethrough : {inline : 'strike'}
+                },
+                //extended_valid_elements : "span[class|style|align]",
+                extended_valid_elements: "u,strike",
+                //gecko_spellcheck: true,
+                browser_spellcheck : true,
+               // spellchecker_rpc_url: "http://localhost:8888/spellchecker/rpc.php&callback=",
+                height: "200"       
+            });
+        </script> 
+        
+        <script>
+        //Spring 2013 Phase 2: AutoSave
+        var $j = jQuery.noConflict();  
+        $j(document).ready(function()
+        {
+          $j(function()
+          {
+            //console.log("setting interval..");
+            if({!Digital_Asset__c.Id != null})
+                setInterval("auto_save('{!$Component.theform.themaindetailblock.theheadlinesection.articleBody}','Article_Body__c')",5000);
+          });
+        });
+        
+        function auto_save(editor_id,fieldname)
+        {
+          var $j = jQuery.noConflict(); 
+          //console.log("in auto_save function with editor id...");
+          //console.log(editor_id);
+          //console.log(tinyMCE.getInstanceById(editor_id).isDirty());
+          if(tinyMCE.getInstanceById(editor_id).isDirty())
+          {
+            var now = new Date();
+            $j('#saving').empty().append('Last AutoSaved...' + now.toString());
+            $j('#saving').show();
+            var content = tinyMCE.get(editor_id);
+            var notDirty = tinyMCE.get(editor_id);
+            //console.log(content);
+            //console.log(fieldname);
+            tinyMCE.get(editor_id).save();
+            saveField(fieldname, content.getContent());
+            notDirty.isNotDirty = true;
+          } 
+          else
+          {
+            tinyMCE.get(editor_id).save(); //this doesn't actually save but is needed for the isDirty flag to work
+            return false;
+          }
+        }
+        </script>
+        <script type="text/javascript">
+        var assetId = "{!Digital_Asset__c.Id}";
+        //alert(TestId);
+        if(!assetId)
+        {
+            assetId = null;
+        } 
+
+        function saveField(fieldName, fieldValue) 
+        {
+            if(assetId != null)
+            {
+            //console.log("existing record..");
+            //console.log(fieldName);
+            //console.log(fieldValue);
+            Visualforce.remoting.Manager.invokeAction('{!$RemoteAction.DA_Edit.updateFieldValue}', assetId, fieldName, fieldValue, 
+                function(result, event){
+                    if (event.status) {
+                        var $j = jQuery.noConflict(); 
+                        //$j('#saving').hide();
+                        //console.log("Saved!");
+                    } else if (event.type === 'exception') {
+                        //console.log(event.message);
+                    }
+                }, 
+                {escape: true}
+            );}
+        } 
+        </script>
+        
+
+        <script type="text/javascript">
+            var currentUserId = "<apex:outputText value="{!$User.Id}"/>";
+            var ownerUserId = "<apex:outputText value="{!Digital_Asset__c.Owner.Id}"/>";
+            var profileName = "<apex:outputText value="{!$Profile.Name}"/>"
+            if (currentUserId != ownerUserId && ownerUserId != "" && profileName != "System Administrator" && profileName != "Publishing Copy Desk") {
+                alert('You must be the owner of this asset to edit. You will be redirected to the previous screen shortly.');
+                window.history.back(-1);
+            }
+
+            // Please Note: Due to a bug with the Saleforce MultiSelect tool, all functions must contain the jQuery.noConflict() definition to prevent errors.
+            var j = jQuery.noConflict();
+
+            j(document).ready(function () {
+                // Language List Modification
+                if (profileName == 'Publishing Content Creator' || profileName == 'Publishing Copy Desk' || profileName == 'Publishing Editor')
+                {
+                    j('select.lang-dropdown option').each(function() {
+                        if (j(this).attr('value') != 'English') {
+                            j(this).remove();
+                        }
+                    });
+                    if(j('select.lang-dropdown').val() != 'English') {
+                        j('select.lang-dropdown').val('');
+                    }
+                } else if (profileName == 'Publishing Translator') {
+                     j('select.lang-dropdown option').each(function() {
+                        if (j(this).attr('value') == 'English') {
+                            j(this).remove();
+                        }
+                    });
+                    if(j('select.lang-dropdown').val() == 'English') {
+                        j('select.lang-dropdown').val('');
+                    }
+                }
+
+                j('a.validate').click(function(){
+                    var j = jQuery.noConflict();
+                    var url = j(this).parents('tr:first').prev('tr').find('input').val();
+                    if (url == "") {
+                        alert('Please fill in the URL field first.');
+                        return false;
+                    }
+                    j(this).attr('href', url);
+                    return true;
+                });
+
+                j('input.mcUrl').change(function () { 
+                    var j = jQuery.noConflict();
+                    var url = j(this).val();
+                    if (url.search('iipdigital.usembassy.gov') != -1 ) {
+                        if (url.indexOf('#') > 0) {
+                            j(this).val(url.substring(0,url.indexOf('#')));
+                        }
+
+                        //var val = url.replace("http://","");
+                        var val = url;
+                        var lang = j('select.lang-dropdown').val();
+                        
+                        sforce.connection.sessionId = "{!$Api.Session_ID}";
+                        //spring ph2.1: change from Name to Headline_long__c
+                        var result = sforce.connection.query("SELECT d.Headline_long__c FROM Digital_Asset__c d WHERE d.Language__c = '" + lang + "' AND d.Published_URL_Formula__c = '" + val + "'");
+                        var records = result.getArray("records");
+                        for(i=0;i<records.length;i++) {
+                            j(this).parents('tr:first').prev('tr').find('input').val(records[i].Headline_long__c);
+                        }
+                    }
+                });
+            });                           
+        </script>
+        <script type="text/javascript">
+        /********************************************************************************************
+        * Spring 2013 Phase 2: Handles setting the direction and font on specific fields if RTL languages are chosen 
+        ********************************************************************************************/
+            j(document).ready(function () {
+            
+            // check onload
+            if (j('.lang-dropdown').val() == 'Arabic' || j('.lang-dropdown').val() == 'Persian' || j('.lang-dropdown').val() == 'Urdu' || j('.lang-dropdown').val() == 'Non English RTL') {
+                j('.dirField, iframe body').css({
+                    'direction': 'rtl',
+                    'font-family': 'Tahoma'
+                });
+                
+                j('.mceEditor, iframe body').css({
+                    'direction': 'rtl',
+                    'font-family': 'Tahoma'
+                });
+                
+            }
+            // check onchange
+            j("[id$=slang]").change(function() {
+            
+                if(j("[id$=slang]").val() == 'Arabic' || j("[id$=slang]").val() == 'Persian' || j("[id$=slang]").val() == 'Urdu' || j("[id$=slang]").val() == 'Non English RTL') {
+                    
+                    j('.dirField, iframe body').css({
+                        'direction': 'rtl',
+                        'font-family': 'Tahoma'
+                    });
+                    
+                    j('.mceEditor, iframe body').css({
+                        'direction': 'rtl',
+                        'font-family': 'Tahoma'
+                    });
+                    
+                    //Asset Comments
+                    
+                        var content = tinyMCE.get('{!$Component.theform.themaindetailblock.theassetcomments.assetComments}');
+                        var temp = content.getContent();
+                        //console.log('temp content is..' + temp);
+                        if(temp!='')
+                            {
+                                var s = temp.replace(/<p>/g,'<p style="text-align:right;" dir="rtl">')
+                                 //console.log('temp content is changed..' + s);
+                                content.setContent('<p style="text-align:right;" dir="rtl">' + s + '</p>');
+                                 }
+                        else{
+                            content.setContent('<p style="text-align:right;" dir="rtl"></p>');
+                            }
+                    //Top
+                        var content = tinyMCE.get('{!$Component.theform.themaindetailblock.theheadlinesection.articleTop}');
+                        var temp = content.getContent();
+                        //console.log('temp content is..' + temp);
+                        if(temp!='')
+                            {
+                                var s = temp.replace(/<p>/g,'<p style="text-align:right;" dir="rtl">')
+                                 //console.log('temp content is changed..' + s);
+                                content.setContent('<p style="text-align:right;" dir="rtl">' + s + '</p>');
+                                 }
+                        else{
+                            content.setContent('<p style="text-align:right;" dir="rtl"></p>');
+                            }
+                    
+                    //Article Body
+                        var content = tinyMCE.get('{!$Component.theform.themaindetailblock.theheadlinesection.articleBody}');
+                        var temp = content.getContent();
+                        //console.log('temp content is..' + temp);
+                        if(temp!='')
+                            {
+                                var s = temp.replace(/<p>/g,'<p style="text-align:right;" dir="rtl">')
+                                 //console.log('temp content is changed..' + s);
+                                content.setContent('<p style="text-align:right;" dir="rtl">' + s + '</p>');
+                                 }
+                        else{
+                            content.setContent('<p style="text-align:right;" dir="rtl"></p>');
+                            }
+                    
+                    
+                    //Content Tease
+                        var content = tinyMCE.get('{!$Component.theform.themaindetailblock.theheadlinesection.teaser}');
+                        var temp = content.getContent();
+                        //console.log('temp content is..' + temp);
+                        if(temp!='')
+                            {
+                                var s = temp.replace(/<p>/g,'<p style="text-align:right;" dir="rtl">')
+                                 //console.log('temp content is changed..' + s);
+                                content.setContent('<p style="text-align:right;" dir="rtl">' + s + '</p>');
+                                 }
+                        else{
+                            content.setContent('<p style="text-align:right;" dir="rtl"></p>');
+                            }
+                    
+                    
+                    //Mobile Blurb
+                        var content = tinyMCE.get('{!$Component.theform.themaindetailblock.themobileblurbsection.mobileBlurb}');
+                        var temp = content.getContent();
+                        //console.log('temp content is..' + temp);
+                        if(temp!='')
+                            {
+                                var s = temp.replace(/<p>/g,'<p style="text-align:right;" dir="rtl">')
+                                 //console.log('temp content is changed..' + s);
+                                content.setContent('<p style="text-align:right;" dir="rtl">' + s + '</p>');
+                                 }
+                        else{
+                            content.setContent('<p style="text-align:right;" dir="rtl"></p>');
+                            }
+                    
+                    
+                    
+                    //});
+                    
+                }
+                else 
+                {
+
+                    j('.dirField').css('direction', 'ltr');
+                    
+                    //Asset Comments
+                        //console.log('about to set content ltr');
+                        var content = tinyMCE.get('{!$Component.theform.themaindetailblock.theassetcomments.assetComments}');
+                        var temp = content.getContent();
+                        //console.log('temp rtl content is..' + temp);
+                        if(temp!='')
+                            {
+                                //var s = temp.replace(/<p>/,'<p style="text-align:left;" dir="ltr">')
+                                    var s=temp.replace(/<p style="text-align: right;" dir="rtl">/g,'<p>')
+                                 //console.log('temp rtl content is changed..' + s);
+                            content.setContent(s);
+                                 }
+                        else{
+                            content.setContent('<p></p>');
+                            }
+                        
+                        //console.log('final ltr content is..' + content.getContent());
+                    //Asset Top
+                    //console.log('about to set content ltr');
+                        var content = tinyMCE.get('{!$Component.theform.themaindetailblock.theheadlinesection.articleTop}');
+                        var temp = content.getContent();
+                        //console.log('temp rtl content is..' + temp);
+                        if(temp!='')
+                            {
+                                //var s = temp.replace(/<p>/,'<p style="text-align:left;" dir="ltr">')
+                                    var s=temp.replace(/<p style="text-align: right;" dir="rtl">/g,'<p>')
+                                 //console.log('temp rtl content is changed..' + s);
+                            content.setContent(s);
+                                 }
+                        else{
+                            content.setContent('<p></p>');
+                            }
+                        
+                        //console.log('final ltr content is..' + content.getContent());
+                    
+                    
+                    //Asset Body
+                    //console.log('about to set content ltr');
+                        var content = tinyMCE.get('{!$Component.theform.themaindetailblock.theheadlinesection.articleBody}');
+                        var temp = content.getContent();
+                        //console.log('temp rtl content is..' + temp);
+                        if(temp!='')
+                            {
+                                //var s = temp.replace(/<p>/,'<p style="text-align:left;" dir="ltr">')
+                                    var s=temp.replace(/<p style="text-align: right;" dir="rtl">/g,'<p>')
+                                 //console.log('temp rtl content is changed..' + s);
+                            content.setContent(s);
+                                 }
+                        else{
+                            content.setContent('<p></p>');
+                            }
+                        
+                        //console.log('final ltr content is..' + content.getContent());
+                    
+                    
+                    //Teaser
+                    //console.log('about to set content ltr');
+                        var content = tinyMCE.get('{!$Component.theform.themaindetailblock.theheadlinesection.teaser}');
+                        var temp = content.getContent();
+                        //console.log('temp rtl content is..' + temp);
+                        if(temp!='')
+                            {
+                                //var s = temp.replace(/<p>/,'<p style="text-align:left;" dir="ltr">')
+                                    var s=temp.replace(/<p style="text-align: right;" dir="rtl">/g,'<p>')
+                                 //console.log('temp rtl content is changed..' + s);
+                            content.setContent(s);
+                                 }
+                        else{
+                            content.setContent('<p></p>');
+                            }
+                        
+                        //console.log('final ltr content is..' + content.getContent());
+                    
+                    
+                    //MobileBlurb
+                    //console.log('about to set content ltr');
+                        var content = tinyMCE.get('{!$Component.theform.themaindetailblock.themobileblurbsection.mobileBlurb}');
+                        var temp = content.getContent();
+                        //console.log('temp rtl content is..' + temp);
+                        if(temp!='')
+                            {
+                                //var s = temp.replace(/<p>/,'<p style="text-align:left;" dir="ltr">')
+                                    var s=temp.replace(/<p style="text-align: right;" dir="rtl">/g,'<p>')
+                                 //console.log('temp rtl content is changed..' + s);
+                            content.setContent(s);
+                                 }
+                        else{
+                            content.setContent('<p></p>');
+                            }
+                        
+                        //console.log('final ltr content is..' + content.getContent());
+                    
+                    
+                }
+            });});
+        </script>
+      
+        
+<style>
+.hidden {
+    display: none;
+}
+.offscreen {
+    position: absolute !important;
+    left: -9999px !important;
+}
+</style>
+
+<script>
+//spring 2013 enhancement ph2: allows user to select all language regions with one click
+function selectAllLangRegions(objId,lang){
+    //alert(document.getElementById('{!$Component.theform.themaindetailblock.ReqdFieldGrp1.sLang}').value);
+    var multiSelect;
+    var unSelectedId = objId + "_unselected";
+    var selectedId = objId + "_selected";
+   
+    multiSelect = document.getElementById(unSelectedId);
+    if( multiSelect.options.length !=0 )
+    {
+        for (i = 0; i < multiSelect.options.length; i++) 
+        {   
+            if(lang == "English")
+            {
+                if(multiSelect.options[i].text == "Africa" || multiSelect.options[i].text == "East Asia & Pacific" || multiSelect.options[i].text == "Europe & Eurasia" || multiSelect.options[i].text == "Middle East & North Africa" || multiSelect.options[i].text == "South & Central Asia" || multiSelect.options[i].text == "Western Hemisphere")
+                {
+                    multiSelect.options[i].selected = true;
+                }
+            }
+            if(lang == "Arabic")
+            {
+                if(multiSelect.options[i].text == "Africa"  || multiSelect.options[i].text == "Europe & Eurasia" || multiSelect.options[i].text == "Middle East & North Africa" || multiSelect.options[i].text == "South & Central Asia")
+                {
+                    multiSelect.options[i].selected = true;
+                }
+            }
+            if(lang == "Chinese")
+            {
+                if(multiSelect.options[i].text == "East Asia & Pacific" || multiSelect.options[i].text == "Burma" || multiSelect.options[i].text == "North Korea")
+                {
+                    multiSelect.options[i].selected = true;
+                }
+            }
+            if(lang == "French")
+            {
+                if(multiSelect.options[i].text == "Africa" || multiSelect.options[i].text == "Middle East & North Africa")
+                {
+                    multiSelect.options[i].selected = true;
+                }
+            }
+            if(lang == "Persian")
+            {
+                if(multiSelect.options[i].text == "East Asia & Pacific" || multiSelect.options[i].text == "Europe & Eurasia" || multiSelect.options[i].text == "Middle East & North Africa" || multiSelect.options[i].text == "South & Central Asia" || multiSelect.options[i].text == "Iran")
+                {
+                    multiSelect.options[i].selected = true;
+                }
+            }
+            if(lang == "Portuguese")
+            {
+                if(multiSelect.options[i].text == "Africa" || multiSelect.options[i].text == "Brazil")
+                {
+                    multiSelect.options[i].selected = true;
+                }
+            }
+            if(lang == "Russian")
+            {
+                if(multiSelect.options[i].text == "Europe & Eurasia" || multiSelect.options[i].text == "South & Central Asia")
+                {
+                    multiSelect.options[i].selected = true;
+                }
+            }
+            if(lang == "Spanish")
+            {
+                if(multiSelect.options[i].text == "Central America" || multiSelect.options[i].text == "Mexico" || multiSelect.options[i].text == "South America")
+                {
+                    multiSelect.options[i].selected = true;
+                }
+            }
+            if(lang == "Turkish")
+            {
+                //if(multiSelect.options[i].text == "Central America" || multiSelect.options[i].text == "Mexico" || multiSelect.options[i].text == "South America")
+                //{
+                    //multiSelect.options[i].selected = true;
+                //}
+            }
+            if(lang == "Urdu")
+            {
+                if(multiSelect.options[i].text == "South & Central Asia" || multiSelect.options[i].text == "India" || multiSelect.options[i].text == "Pakistan")
+                {
+                    multiSelect.options[i].selected = true;
+                }
+            }           
+        }
+        javascript:MultiSelectPicklist.handleMSPSelect(objId);
+        } 
+};
+</script>
+<script>
+    j(document).ready(function(){
+        j("textarea.tocHidden").parent().parent().addClass("offscreen");
+        
+        // handle Add to Table of Contents Checkbox
+        if (j("input.TOC_Title").val() != "" || j("input.TOC_Subhead").val() != "" || j("textarea.TOC_Blurb").val() != "") {
+           j("input.hasTOC").prop("checked", true);
+           checkHasTOC();
+        } else {
+           j("input.hasTOC").prop("checked", false);
+           checkHasTOC();
+        }
+        j("input.hasTOC").click(function(){
+            checkHasTOC();
+        });
+        
+        
+        //spring 2013 ph2 enhancements
+        j('#clearTOC').click(function () {
+            //alert(j("input.hasTOC").prop('checked'));
+            //var j = jQuery.noConflict();
+                j("input.hasTOC").prop('checked',false);
+                j("input.TOC_Title").val('');
+                j("input.TOC_Subhead").val('');
+                var content = tinyMCE.get('{!$Component.theform.themaindetailblock.thetocsection.tocBlurb}');
+                        var temp = content.getContent();
+                        //console.log('temp content is..' + temp);
+                        if(temp!='')
+                            {
+                                content.setContent(' ');
+                                 }
+                //j("textarea.TOC_Blurb").val('');
+                //j("input.TOC_Title").parent().append('<span class="TOC_Title_Text"></span>');
+                    j("[id$=TOCTitleText]").val('');
+                    j('span.TOC_Title_Text').text('');
+                j("input.selectTOCButton").parent().parent().hide();
+                j("input.TOC_Title").parent().parent().hide();
+                j("input.TOC_Subhead").parent().parent().hide();
+                j("textarea.TOC_Blurb").parent().parent().hide();
+        });
+        
+        //spring 2013 ph2 enhancements
+        j('#selectAllRegions').click(function () {
+            selectAllLangRegions('{!$Component.theform.themaindetailblock.themetasection.themetasection2.regionsMS}',document.getElementById('{!$Component.theform.themaindetailblock.ReqdFieldGrp1.sLang}').value);
+        });
+                    
+        function checkHasTOC(){
+            var j = jQuery.noConflict();
+            if (j("input.hasTOC").prop("checked") == true){
+                j("input.selectTOCButton").parent().parent().show();
+                j("input.TOC_Title").parent().parent().show();
+                j("input.TOC_Subhead").parent().parent().show();
+                j("textarea.TOC_Blurb").parent().parent().show();
+            } else {
+                if (j("input.TOC_Title").val() != "" || j("input.TOC_Subhead").val() != "" || j("textarea.TOC_Blurb").val() != "") {
+                    j("input.hasTOC").prop("checked", true);
+                } else {
+                    j("input.selectTOCButton").parent().parent().hide();
+                    j("input.TOC_Title").parent().parent().hide();
+                    j("input.TOC_Subhead").parent().parent().hide();
+                    j("textarea.TOC_Blurb").parent().parent().hide();
+               }
+            }
+        }
+        
+        /* When headlineLong changes, update headline with headlineLongs first 80 characters. */
+        j("input.headlineLong").bind("change keyup", function(){
+            var j = jQuery.noConflict();
+            j("input.headlineField").val(j(this).val().substr(0,80)).keyup();
+        }).keyup();
+        /* Hide the headline field. */
+        j("input.headlineField").attr("tabindex","-1").parent().parent().parent().addClass("offscreen");
+        
+        /* Used for table of contents selection */
+        j("input.TOC_Title").parent().append('<span class="TOC_Title_Text"></span>');
+        if (j("input.TOC_Title").val() != "") {
+            sforce.connection.sessionId = "{!$Api.Session_ID}";
+            var result = sforce.connection.query("SELECT d.Name FROM Digital_Asset__c d WHERE d.Id = '" + j("input.TOC_Title").val() + "'");
+            var records = result.getArray("records");
+            for(i=0;i<records.length;i++){
+                j('span.TOC_Title_Text').text(records[i].Name);
+            }
+        }
+        
+        
+        // Show/hide the Order Chapters button if Asset Type is Table of Contents
+        j("select.assetType").change(function(){
+            var j = jQuery.noConflict();
+            if (j(this).val() != "Table of Contents") {
+                j("input.orderTOCButton").parent().parent().hide();        
+            } else {
+                j("input.orderTOCButton").parent().parent().show();
+            }
+        }).change();
+        
+        // Uncheck include byline if asset subtype is Unattributed Staff Written
+        // Spring 2013 Enhancements - selector was not working; replaced selector
+        //j("select.assetSubtype").live("change", function(){
+        j(document).delegate("[id$=assetSubtype]","change", function(){
+            var j = jQuery.noConflict();
+            if (j("[id$=assetSubtype]").val() == "Unattributed Staff Written") {
+                j("input.includeByline").attr("checked", false);
+            }
+        });
+        // Disable checkbox include byline if asset subtype is Unattributed Staff Written
+        // Spring 2013 Enhancements - selector was not working; replaced selector
+        j("input.includeByline").click(function(){
+            var j = jQuery.noConflict();
+            if (j("[id$=assetSubtype]").val() == "Unattributed Staff Written") {
+                j(this).attr("checked", false);
+                alert("Include Byline cannot be checked while Asset Subtype is set to 'Unattributed Staff Written'.");
+            }
+        });
+
+        // Collapse the Additional Attached Photos section by default
+        j("img.hideListButton").each(function(){
+            var j = jQuery.noConflict();
+            if (j(this).attr("name") == "Additional Attached Photos") {
+                j(this).click();
+            }
+        });
+        
+        j("#sortMC").click(function(){
+            var j = jQuery.noConflict();
+            var mcLinks = [];
+            j('input.mcSort').each(function(){
+                var index = j(this).val();
+                var headline = j(this).parent().parent().next().find('input.mcHeadline').val();
+                var url = j(this).parent().parent().next().next().find('input.mcUrl').val();
+                mcLinks.push({'headline': headline, 'url': url, 'index': index});
+            });
+            
+            // Sort the array by the index
+            mcLinks.sort(function(a,b) {return (a.index > b.index) ? 1 : ((b.index > a.index) ? -1 : 0);} );
+            
+            // ** 5-12-2014 - New variable q created.. DH **   
+                   
+            for(i=0;i<mcLinks.length;i++) {
+                var q = i+1;
+                var varMC = '.validate.btn.' + q;
+                var urlField = '.mcUrl' + q;
+                var headlineField = '.mcHeadline' + q;
+                if (mcLinks[i].url.indexOf('http') < 0) {
+                    j(urlField).val('http://' + mcLinks[i].url);
+                }
+                else {
+                    j(urlField).val(mcLinks[i].url);
+                }
+                j(headlineField).val(mcLinks[i].headline);
+                j(varMC).attr('href', mcLinks[i].url);
+            }
+            
+            j('input.mcSort').each(function(i){
+                var j = jQuery.noConflict();
+                i++;
+                j(this).val(i);
+            });
+        });
+
+        j('input.multimediaURL').change(function(){
+            var val = j(this).val();
+            if(val.indexOf('iipdigital.usembassy.gov') == -1 && val.indexOf('america.gov') == -1 && val.indexOf('photos.state.gov') == -1 && val != '') {
+                alert('The multimedia url must come from iipdigital.usembassy.gov, america.gov, or photos.state.gov.');
+            }
+        });
+        /*j('input.youtubeURL').change(function(){
+            var val = j(this).val();
+            if(val.indexOf('youtube.com') == -1 && val != '') {
+                alert('The Youbue url must come from Youtube.com.');
+            }
+        });*/
+    });
+</script>
+
+<script type="text/javascript">
+    function updateStatus()
+    {
+        //alert(document.getElementById('{!$Component.theform.themaindetailblock.thestatussection.thestatusfieldinput}').value);
+        if(document.getElementById('{!$Component.theform.themaindetailblock.thestatussection.thestatusfield}').value == 'Draft' 
+        || document.getElementById('{!$Component.theform.themaindetailblock.thestatussection.thestatusfield}').value == '')
+            {
+                document.getElementById('{!$Component.theform.themaindetailblock.thestatussection.thestatusfield}').value = 'In Work';
+            }
+    }
+    function updateStatusQ()
+    {
+        //alert(document.getElementById('{!$Component.theform.themaindetailblock.thestatussection.thestatusfieldinput}').value);
+        if(document.getElementById('{!$Component.theform.themaindetailblock.thestatussection.thestatusfield}').value == 'Draft' 
+        || document.getElementById('{!$Component.theform.themaindetailblock.thestatussection.thestatusfield}').value == '')
+            {
+                document.getElementById('{!$Component.theform.themaindetailblock.thestatussection.thestatusfield}').value = 'Draft';
+            }
+    }
+</script>
+
+        <script src="../../soap/ajax/23.0/connection.js" type="text/javascript"></script>
+        <apex:sectionHeader title="{!$ObjectType.Digital_Asset__c.label} Edit" subtitle="New Asset"/>
+        <div id="top" style="float:right;margin-bottom:20px;">
+            <a href="javascript:changeFontSize(1)" style="font-size: 16px;font-weight:bold;padding-right:5px;">A+</a> 
+            <a href="javascript:changeFontSize(-1)" style="font-size: 14px;font-weight:bold;">A-</a>
+            <br />
+            <a id="expandAll" href="#">Expand All</a> <a id="collapseAll" href="#">Collapse All</a>
+        </div>
+        <apex:form id="theform" >
+        <apex:messages style="background:pink;padding:5px;margin-top:55px" />
+        
+        <apex:pageBlock title="{!$ObjectType.Digital_Asset__c.label} Edit" mode="maindetail" id="themaindetailblock">
+                <apex:pageBlockButtons >
+                        <apex:commandButton action="{!save}" value="Save" onclick="updateStatus();" />
+                        <apex:commandButton action="{!quicksave}" value="Apply" onclick="updateStatusQ();" styleClass="applyButton"/>
+                        <apex:commandButton action="{!cancel}" value="Cancel"/>
+                </apex:pageBlockButtons>
+                <apex:pageBlockSection ><apex:pageBlockSectionItem /></apex:pageBlockSection>
+                <div style="background-color: #C00;width:3px;float:left;height:20px;margin-right:5px;"></div> = Required Field
+                
+                <apex:pageBlockSection showHeader="true" title="Information" columns="2" collapsible="true" id="thestatussection">
+                        <apex:outputField value="{!Digital_Asset__c.Published_URL__c}" /> 
+                        <apex:outputField value="{!Digital_Asset__c.Status__c}" rendered="{!IF($Profile.Name != 'System Administrator',true,false)}" id="thestatusfieldoutput" />      
+                        <apex:inputField value="{!Digital_Asset__c.Status__c}" rendered="{!IF($Profile.Name == 'System Administrator',true,false)}" id="thestatusfieldinput" />
+                        <apex:outputField value="{!Digital_Asset__c.Parent_Headline__c}" />       
+                        <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="Owner"/>
+                                <apex:outputText value="{!Digital_Asset__c.Owner.Name}"/>
+                        </apex:pageBlockSectionItem>
+                        <apex:inputField value="{!Digital_Asset__c.Slug_ID__c}" />
+                        <apex:outputField value="{!Digital_Asset__c.Asset_Creator__c}"/>
+                        <apex:inputField value="{!Digital_Asset__c.Parent_Slug_ID__c}" styleClass="parent-slug"/> 
+                        <apex:outputField value="{!Digital_Asset__c.Editor__c}"/> 
+                        <apex:inputField value="{!Digital_Asset__c.Republish_ID__c}" rendered="{!IF($Profile.Name == 'Publishing Copy Desk' || $Profile.Name == 'Publishing Translator' || $Profile.Name == 'System Administrator',true,false)}" />
+                        <apex:outputField value="{!Digital_Asset__c.Republish_ID__c}" rendered="{!IF($Profile.Name != 'Publishing Copy Desk' && $Profile.Name != 'Publishing Translator' && $Profile.Name !='System Administrator',true,false)}" />
+                        <apex:outputField value="{!Digital_Asset__c.Copy_Editor_1__c}" />
+                        <apex:pageBlockSectionItem ><apex:outputLabel value="Created By"/><apex:pageBlockSection columns="2"><apex:pageBlockSectionItem ><apex:outputField value="{!Digital_Asset__c.CreatedByID}"/></apex:pageBlockSectionItem><apex:pageBlockSectionItem ><apex:outputField value="{!Digital_Asset__c.CreatedDate}"/></apex:pageBlockSectionItem></apex:pageBlockSection></apex:pageBlockSectionItem>
+                        <apex:outputField value="{!Digital_Asset__c.Copy_Editor_2__c}" />  
+                        <apex:pageBlockSectionItem ><apex:outputLabel value="Last Modified By"/><apex:pageBlockSection columns="2"><apex:pageBlockSectionItem ><apex:outputField value="{!Digital_Asset__c.LastModifiedByID}"/></apex:pageBlockSectionItem><apex:pageBlockSectionItem ><apex:outputField value="{!Digital_Asset__c.LastModifiedDate}"/></apex:pageBlockSectionItem></apex:pageBlockSection></apex:pageBlockSectionItem>        
+                        <apex:outputField value="{!Digital_Asset__c.Translator__c}" />
+                        <apex:inputField value="{!Digital_Asset__c.Include_In_Compilation__c}" />
+                        <apex:pageBlockSectionItem /><apex:outputField value="{!Digital_Asset__c.Asset_Version__c}" /> <apex:inputHidden value="{!Digital_Asset__c.Status__c}"  id="thestatusfield"/>                                           
+                        <apex:inputField value="{!Digital_Asset__c.Test_Asset__c}"/>
+               </apex:pageBlockSection>    
+               <apex:pageBlockSection title="Comments" columns="1" id="theassetcomments">
+                   <apex:inputTextArea value="{!Digital_Asset__c.Asset_Comments__c}" id="assetComments" style="width:100%;" styleclass="mceEditor dirField" />
+                   
+               </apex:pageBlockSection>
+               <apex:pageBlockSection showHeader="true" title="Language and Asset Type" columns="1" collapsible="true" id="ReqdFieldGrp1" >
+                        <apex:inputField id="slang" required="{!IF(Digital_Asset__c.Status__c == 'Draft' || Digital_Asset__c.Status__c == '',true,true)}" value="{!Digital_Asset__c.Language__c}" styleClass="lang-dropdown" />     
+                        <apex:inputField required="{!IF(Digital_Asset__c.Status__c == 'Draft' || Digital_Asset__c.Status__c == '',false,true)}" value="{!Digital_Asset__c.Asset_Type__c}" styleClass="assetType" />
+                        <apex:inputField id="assetSubtype" required="{!IF(Digital_Asset__c.Status__c == 'Draft' || Digital_Asset__c.Status__c == '',false,true)}"  value="{!Digital_Asset__c.Asset_Subtype__c}" styleClass="assetSubtype" />
+               </apex:pageBlockSection>
+               <apex:pageBlockSection columns="1" showHeader="False" id="thetocsection">
+                    
+                    <apex:pageBlockSectionItem >
+                        <apex:pageBlockSectionItem />
+                        <input type="checkbox" name="hasTOC" class="hasTOC" /> 
+                        <span>Add To Table of Contents</span>&nbsp;&nbsp;<a href="javascript:void(0);" id="clearTOC">[Clear Selection]</a>
+                    </apex:pageBlockSectionItem>
+                    
+                    <apex:pageBlockSectionItem >
+                        <apex:pageBlockSectionItem />
+                        <input type="button" class="btn selectTOCButton" id="selectTOC" onclick="window.open('/apex/DA_TOC_Select?core.apexpages.devmode.url=1&lang='+document.getElementById('{!$Component.theform.themaindetailblock.ReqdFieldGrp1.sLang}').value,'Ratting','width=800,height=300,left=150,top=200,location=no,toolbar=no,status=1,scrollbars=yes,resizable=yes');" value="Select Table of Contents" />                        
+                    </apex:pageBlockSectionItem>
+
+                        <apex:inputText id="TOCTitleText" value="{!Digital_Asset__c.Publication_Title__c}" styleClass="TOC_Title offscreen" />
+
+                    
+                        <apex:inputField value="{!Digital_Asset__c.ToC_SubHeading__c}" style="width:100%;" styleClass="TOC_Subhead" id="tocsubhead" />  
+                        <apex:inputTextArea value="{!Digital_Asset__c.ToC_Blurb__c}" styleClass="mceEditor TOC_Blurb" id="tocBlurb" />
+
+               </apex:pageBlockSection>                      
+               <apex:pageBlockSection showHeader="true" title="Content" columns="1" collapsible="true" id="theheadlinesection">
+                        <apex:inputField value="{!Digital_Asset__c.Content_Requested_By__c}"/>   
+                        <apex:inputField value="{!Digital_Asset__c.Translation_Requested_By__c}" styleClass="translation" />
+                        <apex:inputField value="{!Digital_Asset__c.Translation_Source__c}" />
+                        <apex:inputField value="{!Digital_Asset__c.IIP_Internal_Use_Only__c}"/>
+                        <apex:inputField value="{!Digital_Asset__c.Asset_Date_Time__c}" styleClass="date"/>
+                        <!-- the headline field is autopopulated by jquery; it is also intentionally hidden by jquery.  do not change the styleclass or it will break -->
+                        <apex:inputField id="headline" value="{!Digital_Asset__c.Name}"  style="width:100%" required="true" styleClass="dirField headlineField" />
+                        <apex:inputField id="headlineLong" value="{!Digital_Asset__c.Headline_long__c}" style="width:100%" required="true" styleClass="headlineLong" onKeyUp="toCount('{!$Component.headlineLong}','hLongCount','You have entered {CHAR} characters into this field.',65);" />
+                        <apex:pageBlockSectionItem >
+                        <apex:pageBlockSectionItem />
+                        <span id="hLongCount" class="minitext" style="color:#666; font-style:italic">You have entered 0 characters into the Headline (long) field.
+                        </span>
+                        </apex:pageBlockSectionItem>
+                        <apex:inputField id="subhead" value="{!Digital_Asset__c.subheadline__c}"  style="width:100%"  /> 
+                        
+                        <!-- <apex:pageBlockSectionItem ><apex:pageBlockSectionItem /><span id="sBann1" class="minitext" style="color:#666; font-style:italic">You have entered 0 characters into the Headline field.</span></apex:pageBlockSectionItem> -->
+                        
+                        <apex:inputField value="{!Digital_Asset__c.Author__c}" styleClass="author"/>
+                        <apex:inputField value="{!Digital_Asset__c.Author_Job_Title__c}"/>
+                        <apex:inputField value="{!Digital_Asset__c.Include_Byline__c}" styleClass="includeByline"/>  
+                        <apex:inputTextArea value="{!Digital_Asset__c.Top__c}" id="articleTop" styleclass="mceEditor dirField" />                       
+
+                        <apex:inputField value="{!Digital_Asset__c.ToC_Hidden__c}" styleClass="tocHidden" />
+                        <apex:pageBlockSectionItem >
+                        <apex:pageBlockSectionItem />
+                            <input type="button" class="btn orderTOCButton" id="orderTOC" onclick='window.open("/apex/DA_TOC_Order?core.apexpages.devmode.url=1","Ratting","width=800,height=300,left=150,top=200,location=no,toolbar=no,status=1,scrollbars=yes,resizable=yes");' value="Change Chapter Order" />                        
+                        </apex:pageBlockSectionItem>
+                        <div id="saving" class="minitext" style="color:#666; font-style:italic; display: none">AutoSaved...</div>
+                        <apex:inputTextArea styleclass="mceEditor dirField" value="{!Digital_Asset__c.Article_Body__c}" id="articleBody"
+                                        readonly="{!IF((Digital_Asset__c.Asset_Type__c == 'Table of Contents'), true, false)}"
+                                        rendered="{!IF((Digital_Asset__c.Asset_Type__c == 'Table of Contents'), false, true)}" />
+                        <apex:outputtext escape="false" style="width:100%" styleclass="dirField" 
+                                        value="{!Digital_Asset__c.Article_Body__c}" id="articleBodyDisabled" 
+                                        rendered="{!IF((Digital_Asset__c.Asset_Type__c == 'Table of Contents'), true, false)}" />
+                        
+                        <apex:inputTextArea styleclass="mceEditor dirField" value="{!Digital_Asset__c.Content_Teaser__c}" id="teaser" />
+
+                </apex:pageBlockSection>
+                <apex:pageBlockSection showHeader="true" title="Word Count" columns="1" collapsible="true">
+                        <apex:outputField value="{!Digital_Asset__c.Headline_Word_Count__c}"/>
+                        <apex:outputField value="{!Digital_Asset__c.Top_Word_Count__c}"/>  
+                        <apex:outputField value="{!Digital_Asset__c.Article_Body_Word_Count__c}"/>
+                        <apex:outputField value="{!Digital_Asset__c.Total_Word_Count__c}"/>
+                        <apex:outputField value="{!Digital_Asset__c.Translation_Word_Count__c}"/>
+                </apex:pageBlockSection>
+                <apex:pageBlockSection showHeader="true" title="Social Networking" columns="1" collapsible="true" id="themobileblurbsection">
+                        <apex:inputField value="{!Digital_Asset__c.Social_Media_Blurb__c}" style="width:100%;" styleClass="dirField"/>
+                        <apex:inputField id="twitter" value="{!Digital_Asset__c.Microblog__c}" style="width:100%;" styleClass="dirField" onKeyUp="toCount('{!$Component.twitter}','sBann4','You have entered {CHAR} characters into this field.',140);"/>
+                        <apex:pageBlockSectionItem ><apex:pageBlockSectionItem /><span id="sBann4" class="minitext" style="color:#666; font-style:italic">You have entered 0 characters into the Microblog field.</span></apex:pageBlockSectionItem>
+                        <apex:inputField id="mobile_headline" value="{!Digital_Asset__c.Mobile_Headline__c}" style="width:100%;" styleClass="dirField" onKeyUp="toCount('{!$Component.mobile_headline}','sBann2','You have entered {CHAR} characters into this field.',35);"/>
+                        <apex:pageBlockSectionItem ><apex:pageBlockSectionItem /><span id="sBann2" class="minitext" style="color:#666; font-style:italic">You have entered 0 characters into the Mobile Headline field.</span></apex:pageBlockSectionItem>
+                        <apex:inputTextArea value="{!Digital_Asset__c.Mobile_Blurb__c}" id="mobileBlurb" styleclass="mceEditor dirField" /> 
+
+                </apex:pageBlockSection>       
+                <apex:pageBlockSection id="themetasection" showHeader="true" title="Meta Data" columns="1" collapsible="true">
+                        <apex:pageBlockSectionItem id="themetasection2" >
+                        <apex:outputlabel value="Regional Feeds"/>
+                        <apex:inputField id="regionsMS" styleClass="regional_feeds" value="{!Digital_Asset__c.Regional_Feeds__c}"><span><a href="javascript:void(0);" id="selectAllRegions">[Select All Regions]</a></span>
+                        </apex:inputField>
+                        </apex:pageBlockSectionItem>
+                        <apex:inputField value="{!Digital_Asset__c.Include_in_RSS_Feed__c}"/>
+                        <apex:inputField value="{!Digital_Asset__c.Asset_Theme__c}"/>
+                        <apex:inputField value="{!Digital_Asset__c.Communities__c}"/>
+                        <apex:inputField value="{!Digital_Asset__c.Asset_Package__c}" styleClass="assetPackage"/>
+                        <apex:inputField value="{!Digital_Asset__c.Search_Keywords__c}" required="{!IF(Digital_Asset__c.Status__c == 'Draft' || Digital_Asset__c.Status__c == '',false,true)}"  style="width:100%;" styleClass="dirField" />
+                        <apex:inputField value="{!Digital_Asset__c.Source__c}" style="width:100%;" styleClass="dirField"/>
+                        
+                </apex:pageBlockSection>
+                
+                <!-- 5-12-2014  Code updated -->
+                
+                <apex:pageBlockSection showHeader="true" title="More Coverage Links" columns="1" collapsible="true">                            
+                <apex:commandButton style="float:right;" id="findMCVF" value="Search for MC Content" action="{!showPopup}" rerender="popup" >
+                        <input type="button" style="float:right;" class="btn" id="sortMC" value="Sort by Number" onclick="setState()" rerender=""/>
+                        <apex:actionFunction id="setState" action="{!save}" name="SetState"/>                    
+                        </apex:commandButton>
+                        
+                        <apex:inputField value="{!Digital_Asset__c.Display_MC_1__c}"/>
+                        <apex:pageBlockSectionItem ><apex:outputLabel value="Sort Number" /> <input type="text" value="1" class="mcSort" /></apex:pageBlockSectionItem>
+                        <apex:inputField value="{!Digital_Asset__c.MC_Headline_1__c}" style="width:100%;" styleClass="dirField mcHeadline mcHeadline1"/>
+                        <apex:inputField value="{!Digital_Asset__c.MC_URL_1__c}" style="width:100%;" styleClass="mcUrl mcUrl1" /> 
+                        <br /> <a href="#nogo" class="clearMC btn">Clear</a><a href="#" rerender="true" class="validate btn 1" target="_blank">Validate MC URL </a>
+                        
+                        <apex:inputField value="{!Digital_Asset__c.Display_MC_2__c}"/>
+                        <apex:pageBlockSectionItem ><apex:outputLabel value="Sort Number" /> <input type="text" value="2" class="mcSort" /></apex:pageBlockSectionItem>
+                        <apex:inputField value="{!Digital_Asset__c.MC_Headline_2__c}" style="width:100%;" styleClass="dirField mcHeadline mcHeadline2"/>
+                        <apex:inputField value="{!Digital_Asset__c.MC_URL_2__c}" style="width:100%;" styleClass="mcUrl mcUrl2"/>
+                        <br /> <a href="#nogo" class="clearMC btn">Clear</a><a href="#" rerender="true" class="validate btn 2" target="_blank">Validate MC URL </a>
+                        
+                        <apex:inputField value="{!Digital_Asset__c.Display_MC_3__c}"/>
+                        <apex:pageBlockSectionItem ><apex:outputLabel value="Sort Number" /> <input type="text" value="3" class="mcSort" /></apex:pageBlockSectionItem>
+                        <apex:inputField value="{!Digital_Asset__c.MC_Headline_3__c}" style="width:100%;" styleClass="dirField mcHeadline mcHeadline3"/>
+                        <apex:inputField value="{!Digital_Asset__c.MC_URL_3__c}" style="width:100%;" styleClass="mcUrl mcUrl3"/>
+                        <br /> <a href="#nogo" class="clearMC btn">Clear</a><a href="#" class="validate btn 3" target="_blank">Validate MC URL </a> 
+                        
+                        <apex:inputField value="{!Digital_Asset__c.Display_MC_4__c}"/>
+                        <apex:pageBlockSectionItem ><apex:outputLabel value="Sort Number" /> <input type="text" value="4" class="mcSort" /></apex:pageBlockSectionItem>
+                        <apex:inputField value="{!Digital_Asset__c.MC_Headline_4__c}" style="width:100%;" styleClass="dirField mcHeadline mcHeadline4"/>
+                        <apex:inputField value="{!Digital_Asset__c.MC_URL_4__c}" style="width:100%;" styleClass="mcUrl mcUrl4"/>
+                        <br /> <a href="#nogo" class="clearMC btn">Clear</a><a href="#" class="validate btn 4" target="_blank">Validate MC URL </a> 
+                        
+                        <apex:inputField value="{!Digital_Asset__c.Display_MC_5__c}"/>
+                        <apex:pageBlockSectionItem ><apex:outputLabel value="Sort Number" /> <input type="text" value="5" class="mcSort" /></apex:pageBlockSectionItem>
+                        <apex:inputField value="{!Digital_Asset__c.MC_Headline_5__c}" style="width:100%;" styleClass="dirField mcHeadline mcHeadline5"/>
+                        <apex:inputField value="{!Digital_Asset__c.MC_URL_5__c}" style="width:100%;" styleClass="mcUrl mcUrl5"/>
+                        <br /> <a href="#nogo" class="clearMC btn">Clear</a><a href="#" class="validate btn 5" target="_blank">Validate MC URL </a> 
+                        <div style="clear:both;"></div>
+                </apex:pageBlockSection>         
+                
+                <!-- 5-12-2014 ** end of updated code - DH" ** -->
+                
+                <apex:pageBlockSection showHeader="true" title="Attached Photos" columns="1" collapsible="true">
+                        <apex:inputField value="{!Digital_Asset__c.Photo_1_Location__c}" style="width:100%;"/>
+                        <apex:inputField id="photo_1_caption" value="{!Digital_Asset__c.Photo_1_Caption__c}" style="width:100%;" onKeyUp="toCount('{!$Component.photo_1_caption}','sBann9','You have entered {CHAR} characters into this field.',65);"/>
+                        <apex:pageBlockSectionItem ><apex:pageBlockSectionItem /><span id="sBann9" class="minitext" style="color:#666; font-style:italic">You have entered 0 characters into the Photo 1 Caption field.</span></apex:pageBlockSectionItem>
+                        <apex:inputField value="{!Digital_Asset__c.Photo_1_Credit__c}" style="width:100%;"/>
+                        <apex:inputField value="{!Digital_Asset__c.Photo_1_Alt_Text__c}" style="width:100%;"/>
+                        <apex:inputField value="{!Digital_Asset__c.Photo_1_URL__c}" style="width:100%;"/>
+                        <br /> <a href="#" class="validate btn" target="_blank">Validate Photo 1 URL</a>
+                        <apex:inputField value="{!Digital_Asset__c.Photo_2_Location__c}" style="width:100%;"/>                       
+                        <apex:inputField id="photo_2_caption" value="{!Digital_Asset__c.Photo_2_Caption__c}" style="width:100%;" onKeyUp="toCount('{!$Component.photo_2_caption}','sBann10','You have entered {CHAR} characters into this field.',65);"/>                        
+                        <apex:pageBlockSectionItem ><apex:pageBlockSectionItem /><span id="sBann10" class="minitext" style="color:#666; font-style:italic">You have entered 0 characters into the Photo 2 Caption field.</span></apex:pageBlockSectionItem>
+                        <apex:inputField value="{!Digital_Asset__c.Photo_2_Credit__c}" style="width:100%;"/>                        
+                        <apex:inputField value="{!Digital_Asset__c.Photo_2_Alt_Text__c}" style="width:100%;"/>                        
+                        <apex:inputField value="{!Digital_Asset__c.Photo_2_URL__c}" style="width:100%;"/>
+                        <br /> <a href="#" class="validate btn" target="_blank">Validate Photo 2 URL</a>
+                        
+                </apex:pageBlockSection>
+                <apex:pageBlockSection id="addPhotos" showHeader="true" title="Additional Attached Photos" columns="1" collapsible="true">
+                    <apex:pageBlockSectionItem ><apex:pageBlockSectionItem /><span id="sBann9" class="minitext">NOTE: Photo 3 is for pubs only and will not show in a published asset.</span></apex:pageBlockSectionItem>
+                        <apex:inputField value="{!Digital_Asset__c.Photo_3_Location__c}" style="width:100%;"/>                       
+                        <apex:inputField id="photo_3_caption" value="{!Digital_Asset__c.Photo_3_Caption__c}" style="width:100%;" onKeyUp="toCount('{!$Component.photo_3_caption}','sBann11','You have entered {CHAR} characters into this field.',65);"/>                        
+                        <apex:pageBlockSectionItem ><apex:pageBlockSectionItem /><span id="sBann11" class="minitext" style="color:#666; font-style:italic">You have entered 0 characters into the Photo 3 Caption field.</span></apex:pageBlockSectionItem>
+                        <apex:inputField value="{!Digital_Asset__c.Photo_3_Credit__c}" style="width:100%;"/>                        
+                        <apex:inputField value="{!Digital_Asset__c.Photo_3_Alt_Text__c}" style="width:100%;"/>                        
+                        <apex:inputField value="{!Digital_Asset__c.Photo_3_URL__c}" style="width:100%;"/>
+                        <br /> <a href="#" class="validate btn" target="_blank">Validate Photo 3 URL</a>
+                        <apex:pageBlockSectionItem ><apex:pageBlockSectionItem /><span id="sBann9" class="minitext">NOTE: Photo 4 is for pubs only and will not show in a published asset.</span></apex:pageBlockSectionItem>
+                        <apex:inputField value="{!Digital_Asset__c.Photo_4_Location__c}" style="width:100%;"/>                       
+                        <apex:inputField id="photo_4_caption" value="{!Digital_Asset__c.Photo_4_Caption__c}" style="width:100%;" onKeyUp="toCount('{!$Component.photo_4_caption}','sBann12','You have entered {CHAR} characters into this field.',65);"/>                        
+                        <apex:pageBlockSectionItem ><apex:pageBlockSectionItem /><span id="sBann12" class="minitext" style="color:#666; font-style:italic">You have entered 0 characters into the Photo 3 Caption field.</span></apex:pageBlockSectionItem>
+                        <apex:inputField value="{!Digital_Asset__c.Photo_4_Credit__c}" style="width:100%;"/>                        
+                        <apex:inputField value="{!Digital_Asset__c.Photo_4_Alt_Text__c}" style="width:100%;"/>                        
+                        <apex:inputField value="{!Digital_Asset__c.Photo_4_URL__c}" style="width:100%;"/>
+                        <br /> <a href="#" class="validate btn" target="_blank">Validate Photo 4 URL</a>
+                        <apex:pageBlockSectionItem ><apex:pageBlockSectionItem /><span id="sBann9" class="minitext">NOTE: Photo 5 is for pubs only and will not show in a published asset.</span></apex:pageBlockSectionItem>
+                        <apex:inputField value="{!Digital_Asset__c.Photo_5_Location__c}" style="width:100%;"/>                       
+                        <apex:inputField id="photo_5_caption" value="{!Digital_Asset__c.Photo_5_Caption__c}" style="width:100%;" onKeyUp="toCount('{!$Component.photo_5_caption}','sBann13','You have entered {CHAR} characters into this field.',65);"/>                        
+                        <apex:pageBlockSectionItem ><apex:pageBlockSectionItem /><span id="sBann13" class="minitext" style="color:#666; font-style:italic">You have entered 0 characters into the Photo 3 Caption field.</span></apex:pageBlockSectionItem>
+                        <apex:inputField value="{!Digital_Asset__c.Photo_5_Credit__c}" style="width:100%;"/>                        
+                        <apex:inputField value="{!Digital_Asset__c.Photo_5_Alt_Text__c}" style="width:100%;"/>                        
+                        <apex:inputField value="{!Digital_Asset__c.Photo_5_URL__c}" style="width:100%;"/>
+                        <br /> <a href="#" class="validate btn" target="_blank">Validate Photo 5 URL</a>
+                        <apex:pageBlockSectionItem ><apex:pageBlockSectionItem /><span id="sBann9" class="minitext">NOTE: Photo 6 is for pubs only and will not show in a published asset.</span></apex:pageBlockSectionItem>
+                        <apex:inputField value="{!Digital_Asset__c.Photo_6_Location__c}" style="width:100%;"/>                       
+                        <apex:inputField id="photo_6_caption" value="{!Digital_Asset__c.Photo_6_Caption__c}" style="width:100%;" onKeyUp="toCount('{!$Component.photo_6_caption}','sBann14','You have entered {CHAR} characters into this field.',65);"/>                        
+                        <apex:pageBlockSectionItem ><apex:pageBlockSectionItem /><span id="sBann14" class="minitext" style="color:#666; font-style:italic">You have entered 0 characters into the Photo 3 Caption field.</span></apex:pageBlockSectionItem>
+                        <apex:inputField value="{!Digital_Asset__c.Photo_6_Credit__c}" style="width:100%;"/>                        
+                        <apex:inputField value="{!Digital_Asset__c.Photo_6_Alt_Text__c}" style="width:100%;"/>                        
+                        <apex:inputField value="{!Digital_Asset__c.Photo_6_URL__c}" style="width:100%;"/>
+                        <br /> <a href="#" class="validate btn" target="_blank">Validate Photo 6 URL</a>
+                </apex:pageBlockSection>
+                <apex:pageBlockSection showHeader="true" title="Thumbnail" columns="1" collapsible="true">
+                        <apex:inputField value="{!Digital_Asset__c.Thumbnail_Credit__c}" style="width:100%;"/>
+                        <apex:inputField value="{!Digital_Asset__c.Thumbnail_Alt_Tag__c}" style="width:100%;"/>
+                        <apex:inputField value="{!Digital_Asset__c.Thumbnail_URL__c}" style="width:100%;"/>
+                        <br /> <a href="#" class="validate btn" target="_blank">Validate Thumbnail URL</a>
+                </apex:pageBlockSection>
+                <apex:pageBlockSection showHeader="true" title="Multimedia" columns="1" collapsible="true">
+                        <apex:inputField value="{!Digital_Asset__c.Multimedia_URL__c}" style="width:100%;" styleClass="multimediaURL"/>
+                        <br /> <a href="#" class="validate btn" target="_blank">Validate Multimedia URL</a>
+                        <!-- Stephanie P. (5/23/14) added youtube id -->
+                        <apex:inputField value="{!Digital_Asset__c.Youtube_ID__c}" style="width:100%;" styleClass="youTubeId"/>
+                        
+                </apex:pageBlockSection>                
+                <!-- MD removed for Spring 2013 enhancement 1.13 
+                <apex:pageBlockSection showHeader="true" title="Asset Rejection" columns="1" collapsible="true">
+                        <apex:pageBlockSectionItem rendered="{!IF($Profile.Name == 'Publishing Copy Desk' || $Profile.Name == 'System Administrator',true,false)}"><apex:pageBlockSectionItem /><span id="sBann9" class="minitext">WARNING! You are about to reject an asset. Doing so will prevent the asset from being published. To undo this action, switch dropdown to "Not Rejected".</span></apex:pageBlockSectionItem>
+                        <apex:inputField value="{!Digital_Asset__c.Article_Rejected__c}" rendered="{!IF($Profile.Name == 'Publishing Copy Desk' || $Profile.Name == 'System Administrator',true, false)}" />
+                        <apex:inputField value="{!Digital_Asset__c.Asset_Rejected_Comments__c}" style="width:100%;" styleClass="dirField "  rendered="{!IF($Profile.Name == 'Publishing Copy Desk' || $Profile.Name == 'System Administrator',true,false)}" />
+                </apex:pageBlockSection> -->
+                <apex:pageBlockSection showHeader="true" columns="1" collapsible="true" title="Admin Only" rendered="{!IF($Profile.Name == 'System Administrator',true,false)}">
+                        <apex:inputField value="{!Digital_Asset__c.Comment_Permission__c}"/>
+                        <apex:inputField value="{!Digital_Asset__c.Content_Header__c}" style="width:100%;"/>
+                        <apex:inputField value="{!Digital_Asset__c.Content_Footer__c}" style="width:100%;"/>
+                        <apex:inputField value="{!Digital_Asset__c.Proclamation__c}" style="width:100%;"/>
+                        <apex:inputField value="{!Digital_Asset__c.XML_Output__c}" style="width:100%; height: 200px;"/>
+                        <apex:inputField value="{!Digital_Asset__c.Test_Asset__c}"/>
+                        
+                </apex:pageBlockSection>
+                <apex:inputHidden value="{!Digital_Asset__c.Id}" id="assetRecordId" />
+                <br />
+               
+                <a style="float:right;" href="#top">Back to Top</a>
+                
+                <!-- Spring 2013 Phase 2 Enhancement: improve MC Search feature w/ full feature modal popup -->
+                <style type="text/css">
+                    .custPopup{
+                        background-color: white;
+                        border-width: 2px;
+                        border-style: solid;
+                        z-index: 9999;
+                        padding:10px;
+                        cursor: pointer;
+                        overflow:scroll;
+                        /* These are for positioning the modal window*/ 
+                        top: 50%;
+                        margin: -100px 0 0 -200px;
+                        left: 25%;
+                        position: fixed;
+                        width: 75%;
+                        height: 300px;
+                        /* alt option in case ie7 problems*/
+                        //cursor: move;
+                        //height: 700px;
+                        //top:0;
+                        //bottom: 0;
+                        //left: 0;
+                        //right: 0;
+                        //margin: auto;
+                    }
+                    .popupBackground{
+                        background-color:black;
+                        opacity: 0.20;
+                        filter: alpha(opacity = 20);
+                        position: absolute;
+                        width: 100%;
+                        height: 100%;
+                        top: 0;
+                        left: 0;
+                        z-index: 9998;
+                    }
+                    
+                </style>
+
+                <script type="text/javascript">
+                function noenter(e)
+                {   
+                    if(window.event){                    
+                        key = window.event.keyCode;     //IE               
+                    } 
+                    else
+                    {                    
+                        key = e.which;     //firefox               
+                    }               
+                    
+                    if(key == 13) 
+                    {
+                        //alert('got here!'+key);                    
+                        //var ele=document.getElementById('{!$Component.thepage.theform.themaindetailblock.thesearchbutton}');                                                           
+                        //alert(ele);
+                        //ele.click();                     
+                        doSearch();
+                        return false;               
+                    } 
+                    else
+                    {                    
+                        return true;               
+                    }          
+                } 
+ 
+                function doSearch() 
+                {
+                    searchServer(
+                        document.getElementById("headline").value,
+                        document.getElementById("{!$Component.theform.themaindetailblock.ReqdFieldGrp1.slang}").value,
+                        null,
+                        null,
+                        null,
+                        document.getElementById("assettheme").options[document.getElementById("assettheme").selectedIndex].value,   
+                        null,                   
+                        document.getElementById("{!$Component.theform.themaindetailblock.MCSearchBlock.assetdatetimeoperator}").value,  
+                        document.getElementById("{!$Component.theform.themaindetailblock.MCSearchBlock.assetdatetime}").value,
+                        'true'
+                        );  
+                }
+
+        
+                function addMC() 
+                {
+                    var $j = jQuery.noConflict(); 
+                    var totalMC = 0;
+                    var resultsArray = [];
+                    $j(".selectedHeadline").each(function() {
+                        var checkbox = $j(this).closest('tr').find("input:checkbox:checked").val();
+                        if (checkbox) 
+                        {
+                            var headline = $j(this).html();
+                            var URL = $j(this).closest('tr').find('.selectedURL').text();
+                            var index = $j(this).closest('tr').find('.selectedIndex').val();
+                            //console.log('index: ' + index);
+                            //console.log('headline: ' + headline);
+                            //console.log('URL: ' + URL);
+                            resultsArray.push({'headline':headline, 'url':URL, 'index':index});
+                            //console.log('resultsArray: ' + resultsArray);
+                            totalMC++;
+                        }           
+                     });
+                     
+                     if(totalMC > 0 && totalMC < 6)
+                     {
+                        for(i=0;i<resultsArray.length;i++) 
+                        {
+                          var q; //if an order value was specified, use it, else just go in the array len index order
+                          if(resultsArray[i].index != '' && resultsArray[i].index != null)
+                          {
+                            q = resultsArray[i].index;
+                          }
+                          else
+                          {
+                            q = i+1;
+                          }
+                          var urlField = '.mcUrl' + q;
+                          var headlineField = '.mcHeadline' + q;
+                          if (resultsArray[i].url.indexOf('http') < 0) 
+                          {
+                              $j(document).find(urlField).val('http://' + resultsArray[i].url);
+                          }
+                          else 
+                          {
+                              $j(document).find(urlField).val(resultsArray[i].url);
+                          }
+                          
+                          $j(document).find(headlineField).val(resultsArray[i].headline);
+                        }
+                      }
+                      else
+                      {
+                        if(totalMC > 5){
+                            alert('You have selected more than five (5) more coverage items. Please reduce the number of selected items.');
+                            return false;
+                            }
+                      }
+                      closeModal();
+                 }
+                </script>
+                
+                <apex:outputPanel id="popup">
+                    <apex:outputPanel id="popupBackground" styleClass="popupBackground" layout="block" rendered="{!displayPopUp}"/>
+                    <apex:outputPanel id="custPopup" styleClass="custPopup" layout="block" rendered="{!displayPopUp}">
+                        <apex:pageMessages id="errors"/>
+                        <apex:actionFunction name="closeModal" action="{!closePopup}" rerender="popup" />
+                        <apex:actionFunction name="searchServer" action="{!runSearch}" rerender="MCresults,debug,errors" status="search">
+                            <apex:param name="headline" value="" />
+                            <apex:param name="language" value="" />
+                            <apex:param name="author" value=""/>
+                            <apex:param name="status" value=""/>
+                            <apex:param name="assettype" value=""/>
+                            <apex:param name="assettheme" value=""/>
+                            <apex:param name="searchkeywords" value=""/>
+                            <apex:param name="assetdatetimeoperator" value=""/> 
+                            <apex:param name="assetdatetime" value=""/>
+                            <apex:param name="isMC" value=""/>
+                        </apex:actionFunction>
+                        <apex:actionStatus id="search" onstart="loading(true, 'contentLoading1');" onstop="loading(false, 'contentLoading1');" />
+                        
+                        <apex:pageBlock title="More Coverage Search" id="MCSearchBlock">
+                        <apex:pageBlockButtons location="top">
+                            <apex:commandButton value="Cancel" action="{!closePopup}" rerender="popup"/>
+                            <apex:commandButton value="Save" onclick="addMC();return true;" rerender="popup" status="save"/>
+                            <apex:actionStatus id="save" onstart="loading(true, 'contentLoading1');" onstop="loading(false, 'contentLoading1');" />
+                        </apex:pageBlockButtons>
+                        <table cellpadding="2" cellspacing="2">
+                            <tr>
+                            <td style="font-weight:bold; ">Headline<br/>
+                            <input style="width:250px;" type="text" id="headline" onkeyup="doSearch();" onkeypress="return noenter(event)"/>
+                            </td>
+                                        
+                            <td style="font-weight:bold;">Asset Theme<br/>
+                            <select id="assettheme" onchange="doSearch();">
+                            <option value=""></option>
+                            <apex:repeat value="{!assettheme}" var="assettheme">
+                                <option value="{!assettheme}">{!assettheme}</option>
+                            </apex:repeat>
+                            </select>
+                            </td>                       
+
+                            <td style="font-weight:bold;">Publication Date/Time<br/>
+                                <apex:selectRadio onchange="doSearch();" layout="lineDirection" value="{!assetdatetimeoperator}" id="assetdatetimeoperator" >
+                                <apex:selectOptions value="{!assetdatetimeoperators}"/>
+                                </apex:selectRadio> 
+                            </td>
+                            <td style="font-weight:bold;"> <br/>
+                                <apex:inputfield id="assetdatetime" value="{!Digital_Asset__c.Asset_Date_Time__c}" onchange="doSearch();" onkeypress="return noenter(event)" / >
+                            </td>
+                            </tr>                           
+                        </table>
+                        
+                        </apex:pageBlock>
+                        <script type="text/javascript">
+                            j$ = jQuery.noConflict();
+                            j$(document).ready(function()
+                            {
+                                j$( ".contentLoading1" ).hide();                                
+                            });
+                            function loading( val, classStr )
+                                {
+                                    if (val)
+                                    {
+                                        j$( "." + classStr ).show();
+                                    }
+                                    else
+                                    {
+                                        j$( "." + classStr ).hide();
+                                    }
+                                }
+                        </script>
+                        
+                        <apex:outputPanel >
+                            <div style="text-align: center;" class="contentLoading1">
+                                <img src="/img/loading.gif" alt="Loading..." />
+                            </div>
+                        </apex:outputPanel>
+                        <apex:pageBlock Title="Results" id="MCresults">
+                            <apex:pageBlockTable value="{!mcList}" var="asset" id="MCresultsTable">
+                                <apex:column width="20px" headerValue="Select">
+                                    <apex:inputCheckbox value="{!asset.checked}"/>
+                                </apex:column>
+                                <apex:column headerValue="Order" rendered="true" title="Specify a number 1 to 5 to append to the corresponding More Coverage field">
+                                    <apex:inputText style="width:15px;" value="{!asset.mcOrder}" styleClass="selectedIndex" />
+                                </apex:column>
+                                <apex:column >
+                                    <apex:facet name="header">
+                                        <apex:commandLink value="Headline" action="{!toggleSort}" rerender="MCresults,debug">
+                                            <apex:param name="sortField" value="Name" assignTo="{!sortField}"/>
+                                        </apex:commandLink>
+                                    </apex:facet>
+                                    <apex:outputText styleClass="selectedHeadline" value="{!asset.da.name}" />
+                                </apex:column>
+                                <apex:column width="10%">
+                                    <apex:facet name="header">
+                                        <apex:commandLink value="Asset Theme" action="{!toggleSort}" rerender="MCresults,debug">
+                                            <apex:param name="sortField" value="asset_theme__c" assignTo="{!sortField}"/>
+                                        </apex:commandLink>
+                                    </apex:facet>
+                                    <apex:outputText value="{!asset.da.Asset_Theme__c}"/>
+                                </apex:column>
+                                <apex:column width="10%" >
+                                    <apex:facet name="header">
+                                        <apex:commandLink value="Publication Date/Time" action="{!toggleSort}" rerender="MCresults,debug">
+                                            <apex:param name="sortField" value="asset_date_time__c" assignTo="{!sortField}"/>
+                                        </apex:commandLink>
+                                    </apex:facet>
+                                    <apex:outputField value="{!asset.da.Asset_Date_Time__c}"/>
+                                </apex:column>                              
+                                <apex:column value="{!asset.da.Published_URL_Formula__c}" styleClass="selectedURL">
+                                    <apex:facet name="header">URL</apex:facet>
+                                </apex:column>
+                            </apex:pageBlockTable>
+                            <apex:outputPanel layout="block"
+                                rendered="{!OR((ISNULL(mcList)),mcList.size==0)}"
+                                style="border: 1px solid #D4DADC; padding: 5px 2px 4px 5px;">
+                                <span>No records to display</span>
+                            </apex:outputPanel>
+                        </apex:pageBlock>
+                        <!-- for debugging only -->
+                        <!-- 
+                        <apex:pageBlock title="Debug - SOQL" id="debug">
+                        <apex:outputText value="{!debugSoql}" />           
+                        </apex:pageBlock> -->
+                    </apex:outputPanel>
+                </apex:outputPanel>      
+        </apex:pageBlock>
+        
+        </apex:form>
+</apex:page>

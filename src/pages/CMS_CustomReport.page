@@ -1,0 +1,197 @@
+<apex:page id="myPage" controller="CMS_CustomReport" sidebar="false"  tabStyle="CMS_Projects_Report__tab">
+	<apex:sectionHeader title="CMS Project Report" subtitle="Weekly Status Report"/>
+    <apex:includeScript value="{!URLFOR($Resource.jQueryLibrary, 'jquery-1.8.3.js')}"/>
+    <script type="text/javascript">
+        j$ = $.noConflict();
+		
+		j$(document).ready(function()
+        {
+            j$( ".contentLoading" ).hide();
+            j$( '[id="myPage:myForm:pageBlock2:filter"]' ).css( "width", "400px" );
+        });
+		
+		function setFocusOnLoad() {} 
+		
+		function loading( val )
+		{
+			if (val)
+			{
+				j$( ".contentLoading" ).show();
+				j$( ".tableClass" ).hide();
+			}
+			else
+			{
+				j$( ".contentLoading" ).hide();
+				j$( ".tableClass" ).show();
+			}
+		}
+    </script>
+	<apex:form id="myForm">
+        <apex:pageBlock id="pageBlock2" >
+        	<apex:pageBlockSection id="filter" showHeader="true" title="Filter" columns="1" collapsible="true">
+				<apex:inputField label="Start date" value="{!report.Report_Start_Date__c}" />
+				<apex:inputField label="End date"   value="{!report.Report_End_Date__c}" />
+			    <apex:commandButton action="{!refresh}" rerender="postCont2,postCont,postCont3,postCont4" value="Filter" id="filterBtn" style="margin-left:200px;" status="loading2" />
+			    <apex:actionStatus id="loading2" onstart="loading(true)" onstop="loading(false)" />
+			</apex:pageBlockSection>  
+        
+            <apex:pageBlockSection showHeader="true" title="O&M Tasks" columns="1">
+            	<div style="text-align:right;float:right;"><a href="/apex/CMS_CustomReportEXCEL?reportType=OM" onclick="exportToExcel( this );">Export to Excel</a></div>
+                <apex:pageBlockTable id="postCont2" value="{!reportsOM}" var="pas" rowClasses="odd,even" styleClass="projectTable tableClass">
+                    <apex:column >
+                        <apex:facet name="header">Project Number</apex:facet>
+                        <apex:outputText value="{!pas.projectNumber}" />
+                    </apex:column>
+
+                    <apex:column >
+                        <apex:facet name="header">Task Name</apex:facet>
+                        <apex:outputText value="{!pas.name}" />
+                    </apex:column>
+                    
+                   	<apex:column >
+                   		<apex:facet name="header">
+							<apex:facet name="header">Start Date</apex:facet>
+                   		</apex:facet>
+                   		<apex:outputText value="{0,date, MM'/'dd'/'yyyy}">
+                   			<apex:param value="{!pas.startDate}" />
+                   		</apex:outputText>
+                   	</apex:column>
+                   	
+                   	<apex:column >
+                   		<apex:facet name="header">
+							<apex:facet name="header">Due Date</apex:facet>
+                   		</apex:facet>
+                   		<apex:outputText value="{0,date, MM'/'dd'/'yyyy}">
+                   			<apex:param value="{!pas.dueDate}" />
+                   		</apex:outputText>
+                   	</apex:column>
+                   	
+                   	<apex:column >
+                   		<apex:facet name="header">
+							<apex:facet name="header">Comments</apex:facet>
+                   		</apex:facet>
+                   		<apex:outputText value="{!pas.comments}" escape="false" />
+                   	</apex:column>
+                </apex:pageBlockTable>
+                <div class="contentLoading">
+					<div style="text-align: center;">
+						<img src="/img/loading.gif" alt="Loading graphic" />
+					</div>
+				</div>
+        </apex:pageBlockSection>
+	    <apex:pageBlockSection showHeader="true" title="Project Tasks" columns="1">
+	    	<div style="text-align:right;float:right;"><a href="/apex/CMS_CustomReportEXCEL?reportType=project" onclick="exportToExcel( this );">Export to Excel</a></div>
+             <apex:pageBlockTable id="postCont" value="{!reports}" var="pas" rowClasses="odd,even" styleClass="projectTable tableClass">
+             	<apex:column >
+                     <apex:facet name="header">Project Number</apex:facet>
+                     <apex:outputText value="{!pas.projectNumber}" />
+                 </apex:column>
+                 
+                 <apex:column >
+                     <apex:facet name="header">Task Name</apex:facet>
+                     <apex:outputText value="{!pas.name}" />
+                 </apex:column>
+                 
+                	<apex:column >
+                		<apex:facet name="header">
+				<apex:facet name="header">Start Date</apex:facet>
+                		</apex:facet>
+                		<apex:outputText value="{0,date, MM'/'dd'/'yyyy}">
+                			<apex:param value="{!pas.startDate}" />
+                		</apex:outputText>
+                	</apex:column>
+                	
+                	<apex:column >
+                		<apex:facet name="header">
+				<apex:facet name="header">Due Date</apex:facet>
+                		</apex:facet>
+                		<apex:outputText value="{0,date, MM'/'dd'/'yyyy}">
+                			<apex:param value="{!pas.dueDate}" />
+                		</apex:outputText>
+                	</apex:column>
+                	
+                	<apex:column >
+                   		<apex:facet name="header">
+							<apex:facet name="header">% Complete</apex:facet>
+                   		</apex:facet>
+                   		<apex:outputText value="{!pas.percentage}%" />
+                   	</apex:column>
+                   	
+                   	<apex:column >
+                   		<apex:facet name="header">
+							<apex:facet name="header">Comments</apex:facet>
+                   		</apex:facet>
+                   		<apex:outputText value="{!pas.comments}" escape="false" />
+                   	</apex:column>
+             </apex:pageBlockTable>
+             <div class="contentLoading">
+				<div style="text-align: center;">
+					<img src="/img/loading.gif" alt="Loading graphic" />
+				</div>
+			</div>
+         </apex:pageBlockSection>
+         <apex:pageBlockSection showHeader="true" title="Upcoming Leave" columns="1">
+         	<div style="text-align:right;float:right;"><a href="/apex/CMS_CustomReportEXCEL?reportType=leave" onclick="exportToExcel( this );">Export to Excel</a></div>
+             <apex:pageBlockTable id="postCont3" value="{!reportsOncomingLeave}" var="pas" rowClasses="odd,even" styleClass="projectTable tableClass">
+                 <apex:column >
+                     <apex:facet name="header">Name</apex:facet>
+                     <apex:outputText value="{!pas.name}" />
+                 </apex:column>
+                 
+                	<apex:column >
+                		<apex:facet name="header">
+				<apex:facet name="header">Start Date</apex:facet>
+                		</apex:facet>
+                		<apex:outputText value="{0,date, MM'/'dd'/'yyyy}">
+                			<apex:param value="{!pas.startDate}" />
+                		</apex:outputText>
+                	</apex:column>
+                	
+                	<apex:column >
+                		<apex:facet name="header">
+				<apex:facet name="header">End Date</apex:facet>
+                		</apex:facet>
+                		<apex:outputText value="{0,date, MM'/'dd'/'yyyy}">
+                			<apex:param value="{!pas.dueDate}" />
+                		</apex:outputText>
+                	</apex:column>
+             </apex:pageBlockTable>
+             <div class="contentLoading">
+				<div style="text-align: center;">
+					<img src="/img/loading.gif" alt="Loading graphic" />
+				</div>
+			</div>
+         </apex:pageBlockSection>
+         <apex:pageBlockSection showHeader="true" title="Key Tasks Planned for Next Period" columns="1">
+         	<div style="text-align:right;float:right;"><a href="/apex/CMS_CustomReportEXCEL?reportType=next" onclick="exportToExcel( this );">Export to Excel</a></div>
+             <apex:pageBlockTable id="postCont4" value="{!futureTaskList}" var="pas" rowClasses="odd,even" styleClass="projectTable tableClass">
+                 <apex:column >
+                     <apex:facet name="header">Project Number</apex:facet>
+                     <apex:outputText value="{!pas.projectNumber}" />
+                 </apex:column>
+                 
+                	<apex:column >
+                		<apex:facet name="header">
+				<apex:facet name="header">Task</apex:facet>
+                		</apex:facet>
+                		<apex:outputText value="{!pas.name}" />
+                	</apex:column>
+                	
+                	<apex:column >
+                		<apex:facet name="header">
+				<apex:facet name="header">Due Date</apex:facet>
+                		</apex:facet>
+                		<apex:outputText value="{0,date, MM'/'dd'/'yyyy}">
+                			<apex:param value="{!pas.dueDate}" />
+                		</apex:outputText>
+                	</apex:column>
+             </apex:pageBlockTable>
+             <div class="contentLoading">
+				<div style="text-align: center;">
+					<img src="/img/loading.gif" alt="Loading graphic" />
+				</div>
+			</div>
+         </apex:pageBlockSection>
+        </apex:pageBlock>
+	</apex:form>
+</apex:page>

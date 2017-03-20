@@ -1,0 +1,12 @@
+<apex:component access="global" controller="dos_controller_locale_formatted_datetime">
+<!--
+    Created by: Nag Malluru
+    Last Update: 10/20/2016
+        
+    NOTES:
+            - when adding to your Salesforce org set the name of component to locale_formatted_datetime
+-->
+<apex:attribute assignTo="{!date_time}" description="The DateTime value to be rendered based upon the user's locale" name="date_time_value" type="DateTime"></apex:attribute>
+<apex:attribute assignTo="{!userId}" description="Owner Id of the record for which the format needs to be fetched" name="user_Id" type="String"></apex:attribute>
+{!TimeZoneValue}
+</apex:component>

@@ -1,0 +1,11 @@
+<apex:component >
+    <apex:includeScript value="{!URLFOR($Resource.publishing_system_resources, 'publishing_system_resources/jquery.js')}"/>
+    <apex:includeScript value="{!URLFOR($Resource.publishing_system_resources, 'publishing_system_resources/iipsalesforce.js')}"/>
+    <apex:stylesheet value="{!URLFOR($Resource.publishing_system_resources, 'publishing_system_resources/iipsalesforce.css')}"/>
+    <apex:includeScript value="{!URLFOR($Resource.tinymce, 'tinymce/jscripts/tiny_mce/tiny_mce.js')}"/>
+    <apex:stylesheet value="{!URLFOR($Resource.tinymce, 'tinymce/jscripts/tiny_mce/static/content_md.css')}" />
+         
+    <!-- Spring 2013 converted to Tiny MCE so no longer need the CKEditor resources -->
+    <!-- <apex:includeScript value="{!URLFOR($Resource.ckeditor, 'ckeditor/ckeditor.js')}"/>  -->
+    <!-- <c:CKEditor_Config />   -->
+</apex:component>

@@ -1,0 +1,13 @@
+<apex:page standardController="Digital_Asset__c">
+  <h1>Test</h1>
+  <apex:form >
+      <apex:pageBlock >
+          <apex:pageBlockSection rendered="{!IF($Profile.Name == 'System Administrator',true,false)}">
+              <apex:inputField value="{!Digital_Asset__c.Status__c}"/>
+          </apex:pageBlockSection>
+          <apex:pageBlockSection rendered="{!IF($Profile.Name == 'Content Creator',true,false)}">
+              <apex:inputField value="{!Digital_Asset__c.Mobile_Headline__c}"/>
+          </apex:pageBlockSection>
+      </apex:pageBlock>
+  </apex:form>
+</apex:page>
